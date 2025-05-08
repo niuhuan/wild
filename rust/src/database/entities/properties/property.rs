@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use anyhow::Result;
 
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
-#[sea_orm(table_name = "properties")]
+#[sea_orm(table_name = "property")]
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
     pub key: String,

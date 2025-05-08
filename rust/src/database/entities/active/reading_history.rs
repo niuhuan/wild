@@ -6,7 +6,7 @@ use sea_orm::{
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
-#[sea_orm(table_name = "reading_histories")]
+#[sea_orm(table_name = "reading_history")]
 pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i32,

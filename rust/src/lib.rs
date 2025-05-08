@@ -57,18 +57,10 @@ pub async fn init(root: String) -> Result<()> {
     }
 
     // 执行实际的初始化
-    database::init_database(&root).await?;
+    database::init_database(root.as_str()).await?;
 
     // 标记初始化完成
     let _ = INIT_DONE.set(());
 
-    Ok(())
-}
-
-fn save_cookies() -> Result<()> {
-    Ok(())
-}
-
-fn load_cookies() -> Result<()> {
     Ok(())
 }
