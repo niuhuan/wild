@@ -1,0 +1,10 @@
+{
+    "dart.flutterSdkPaths": [
+        "/Users/niuhuan/Runtimes/flutter-3.13.9",
+        "/Users/niuhuan/Runtimes/flutter-3.10.5",
+        "/Users/niuhuan/Runtimes/flutter-3.7.3",
+        "/Users/niuhuan/Runtimes/flutter-3.22.1"
+    ],
+    "dart.addSdkToTerminalPath": true,
+    "dart.flutterSdkPath": "/Users/niuhuan/Runtimes/flutter-3.22.1"
+}
