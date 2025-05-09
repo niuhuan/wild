@@ -1,8 +1,9 @@
-use std::ops::Deref;
+use crate::database::entities::cookie::cookie_store::DatabaseCookieStore;
 use crate::wenku8::Wenku8Client;
 use once_cell::sync::{Lazy, OnceCell};
 use reqwest::cookie::Jar;
 use reqwest::Client;
+use std::ops::Deref;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
@@ -16,19 +17,17 @@ mod wenku8;
 
 pub(crate) type Result<T> = anyhow::Result<T>;
 
-pub(crate) static COOKIE_JAR: Lazy<Arc<Jar>> = Lazy::new(|| {
-    let jar = Jar::default();
-    Arc::new(jar)
-});
+pub(crate) static COOKIE_STORE: Lazy<Arc<DatabaseCookieStore>> =
+    Lazy::new(|| Arc::new(DatabaseCookieStore {}));
 
 pub(crate) static CLIENT: Lazy<Wenku8Client> = Lazy::new(|| {
-    let cookie_jar = Arc::clone(COOKIE_JAR.deref());
+    let cookie_store = Arc::clone(COOKIE_STORE.deref());
     let client = Client::builder()
-        .cookie_provider(cookie_jar.clone())
+        .cookie_provider(cookie_store)
         .gzip(true)
         .build()
         .unwrap();
-    Wenku8Client { client, cookie_jar }
+    Wenku8Client { client }
 });
 
 static INIT_LOCK: OnceCell<Mutex<()>> = OnceCell::new();
@@ -58,6 +57,7 @@ pub async fn init(root: String) -> Result<()> {
 
     // 执行实际的初始化
     database::init_database(root.as_str()).await?;
+    database::entities::cookie::migrations().await?;
 
     // 标记初始化完成
     let _ = INIT_DONE.set(());

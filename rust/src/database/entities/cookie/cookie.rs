@@ -2,20 +2,21 @@ use std::ops::Deref;
 
 use sea_orm::entity::prelude::*;
 use sea_orm::ActiveValue::Set;
+use sea_orm::IntoActiveModel;
 use sea_orm_migration::prelude::*;
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
 #[sea_orm(table_name = "cookie")]
 pub struct Model {
     #[sea_orm(primary_key)]
-    pub id: i64,
     pub domain: String,
+    #[sea_orm(primary_key)]
     pub name: String,
     pub value: String,
     pub path: String,
     pub expires: Option<i64>,
-    pub secure: bool,
-    pub http_only: bool,
+    pub secure: Option<bool>,
+    pub http_only: Option<bool>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
@@ -32,19 +33,24 @@ impl Entity {
             .await?)
     }
 
-    pub async fn save_cookie(cookie: Model) -> crate::Result<()> {
+    pub async fn save_or_update_cookie(cookie: Model) -> crate::Result<()> {
         let db = super::get_connect().await;
-        let active_model = ActiveModel {
-            id: Set(cookie.id),
-            domain: Set(cookie.domain),
-            name: Set(cookie.name),
-            value: Set(cookie.value),
-            path: Set(cookie.path),
-            expires: Set(cookie.expires),
-            secure: Set(cookie.secure),
-            http_only: Set(cookie.http_only),
-        };
-        active_model.insert(db.deref()).await?;
+        let exists = Entity::find()
+            .filter(Column::Domain.eq(cookie.domain.as_str()))
+            .filter(Column::Name.eq(cookie.name.as_str()))
+            .one(db.deref())
+            .await?;
+        if let Some(exists) = exists {
+            Entity::update(cookie.clone().into_active_model())
+                .filter(Column::Domain.eq(cookie.domain.as_str()))
+                .filter(Column::Name.eq(cookie.name.as_str()))
+                .exec(db.deref())
+                .await?;
+        } else {
+            Entity::insert(cookie.into_active_model())
+                .exec(db.deref())
+                .await?;
+        }
         Ok(())
     }
 
@@ -56,4 +62,13 @@ impl Entity {
             .await?;
         Ok(())
     }
-} 
+    
+    pub async fn exists(name: &str) -> crate::Result<bool> {
+        let db = super::get_connect().await;
+        let exists = Entity::find()
+            .filter(Column::Name.eq(name))
+            .count(db.deref())
+            .await?;
+        Ok(exists > 0)
+    }
+}

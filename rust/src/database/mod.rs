@@ -33,10 +33,12 @@ pub async fn init_database(root: &str) -> Result<()> {
     // 存储连接
     PROPERTIES_DB_CONNECT.set(Mutex::new(properties_db)).unwrap();
     ACTIVE_DB_CONNECT.set(Mutex::new(active_db)).unwrap();
+    COOKIE_DB_CONNECT.set(Mutex::new(cookie_db)).unwrap();
 
     // 创建表和执行迁移
     properties::migrations().await?;
     active::migrations().await?;
+    entities::cookie::migrations().await?;
     
     // 返回成功
     Ok(())

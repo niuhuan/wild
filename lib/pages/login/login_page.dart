@@ -12,7 +12,15 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _checkcodeController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    final authCubit = context.read<AuthCubit>();
+    authCubit.loadCheckcode();
+  }
 
   @override
   void dispose() {
@@ -26,6 +34,7 @@ class _LoginPageState extends State<LoginPage> {
       context.read<AuthCubit>().login(
         _usernameController.text,
         _passwordController.text,
+        _checkcodeController.text,
       );
     }
   }
@@ -79,6 +88,31 @@ class _LoginPageState extends State<LoginPage> {
                     validator: (value) {
                       if (value?.isEmpty ?? true) {
                         return '请输入密码';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  if (state.checkcode != null)
+                    if (state.checkcode!.isEmpty)
+                      Text("loading...")
+                    else
+                      Image.memory(
+                        state.checkcode!,
+                        width: 200,
+                        height: 50,
+                        fit: BoxFit.contain,
+                      ),
+                  Container(height: 20),
+                  TextFormField(
+                    controller: _checkcodeController,
+                    decoration: const InputDecoration(
+                      labelText: '验证码',
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value?.isEmpty ?? true) {
+                        return '请输入验证码';
                       }
                       return null;
                     },

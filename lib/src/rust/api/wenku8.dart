@@ -10,10 +10,18 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 Future<void> wenku8Login({
   required String username,
   required String password,
+  required String checkcode,
 }) => RustLib.instance.api.crateApiWenku8Wenku8Login(
   username: username,
   password: password,
+  checkcode: checkcode,
 );
 
 Future<List<BookshelfItem>> wenku8GetBookshelf() =>
     RustLib.instance.api.crateApiWenku8Wenku8GetBookshelf();
+
+Future<bool> preLoginState() =>
+    RustLib.instance.api.crateApiWenku8PreLoginState();
+
+Future<Uint8List> downloadCheckcode() =>
+    RustLib.instance.api.crateApiWenku8DownloadCheckcode();

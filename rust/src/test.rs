@@ -1,3 +1,6 @@
+use crate::wenku8::Wenku8Client;
+use crate::CLIENT;
+
 fn set_logger() {
     tracing_subscriber::fmt()
         .with_max_level(tracing::Level::DEBUG)
@@ -5,9 +8,35 @@ fn set_logger() {
         .init();
 }
 
+async fn init_context() -> anyhow::Result<()> {
+    set_logger();
+    crate::init("target/test_data".to_string()).await?;
+    Ok(())
+}
 #[tokio::test]
 async fn test_init() -> anyhow::Result<()> {
-    set_logger();
-    crate::init("test_data".to_string()).await?;
+    init_context().await?;
+    Ok(())
+}
+
+#[tokio::test(flavor = "multi_thread")]
+async fn test_cookie_store() -> anyhow::Result<()> {
+    init_context().await?;
+    let response = CLIENT
+        .client
+        .get("https://baidu.com/")
+        .header("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36")
+        .send()
+        .await?;
+    let text = response.text().await?;
+    println!("{}", text);
+    Ok(())
+}
+
+#[test]
+fn test_decode() -> anyhow::Result<()> {
+    let text = std::fs::read_to_string("target/ud.txt")?;
+    let ud = Wenku8Client::parse_user_detail(text.as_str())?;
+    println!("{}", serde_json::to_string_pretty(&ud)?);
     Ok(())
 }

@@ -1,6 +1,12 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wild/pages/configs/auth_cubit.dart';
+import 'package:wild/src/rust/api/system.dart';
+
+import '../../methods.dart';
 
 class InitPage extends StatefulWidget {
   const InitPage({super.key});
@@ -11,11 +17,20 @@ class InitPage extends StatefulWidget {
 
 class _InitPageState extends State<InitPage> {
   Future<void> _initializeCubits() async {
+    String root;
+    if (Platform.isMacOS || Platform.isLinux || Platform.isWindows) {
+      root = await desktopRoot();
+    } else {
+      root = await dataRoot();
+    }
+    if (kDebugMode) {
+      print('root: $root');
+    }
+    await init(root: root);
     final authCubit = context.read<AuthCubit>();
     // 初始化所有 Cubit
     await Future.wait([authCubit.init()]);
-
-    if (authCubit.state == AuthStatus.authenticated) {
+    if (authCubit.state.status == AuthStatus.authenticated) {
       // 如果已经登录，跳转到首页
       Navigator.pushReplacementNamed(context, '/home');
     } else {
