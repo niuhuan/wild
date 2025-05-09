@@ -67,7 +67,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.9.0';
 
   @override
-  int get rustContentHash => -860495593;
+  int get rustContentHash => -1967939466;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -89,6 +89,8 @@ abstract class RustLibApi extends BaseApi {
   Future<void> crateApiSimpleInitApp();
 
   Future<bool> crateApiWenku8PreLoginState();
+
+  Future<UserDetail> crateApiWenku8UserDetail();
 
   Future<List<BookshelfItem>> crateApiWenku8Wenku8GetBookshelf();
 
@@ -267,7 +269,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "pre_login_state", argNames: []);
 
   @override
-  Future<List<BookshelfItem>> crateApiWenku8Wenku8GetBookshelf() {
+  Future<UserDetail> crateApiWenku8UserDetail() {
     return handler.executeNormal(
       NormalTask(
         callFfi: (port_) {
@@ -276,6 +278,33 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
             generalizedFrbRustBinding,
             serializer,
             funcId: 7,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_user_detail,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiWenku8UserDetailConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiWenku8UserDetailConstMeta =>
+      const TaskConstMeta(debugName: "user_detail", argNames: []);
+
+  @override
+  Future<List<BookshelfItem>> crateApiWenku8Wenku8GetBookshelf() {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 8,
             port: port_,
           );
         },
@@ -309,7 +338,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 8,
+            funcId: 9,
             port: port_,
           );
         },
@@ -406,6 +435,36 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  UserDetail dco_decode_user_detail(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 20)
+      throw Exception('unexpected arr length: expect 20 but see ${arr.length}');
+    return UserDetail(
+      username: dco_decode_String(arr[0]),
+      userId: dco_decode_String(arr[1]),
+      nickname: dco_decode_String(arr[2]),
+      level: dco_decode_String(arr[3]),
+      title: dco_decode_String(arr[4]),
+      sex: dco_decode_String(arr[5]),
+      email: dco_decode_String(arr[6]),
+      qq: dco_decode_String(arr[7]),
+      msn: dco_decode_String(arr[8]),
+      web: dco_decode_String(arr[9]),
+      registerDate: dco_decode_String(arr[10]),
+      contributePoint: dco_decode_String(arr[11]),
+      experienceValue: dco_decode_String(arr[12]),
+      holdingPoints: dco_decode_String(arr[13]),
+      quantityOfFriends: dco_decode_String(arr[14]),
+      quantityOfMail: dco_decode_String(arr[15]),
+      quantityOfCollection: dco_decode_String(arr[16]),
+      quantityOfRecommendDaily: dco_decode_String(arr[17]),
+      personalizedSignature: dco_decode_String(arr[18]),
+      personalizedDescription: dco_decode_String(arr[19]),
+    );
+  }
+
+  @protected
   AnyhowException sse_decode_AnyhowException(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var inner = sse_decode_String(deserializer);
@@ -497,6 +556,53 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  UserDetail sse_decode_user_detail(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_username = sse_decode_String(deserializer);
+    var var_userId = sse_decode_String(deserializer);
+    var var_nickname = sse_decode_String(deserializer);
+    var var_level = sse_decode_String(deserializer);
+    var var_title = sse_decode_String(deserializer);
+    var var_sex = sse_decode_String(deserializer);
+    var var_email = sse_decode_String(deserializer);
+    var var_qq = sse_decode_String(deserializer);
+    var var_msn = sse_decode_String(deserializer);
+    var var_web = sse_decode_String(deserializer);
+    var var_registerDate = sse_decode_String(deserializer);
+    var var_contributePoint = sse_decode_String(deserializer);
+    var var_experienceValue = sse_decode_String(deserializer);
+    var var_holdingPoints = sse_decode_String(deserializer);
+    var var_quantityOfFriends = sse_decode_String(deserializer);
+    var var_quantityOfMail = sse_decode_String(deserializer);
+    var var_quantityOfCollection = sse_decode_String(deserializer);
+    var var_quantityOfRecommendDaily = sse_decode_String(deserializer);
+    var var_personalizedSignature = sse_decode_String(deserializer);
+    var var_personalizedDescription = sse_decode_String(deserializer);
+    return UserDetail(
+      username: var_username,
+      userId: var_userId,
+      nickname: var_nickname,
+      level: var_level,
+      title: var_title,
+      sex: var_sex,
+      email: var_email,
+      qq: var_qq,
+      msn: var_msn,
+      web: var_web,
+      registerDate: var_registerDate,
+      contributePoint: var_contributePoint,
+      experienceValue: var_experienceValue,
+      holdingPoints: var_holdingPoints,
+      quantityOfFriends: var_quantityOfFriends,
+      quantityOfMail: var_quantityOfMail,
+      quantityOfCollection: var_quantityOfCollection,
+      quantityOfRecommendDaily: var_quantityOfRecommendDaily,
+      personalizedSignature: var_personalizedSignature,
+      personalizedDescription: var_personalizedDescription,
+    );
+  }
+
+  @protected
   int sse_decode_i_32(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return deserializer.buffer.getInt32();
@@ -581,6 +687,31 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   @protected
   void sse_encode_unit(void self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
+  }
+
+  @protected
+  void sse_encode_user_detail(UserDetail self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.username, serializer);
+    sse_encode_String(self.userId, serializer);
+    sse_encode_String(self.nickname, serializer);
+    sse_encode_String(self.level, serializer);
+    sse_encode_String(self.title, serializer);
+    sse_encode_String(self.sex, serializer);
+    sse_encode_String(self.email, serializer);
+    sse_encode_String(self.qq, serializer);
+    sse_encode_String(self.msn, serializer);
+    sse_encode_String(self.web, serializer);
+    sse_encode_String(self.registerDate, serializer);
+    sse_encode_String(self.contributePoint, serializer);
+    sse_encode_String(self.experienceValue, serializer);
+    sse_encode_String(self.holdingPoints, serializer);
+    sse_encode_String(self.quantityOfFriends, serializer);
+    sse_encode_String(self.quantityOfMail, serializer);
+    sse_encode_String(self.quantityOfCollection, serializer);
+    sse_encode_String(self.quantityOfRecommendDaily, serializer);
+    sse_encode_String(self.personalizedSignature, serializer);
+    sse_encode_String(self.personalizedDescription, serializer);
   }
 
   @protected

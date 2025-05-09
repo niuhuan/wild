@@ -37,7 +37,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.9.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -860495593;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1967939466;
 
 // Section: executor
 
@@ -249,6 +249,41 @@ fn wire__crate__api__wenku8__pre_login_state_impl(
         },
     )
 }
+fn wire__crate__api__wenku8__user_detail_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "user_detail",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || async move {
+                        let output_ok = crate::api::wenku8::user_detail().await?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
 fn wire__crate__api__wenku8__wenku8_get_bookshelf_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -435,6 +470,54 @@ impl SseDecode for () {
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {}
 }
 
+impl SseDecode for crate::wenku8::models::UserDetail {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_username = <String>::sse_decode(deserializer);
+        let mut var_userId = <String>::sse_decode(deserializer);
+        let mut var_nickname = <String>::sse_decode(deserializer);
+        let mut var_level = <String>::sse_decode(deserializer);
+        let mut var_title = <String>::sse_decode(deserializer);
+        let mut var_sex = <String>::sse_decode(deserializer);
+        let mut var_email = <String>::sse_decode(deserializer);
+        let mut var_qq = <String>::sse_decode(deserializer);
+        let mut var_msn = <String>::sse_decode(deserializer);
+        let mut var_web = <String>::sse_decode(deserializer);
+        let mut var_registerDate = <String>::sse_decode(deserializer);
+        let mut var_contributePoint = <String>::sse_decode(deserializer);
+        let mut var_experienceValue = <String>::sse_decode(deserializer);
+        let mut var_holdingPoints = <String>::sse_decode(deserializer);
+        let mut var_quantityOfFriends = <String>::sse_decode(deserializer);
+        let mut var_quantityOfMail = <String>::sse_decode(deserializer);
+        let mut var_quantityOfCollection = <String>::sse_decode(deserializer);
+        let mut var_quantityOfRecommendDaily = <String>::sse_decode(deserializer);
+        let mut var_personalizedSignature = <String>::sse_decode(deserializer);
+        let mut var_personalizedDescription = <String>::sse_decode(deserializer);
+        return crate::wenku8::models::UserDetail {
+            username: var_username,
+            user_id: var_userId,
+            nickname: var_nickname,
+            level: var_level,
+            title: var_title,
+            sex: var_sex,
+            email: var_email,
+            qq: var_qq,
+            msn: var_msn,
+            web: var_web,
+            register_date: var_registerDate,
+            contribute_point: var_contributePoint,
+            experience_value: var_experienceValue,
+            holding_points: var_holdingPoints,
+            quantity_of_friends: var_quantityOfFriends,
+            quantity_of_mail: var_quantityOfMail,
+            quantity_of_collection: var_quantityOfCollection,
+            quantity_of_recommend_daily: var_quantityOfRecommendDaily,
+            personalized_signature: var_personalizedSignature,
+            personalized_description: var_personalizedDescription,
+        };
+    }
+}
+
 impl SseDecode for i32 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -456,8 +539,9 @@ fn pde_ffi_dispatcher_primary_impl(
         4 => wire__crate__api__system__init_impl(port, ptr, rust_vec_len, data_len),
         5 => wire__crate__api__simple__init_app_impl(port, ptr, rust_vec_len, data_len),
         6 => wire__crate__api__wenku8__pre_login_state_impl(port, ptr, rust_vec_len, data_len),
-        7 => wire__crate__api__wenku8__wenku8_get_bookshelf_impl(port, ptr, rust_vec_len, data_len),
-        8 => wire__crate__api__wenku8__wenku8_login_impl(port, ptr, rust_vec_len, data_len),
+        7 => wire__crate__api__wenku8__user_detail_impl(port, ptr, rust_vec_len, data_len),
+        8 => wire__crate__api__wenku8__wenku8_get_bookshelf_impl(port, ptr, rust_vec_len, data_len),
+        9 => wire__crate__api__wenku8__wenku8_login_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -517,6 +601,47 @@ impl flutter_rust_bridge::IntoIntoDart<crate::wenku8::models::Novel>
     for crate::wenku8::models::Novel
 {
     fn into_into_dart(self) -> crate::wenku8::models::Novel {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::wenku8::models::UserDetail {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.username.into_into_dart().into_dart(),
+            self.user_id.into_into_dart().into_dart(),
+            self.nickname.into_into_dart().into_dart(),
+            self.level.into_into_dart().into_dart(),
+            self.title.into_into_dart().into_dart(),
+            self.sex.into_into_dart().into_dart(),
+            self.email.into_into_dart().into_dart(),
+            self.qq.into_into_dart().into_dart(),
+            self.msn.into_into_dart().into_dart(),
+            self.web.into_into_dart().into_dart(),
+            self.register_date.into_into_dart().into_dart(),
+            self.contribute_point.into_into_dart().into_dart(),
+            self.experience_value.into_into_dart().into_dart(),
+            self.holding_points.into_into_dart().into_dart(),
+            self.quantity_of_friends.into_into_dart().into_dart(),
+            self.quantity_of_mail.into_into_dart().into_dart(),
+            self.quantity_of_collection.into_into_dart().into_dart(),
+            self.quantity_of_recommend_daily
+                .into_into_dart()
+                .into_dart(),
+            self.personalized_signature.into_into_dart().into_dart(),
+            self.personalized_description.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::wenku8::models::UserDetail
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::wenku8::models::UserDetail>
+    for crate::wenku8::models::UserDetail
+{
+    fn into_into_dart(self) -> crate::wenku8::models::UserDetail {
         self
     }
 }
@@ -602,6 +727,32 @@ impl SseEncode for u8 {
 impl SseEncode for () {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {}
+}
+
+impl SseEncode for crate::wenku8::models::UserDetail {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.username, serializer);
+        <String>::sse_encode(self.user_id, serializer);
+        <String>::sse_encode(self.nickname, serializer);
+        <String>::sse_encode(self.level, serializer);
+        <String>::sse_encode(self.title, serializer);
+        <String>::sse_encode(self.sex, serializer);
+        <String>::sse_encode(self.email, serializer);
+        <String>::sse_encode(self.qq, serializer);
+        <String>::sse_encode(self.msn, serializer);
+        <String>::sse_encode(self.web, serializer);
+        <String>::sse_encode(self.register_date, serializer);
+        <String>::sse_encode(self.contribute_point, serializer);
+        <String>::sse_encode(self.experience_value, serializer);
+        <String>::sse_encode(self.holding_points, serializer);
+        <String>::sse_encode(self.quantity_of_friends, serializer);
+        <String>::sse_encode(self.quantity_of_mail, serializer);
+        <String>::sse_encode(self.quantity_of_collection, serializer);
+        <String>::sse_encode(self.quantity_of_recommend_daily, serializer);
+        <String>::sse_encode(self.personalized_signature, serializer);
+        <String>::sse_encode(self.personalized_description, serializer);
+    }
 }
 
 impl SseEncode for i32 {

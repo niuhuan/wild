@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:wild/pages/configs/auth_cubit.dart';
+import 'package:wild/pages/auth_cubit.dart';
 import 'package:wild/pages/home/bookshelf_cubit.dart';
-import 'package:wild/src/rust/frb_generated.dart';
 import 'package:wild/src/rust/wenku8/models.dart';
 
-class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+class BookshelfPage extends StatelessWidget {
+  const BookshelfPage({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -25,3 +25,6 @@ Future<bool> preLoginState() =>
 
 Future<Uint8List> downloadCheckcode() =>
     RustLib.instance.api.crateApiWenku8DownloadCheckcode();
+
+Future<UserDetail> userDetail() =>
+    RustLib.instance.api.crateApiWenku8UserDetail();

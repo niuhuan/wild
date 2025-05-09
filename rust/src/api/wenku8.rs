@@ -1,4 +1,4 @@
-use crate::wenku8::BookshelfItem;
+use crate::wenku8::{BookshelfItem, UserDetail};
 use crate::Result;
 use crate::CLIENT;
 
@@ -19,4 +19,8 @@ pub async fn pre_login_state() -> Result<bool> {
 
 pub async fn download_checkcode() -> Result<Vec<u8>> {
     CLIENT.checkcode().await
+}
+
+pub async fn user_detail() -> Result<UserDetail> {
+    CLIENT.userdetail().await
 }

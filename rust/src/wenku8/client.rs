@@ -66,7 +66,8 @@ impl Wenku8Client {
             return Err(anyhow!("Login failed: {}", response.status()));
         }
 
-        let text = response.text().await?;
+        let text = response.bytes().await?;
+        let text = decode_gbk(text)?;
         Self::parse_user_detail(text.as_str())
     }
 

@@ -62,3 +62,98 @@ class Novel {
           lastChapter == other.lastChapter &&
           tags == other.tags;
 }
+
+class UserDetail {
+  final String username;
+  final String userId;
+  final String nickname;
+  final String level;
+  final String title;
+  final String sex;
+  final String email;
+  final String qq;
+  final String msn;
+  final String web;
+  final String registerDate;
+  final String contributePoint;
+  final String experienceValue;
+  final String holdingPoints;
+  final String quantityOfFriends;
+  final String quantityOfMail;
+  final String quantityOfCollection;
+  final String quantityOfRecommendDaily;
+  final String personalizedSignature;
+  final String personalizedDescription;
+
+  const UserDetail({
+    required this.username,
+    required this.userId,
+    required this.nickname,
+    required this.level,
+    required this.title,
+    required this.sex,
+    required this.email,
+    required this.qq,
+    required this.msn,
+    required this.web,
+    required this.registerDate,
+    required this.contributePoint,
+    required this.experienceValue,
+    required this.holdingPoints,
+    required this.quantityOfFriends,
+    required this.quantityOfMail,
+    required this.quantityOfCollection,
+    required this.quantityOfRecommendDaily,
+    required this.personalizedSignature,
+    required this.personalizedDescription,
+  });
+
+  @override
+  int get hashCode =>
+      username.hashCode ^
+      userId.hashCode ^
+      nickname.hashCode ^
+      level.hashCode ^
+      title.hashCode ^
+      sex.hashCode ^
+      email.hashCode ^
+      qq.hashCode ^
+      msn.hashCode ^
+      web.hashCode ^
+      registerDate.hashCode ^
+      contributePoint.hashCode ^
+      experienceValue.hashCode ^
+      holdingPoints.hashCode ^
+      quantityOfFriends.hashCode ^
+      quantityOfMail.hashCode ^
+      quantityOfCollection.hashCode ^
+      quantityOfRecommendDaily.hashCode ^
+      personalizedSignature.hashCode ^
+      personalizedDescription.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is UserDetail &&
+          runtimeType == other.runtimeType &&
+          username == other.username &&
+          userId == other.userId &&
+          nickname == other.nickname &&
+          level == other.level &&
+          title == other.title &&
+          sex == other.sex &&
+          email == other.email &&
+          qq == other.qq &&
+          msn == other.msn &&
+          web == other.web &&
+          registerDate == other.registerDate &&
+          contributePoint == other.contributePoint &&
+          experienceValue == other.experienceValue &&
+          holdingPoints == other.holdingPoints &&
+          quantityOfFriends == other.quantityOfFriends &&
+          quantityOfMail == other.quantityOfMail &&
+          quantityOfCollection == other.quantityOfCollection &&
+          quantityOfRecommendDaily == other.quantityOfRecommendDaily &&
+          personalizedSignature == other.personalizedSignature &&
+          personalizedDescription == other.personalizedDescription;
+}

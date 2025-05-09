@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:wild/pages/configs/auth_cubit.dart';
-import 'package:wild/pages/init/init_page.dart';
-import 'package:wild/pages/login/login_page.dart';
-import 'package:wild/pages/home/home_page.dart';
+import 'package:wild/pages/auth_cubit.dart';
+import 'package:wild/pages/init_page.dart';
+import 'package:wild/pages/login_page.dart';
+import 'package:wild/pages/home_page.dart';
 import 'package:wild/src/rust/frb_generated.dart';
 
 Future<void> main() async {
