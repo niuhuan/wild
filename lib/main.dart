@@ -4,6 +4,7 @@ import 'package:wild/pages/auth_cubit.dart';
 import 'package:wild/pages/init_page.dart';
 import 'package:wild/pages/login_page.dart';
 import 'package:wild/pages/home_page.dart';
+import 'package:wild/pages/novel/novel_info_page.dart';
 import 'package:wild/src/rust/frb_generated.dart';
 
 Future<void> main() async {
@@ -29,6 +30,10 @@ class MyApp extends StatelessWidget {
           '/init': (context) => const InitPage(),
           '/login': (context) => const LoginPage(),
           '/home': (context) => const HomePage(),
+          '/novel/info': (context) {
+            final novelId = ModalRoute.of(context)!.settings.arguments as String;
+            return NovelInfoPage(novelId: novelId);
+          },
         },
       ),
     );

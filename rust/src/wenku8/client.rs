@@ -246,9 +246,6 @@ impl Wenku8Client {
             .attr("src")
             .ok_or_else(|| anyhow!("Failed to find img_url"))?
             .to_string();
-        if img_url.starts_with("http://") {
-            img_url = img_url.replace("http://", "https://");
-        }
         novel_info.img_url = img_url;
 
         let introduce = content
@@ -356,9 +353,6 @@ impl Wenku8Client {
                                 .attr("src")
                                 .ok_or_else(|| anyhow!("Failed to find img"))?
                                 .to_string();
-                            if img.starts_with("http://") {
-                                img = img.replace("http://", "https://");
-                            }
                             let detail_url = parent
                                 .value()
                                 .attr("href")
@@ -422,9 +416,6 @@ impl Wenku8Client {
                     .attr("src")
                     .ok_or_else(|| anyhow!("Failed to find img"))?
                     .to_string();
-                if img.starts_with("http://") {
-                    img = img.replace("http://", "https://");
-                }
                 let url = j
                     .select(&a_selector)
                     .next()

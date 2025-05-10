@@ -74,9 +74,9 @@ class _HomeBlockWidget extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
           child: Text(
             block.title,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
           ),
         ),
         Padding(
@@ -109,12 +109,10 @@ class _NovelCoverCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    var card = Card(
       clipBehavior: Clip.antiAlias,
-      elevation: 1,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(4),
-      ),
+      elevation: .5,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -153,6 +151,12 @@ class _NovelCoverCard extends StatelessWidget {
           ),
         ],
       ),
+    );
+    return GestureDetector(
+      onTap: () {
+        Navigator.pushNamed(context, '/novel/info', arguments: novel.aid);
+      },
+      child: card,
     );
   }
 }
