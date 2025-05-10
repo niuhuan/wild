@@ -502,14 +502,12 @@ impl Wenku8Client {
     }
 
     pub async fn download_image(&self, url: &str) -> Result<Vec<u8>> {
-        let response = self
-            .client
-            .get(url)
-            .header("User-Agent", USER_AGENT)
-            .header("Referer", API_HOST)
+        let response = self.client.get(url)
+            .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
+            .header("Referer", "https://www.wenku8.net/")
             .send()
             .await?;
-        
+
         if !response.status().is_success() {
             return Err(anyhow!("Failed to download image: {}", response.status()));
         }

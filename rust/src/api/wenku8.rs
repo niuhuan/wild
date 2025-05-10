@@ -1,6 +1,8 @@
 use crate::wenku8::{BookshelfItem, HomeBlock, UserDetail};
 use crate::Result;
 use crate::CLIENT;
+use crate::database;
+use std::path::Path;
 
 #[flutter_rust_bridge::frb]
 pub async fn wenku8_login(username: String, password: String, checkcode: String) -> Result<()> {
@@ -30,5 +32,5 @@ pub async fn index() -> anyhow::Result<Vec<HomeBlock>> {
 }
 
 pub async fn download_image(url: String) -> anyhow::Result<Vec<u8>> {
-    CLIENT.download_image(url.as_str()).await
+    crate::get_cached_image(url).await
 }

@@ -4,6 +4,7 @@ use sea_orm_migration::{MigrationTrait, MigratorTrait};
 use std::ops::Deref;
 
 pub mod reading_history;
+pub mod image_cache;
 
 async fn get_connect() -> tokio::sync::MutexGuard<'static, DatabaseConnection> {
     ACTIVE_DB_CONNECT.get().unwrap().lock().await
@@ -25,6 +26,12 @@ impl MigratorTrait for Migrator {
             ),
             Box::new(
                 reading_history::migrations::m000002_idx_reading_histories_novel_id::Migration,
+            ),
+            Box::new(
+                image_cache::migrations::m000001_create_table_image_cache::Migration,
+            ),
+            Box::new(
+                image_cache::migrations::m000002_idx_image_cache_url_md5::Migration,
             ),
         ]
     }

@@ -25,6 +25,9 @@ tracing = "0.1.41"
 cookie = "0.18.1"
 rand = "0.9.1"
 regex = "1.11.1"
+image = "0.24"
+md5 = "0.7"
+hex = "0.4.3"
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(frb_expand)'] }
