@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:wild/pages/home/account_cubit.dart';
+
+import 'account_cubit.dart';
 
 class AccountPage extends StatelessWidget {
   const AccountPage({super.key});
@@ -42,29 +43,52 @@ class AccountPage extends StatelessWidget {
                 return ListView(
                   padding: const EdgeInsets.all(16),
                   children: [
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '用户名：${userDetail.username}',
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              '积分：${userDetail.holdingPoints}',
-                              style: Theme.of(context).textTheme.bodyLarge,
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              '等级：${userDetail.level}',
-                              style: Theme.of(context).textTheme.bodyLarge,
-                            ),
-                          ],
-                        ),
-                      ),
+                    _buildSection(
+                      context,
+                      '基本信息',
+                      [
+                        _buildInfoRow('用户名', userDetail.username),
+                        _buildInfoRow('昵称', userDetail.nickname),
+                        _buildInfoRow('用户ID', userDetail.userId),
+                        _buildInfoRow('等级', userDetail.level),
+                        _buildInfoRow('头衔', userDetail.title),
+                        _buildInfoRow('性别', userDetail.sex),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    _buildSection(
+                      context,
+                      '联系方式',
+                      [
+                        _buildInfoRow('邮箱', userDetail.email),
+                        _buildInfoRow('QQ', userDetail.qq),
+                        _buildInfoRow('MSN', userDetail.msn),
+                        _buildInfoRow('网站', userDetail.web),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    _buildSection(
+                      context,
+                      '账户信息',
+                      [
+                        _buildInfoRow('注册日期', userDetail.registerDate),
+                        _buildInfoRow('贡献值', userDetail.contributePoint),
+                        _buildInfoRow('经验值', userDetail.experienceValue),
+                        _buildInfoRow('持有积分', userDetail.holdingPoints),
+                        _buildInfoRow('好友数量', userDetail.quantityOfFriends),
+                        _buildInfoRow('邮件数量', userDetail.quantityOfMail),
+                        _buildInfoRow('收藏数量', userDetail.quantityOfCollection),
+                        _buildInfoRow('每日推荐', userDetail.quantityOfRecommendDaily),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    _buildSection(
+                      context,
+                      '个人签名',
+                      [
+                        _buildInfoRow('签名', userDetail.personalizedSignature),
+                        _buildInfoRow('描述', userDetail.personalizedDescription),
+                      ],
                     ),
                   ],
                 );
@@ -73,6 +97,55 @@ class AccountPage extends StatelessWidget {
             }
           },
         ),
+      ),
+    );
+  }
+
+  Widget _buildSection(BuildContext context, String title, List<Widget> children) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+            const SizedBox(height: 12),
+            ...children,
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 80,
+            child: Text(
+              label,
+              style: const TextStyle(
+                color: Colors.grey,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value.isEmpty ? '未设置' : value,
+              style: const TextStyle(
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
