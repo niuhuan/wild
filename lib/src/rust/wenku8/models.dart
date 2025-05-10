@@ -24,6 +24,34 @@ class BookshelfItem {
           lastRead == other.lastRead;
 }
 
+class Chapter {
+  final String title;
+  final String url;
+  final String cid;
+  final String aid;
+
+  const Chapter({
+    required this.title,
+    required this.url,
+    required this.cid,
+    required this.aid,
+  });
+
+  @override
+  int get hashCode =>
+      title.hashCode ^ url.hashCode ^ cid.hashCode ^ aid.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Chapter &&
+          runtimeType == other.runtimeType &&
+          title == other.title &&
+          url == other.url &&
+          cid == other.cid &&
+          aid == other.aid;
+}
+
 class HomeBlock {
   final String title;
   final List<NovelCover> list;
@@ -107,6 +135,61 @@ class NovelCover {
           img == other.img &&
           detailUrl == other.detailUrl &&
           aid == other.aid;
+}
+
+class NovelInfo {
+  final String title;
+  final String author;
+  final String status;
+  final String finUpdate;
+  final String imgUrl;
+  final String introduce;
+  final List<String> tags;
+  final String heat;
+  final String trending;
+  final bool isAnimated;
+
+  const NovelInfo({
+    required this.title,
+    required this.author,
+    required this.status,
+    required this.finUpdate,
+    required this.imgUrl,
+    required this.introduce,
+    required this.tags,
+    required this.heat,
+    required this.trending,
+    required this.isAnimated,
+  });
+
+  @override
+  int get hashCode =>
+      title.hashCode ^
+      author.hashCode ^
+      status.hashCode ^
+      finUpdate.hashCode ^
+      imgUrl.hashCode ^
+      introduce.hashCode ^
+      tags.hashCode ^
+      heat.hashCode ^
+      trending.hashCode ^
+      isAnimated.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is NovelInfo &&
+          runtimeType == other.runtimeType &&
+          title == other.title &&
+          author == other.author &&
+          status == other.status &&
+          finUpdate == other.finUpdate &&
+          imgUrl == other.imgUrl &&
+          introduce == other.introduce &&
+          tags == other.tags &&
+          heat == other.heat &&
+          trending == other.trending &&
+          isAnimated == other.isAnimated;
 }
 
 class UserDetail {
@@ -202,4 +285,24 @@ class UserDetail {
           quantityOfRecommendDaily == other.quantityOfRecommendDaily &&
           personalizedSignature == other.personalizedSignature &&
           personalizedDescription == other.personalizedDescription;
+}
+
+class Volume {
+  final String id;
+  final String title;
+  final List<Chapter> chapters;
+
+  const Volume({required this.id, required this.title, required this.chapters});
+
+  @override
+  int get hashCode => id.hashCode ^ title.hashCode ^ chapters.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Volume &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          title == other.title &&
+          chapters == other.chapters;
 }

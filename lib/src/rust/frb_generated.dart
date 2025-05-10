@@ -67,7 +67,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.9.0';
 
   @override
-  int get rustContentHash => -555538503;
+  int get rustContentHash => -76296947;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -91,6 +91,10 @@ abstract class RustLibApi extends BaseApi {
   Future<void> crateApiSystemInit({required String root});
 
   Future<void> crateApiSimpleInitApp();
+
+  Future<NovelInfo> crateApiWenku8NovelInfo({required String aid});
+
+  Future<List<Volume>> crateApiWenku8NovelReader({required String aid});
 
   Future<bool> crateApiWenku8PreLoginState();
 
@@ -301,6 +305,62 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "init_app", argNames: []);
 
   @override
+  Future<NovelInfo> crateApiWenku8NovelInfo({required String aid}) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(aid, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 8,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_novel_info,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiWenku8NovelInfoConstMeta,
+        argValues: [aid],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiWenku8NovelInfoConstMeta =>
+      const TaskConstMeta(debugName: "novel_info", argNames: ["aid"]);
+
+  @override
+  Future<List<Volume>> crateApiWenku8NovelReader({required String aid}) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(aid, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 9,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_list_volume,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiWenku8NovelReaderConstMeta,
+        argValues: [aid],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiWenku8NovelReaderConstMeta =>
+      const TaskConstMeta(debugName: "novel_reader", argNames: ["aid"]);
+
+  @override
   Future<bool> crateApiWenku8PreLoginState() {
     return handler.executeNormal(
       NormalTask(
@@ -309,7 +369,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 8,
+            funcId: 10,
             port: port_,
           );
         },
@@ -336,7 +396,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 9,
+            funcId: 11,
             port: port_,
           );
         },
@@ -363,7 +423,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 10,
+            funcId: 12,
             port: port_,
           );
         },
@@ -397,7 +457,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 11,
+            funcId: 13,
             port: port_,
           );
         },
@@ -448,6 +508,20 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  Chapter dco_decode_chapter(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 4)
+      throw Exception('unexpected arr length: expect 4 but see ${arr.length}');
+    return Chapter(
+      title: dco_decode_String(arr[0]),
+      url: dco_decode_String(arr[1]),
+      cid: dco_decode_String(arr[2]),
+      aid: dco_decode_String(arr[3]),
+    );
+  }
+
+  @protected
   HomeBlock dco_decode_home_block(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
@@ -472,6 +546,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<Chapter> dco_decode_list_chapter(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_chapter).toList();
+  }
+
+  @protected
   List<HomeBlock> dco_decode_list_home_block(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return (raw as List<dynamic>).map(dco_decode_home_block).toList();
@@ -487,6 +567,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as Uint8List;
+  }
+
+  @protected
+  List<Volume> dco_decode_list_volume(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_volume).toList();
   }
 
   @protected
@@ -516,6 +602,26 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       img: dco_decode_String(arr[1]),
       detailUrl: dco_decode_String(arr[2]),
       aid: dco_decode_String(arr[3]),
+    );
+  }
+
+  @protected
+  NovelInfo dco_decode_novel_info(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 10)
+      throw Exception('unexpected arr length: expect 10 but see ${arr.length}');
+    return NovelInfo(
+      title: dco_decode_String(arr[0]),
+      author: dco_decode_String(arr[1]),
+      status: dco_decode_String(arr[2]),
+      finUpdate: dco_decode_String(arr[3]),
+      imgUrl: dco_decode_String(arr[4]),
+      introduce: dco_decode_String(arr[5]),
+      tags: dco_decode_list_String(arr[6]),
+      heat: dco_decode_String(arr[7]),
+      trending: dco_decode_String(arr[8]),
+      isAnimated: dco_decode_bool(arr[9]),
     );
   }
 
@@ -562,6 +668,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  Volume dco_decode_volume(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return Volume(
+      id: dco_decode_String(arr[0]),
+      title: dco_decode_String(arr[1]),
+      chapters: dco_decode_list_chapter(arr[2]),
+    );
+  }
+
+  @protected
   AnyhowException sse_decode_AnyhowException(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var inner = sse_decode_String(deserializer);
@@ -587,6 +706,16 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   bool sse_decode_bool(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return deserializer.buffer.getUint8() != 0;
+  }
+
+  @protected
+  Chapter sse_decode_chapter(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_title = sse_decode_String(deserializer);
+    var var_url = sse_decode_String(deserializer);
+    var var_cid = sse_decode_String(deserializer);
+    var var_aid = sse_decode_String(deserializer);
+    return Chapter(title: var_title, url: var_url, cid: var_cid, aid: var_aid);
   }
 
   @protected
@@ -624,6 +753,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<Chapter> sse_decode_list_chapter(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <Chapter>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_chapter(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
   List<HomeBlock> sse_decode_list_home_block(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
@@ -652,6 +793,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var len_ = sse_decode_i_32(deserializer);
     return deserializer.buffer.getUint8List(len_);
+  }
+
+  @protected
+  List<Volume> sse_decode_list_volume(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <Volume>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_volume(deserializer));
+    }
+    return ans_;
   }
 
   @protected
@@ -685,6 +838,33 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       img: var_img,
       detailUrl: var_detailUrl,
       aid: var_aid,
+    );
+  }
+
+  @protected
+  NovelInfo sse_decode_novel_info(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_title = sse_decode_String(deserializer);
+    var var_author = sse_decode_String(deserializer);
+    var var_status = sse_decode_String(deserializer);
+    var var_finUpdate = sse_decode_String(deserializer);
+    var var_imgUrl = sse_decode_String(deserializer);
+    var var_introduce = sse_decode_String(deserializer);
+    var var_tags = sse_decode_list_String(deserializer);
+    var var_heat = sse_decode_String(deserializer);
+    var var_trending = sse_decode_String(deserializer);
+    var var_isAnimated = sse_decode_bool(deserializer);
+    return NovelInfo(
+      title: var_title,
+      author: var_author,
+      status: var_status,
+      finUpdate: var_finUpdate,
+      imgUrl: var_imgUrl,
+      introduce: var_introduce,
+      tags: var_tags,
+      heat: var_heat,
+      trending: var_trending,
+      isAnimated: var_isAnimated,
     );
   }
 
@@ -747,6 +927,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  Volume sse_decode_volume(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_String(deserializer);
+    var var_title = sse_decode_String(deserializer);
+    var var_chapters = sse_decode_list_chapter(deserializer);
+    return Volume(id: var_id, title: var_title, chapters: var_chapters);
+  }
+
+  @protected
   int sse_decode_i_32(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return deserializer.buffer.getInt32();
@@ -781,6 +970,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_chapter(Chapter self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.title, serializer);
+    sse_encode_String(self.url, serializer);
+    sse_encode_String(self.cid, serializer);
+    sse_encode_String(self.aid, serializer);
+  }
+
+  @protected
   void sse_encode_home_block(HomeBlock self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.title, serializer);
@@ -805,6 +1003,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_i_32(self.length, serializer);
     for (final item in self) {
       sse_encode_bookshelf_item(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_chapter(List<Chapter> self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_chapter(item, serializer);
     }
   }
 
@@ -843,6 +1050,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_list_volume(List<Volume> self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_volume(item, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_novel(Novel self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.id, serializer);
@@ -860,6 +1076,21 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_String(self.img, serializer);
     sse_encode_String(self.detailUrl, serializer);
     sse_encode_String(self.aid, serializer);
+  }
+
+  @protected
+  void sse_encode_novel_info(NovelInfo self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.title, serializer);
+    sse_encode_String(self.author, serializer);
+    sse_encode_String(self.status, serializer);
+    sse_encode_String(self.finUpdate, serializer);
+    sse_encode_String(self.imgUrl, serializer);
+    sse_encode_String(self.introduce, serializer);
+    sse_encode_list_String(self.tags, serializer);
+    sse_encode_String(self.heat, serializer);
+    sse_encode_String(self.trending, serializer);
+    sse_encode_bool(self.isAnimated, serializer);
   }
 
   @protected
@@ -896,6 +1127,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_String(self.quantityOfRecommendDaily, serializer);
     sse_encode_String(self.personalizedSignature, serializer);
     sse_encode_String(self.personalizedDescription, serializer);
+  }
+
+  @protected
+  void sse_encode_volume(Volume self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.id, serializer);
+    sse_encode_String(self.title, serializer);
+    sse_encode_list_chapter(self.chapters, serializer);
   }
 
   @protected

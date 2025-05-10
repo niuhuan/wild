@@ -56,3 +56,11 @@ fn test_parse_index() -> anyhow::Result<()> {
     println!("{}", serde_json::to_string_pretty(&index)?);
     Ok(())
 }
+
+#[test]
+fn test_parse_reader() -> anyhow::Result<()> {
+    let text = std::fs::read_to_string("target/rd.txt")?;
+    let reader = Wenku8Client::parse_reader(text.as_str())?;
+    println!("{}", serde_json::to_string_pretty(&reader)?);
+    Ok(())
+}

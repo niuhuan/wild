@@ -74,3 +74,35 @@ pub struct SimpleNovelCover {
     pub aid: String,
 }
 
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub struct Chapter {
+    pub title: String,
+    pub url: String,
+    pub cid: String,
+    pub aid: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub struct Volume {
+    pub id: String,
+    pub title: String,
+    pub chapters: Vec<Chapter>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub struct NovelDetail {
+    pub aid: String,
+    pub title: String,
+    pub author: String,
+    pub cover_url: String,
+    pub last_chapter: String,
+    pub tags: Vec<String>,
+    pub status: String,
+    pub fin_update: String,
+    pub img_url: String,
+    pub introduce: String,
+    pub heat: String,
+    pub trending: String,
+    pub is_animated: bool,
+    pub volumes: Vec<Volume>,
+}

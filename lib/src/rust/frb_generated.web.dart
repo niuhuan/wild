@@ -36,6 +36,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   bool dco_decode_bool(dynamic raw);
 
   @protected
+  Chapter dco_decode_chapter(dynamic raw);
+
+  @protected
   HomeBlock dco_decode_home_block(dynamic raw);
 
   @protected
@@ -43,6 +46,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<BookshelfItem> dco_decode_list_bookshelf_item(dynamic raw);
+
+  @protected
+  List<Chapter> dco_decode_list_chapter(dynamic raw);
 
   @protected
   List<HomeBlock> dco_decode_list_home_block(dynamic raw);
@@ -54,10 +60,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
 
   @protected
+  List<Volume> dco_decode_list_volume(dynamic raw);
+
+  @protected
   Novel dco_decode_novel(dynamic raw);
 
   @protected
   NovelCover dco_decode_novel_cover(dynamic raw);
+
+  @protected
+  NovelInfo dco_decode_novel_info(dynamic raw);
 
   @protected
   int dco_decode_u_8(dynamic raw);
@@ -67,6 +79,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   UserDetail dco_decode_user_detail(dynamic raw);
+
+  @protected
+  Volume dco_decode_volume(dynamic raw);
 
   @protected
   AnyhowException sse_decode_AnyhowException(SseDeserializer deserializer);
@@ -81,6 +96,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   bool sse_decode_bool(SseDeserializer deserializer);
 
   @protected
+  Chapter sse_decode_chapter(SseDeserializer deserializer);
+
+  @protected
   HomeBlock sse_decode_home_block(SseDeserializer deserializer);
 
   @protected
@@ -92,6 +110,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  List<Chapter> sse_decode_list_chapter(SseDeserializer deserializer);
+
+  @protected
   List<HomeBlock> sse_decode_list_home_block(SseDeserializer deserializer);
 
   @protected
@@ -101,10 +122,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
 
   @protected
+  List<Volume> sse_decode_list_volume(SseDeserializer deserializer);
+
+  @protected
   Novel sse_decode_novel(SseDeserializer deserializer);
 
   @protected
   NovelCover sse_decode_novel_cover(SseDeserializer deserializer);
+
+  @protected
+  NovelInfo sse_decode_novel_info(SseDeserializer deserializer);
 
   @protected
   int sse_decode_u_8(SseDeserializer deserializer);
@@ -114,6 +141,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   UserDetail sse_decode_user_detail(SseDeserializer deserializer);
+
+  @protected
+  Volume sse_decode_volume(SseDeserializer deserializer);
 
   @protected
   int sse_decode_i_32(SseDeserializer deserializer);
@@ -134,6 +164,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_bool(bool self, SseSerializer serializer);
 
   @protected
+  void sse_encode_chapter(Chapter self, SseSerializer serializer);
+
+  @protected
   void sse_encode_home_block(HomeBlock self, SseSerializer serializer);
 
   @protected
@@ -144,6 +177,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
     List<BookshelfItem> self,
     SseSerializer serializer,
   );
+
+  @protected
+  void sse_encode_list_chapter(List<Chapter> self, SseSerializer serializer);
 
   @protected
   void sse_encode_list_home_block(
@@ -164,10 +200,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_list_volume(List<Volume> self, SseSerializer serializer);
+
+  @protected
   void sse_encode_novel(Novel self, SseSerializer serializer);
 
   @protected
   void sse_encode_novel_cover(NovelCover self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_novel_info(NovelInfo self, SseSerializer serializer);
 
   @protected
   void sse_encode_u_8(int self, SseSerializer serializer);
@@ -177,6 +219,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_user_detail(UserDetail self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_volume(Volume self, SseSerializer serializer);
 
   @protected
   void sse_encode_i_32(int self, SseSerializer serializer);

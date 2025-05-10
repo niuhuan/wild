@@ -33,3 +33,9 @@ Future<List<HomeBlock>> index() => RustLib.instance.api.crateApiWenku8Index();
 
 Future<Uint8List> downloadImage({required String url}) =>
     RustLib.instance.api.crateApiWenku8DownloadImage(url: url);
+
+Future<NovelInfo> novelInfo({required String aid}) =>
+    RustLib.instance.api.crateApiWenku8NovelInfo(aid: aid);
+
+Future<List<Volume>> novelReader({required String aid}) =>
+    RustLib.instance.api.crateApiWenku8NovelReader(aid: aid);

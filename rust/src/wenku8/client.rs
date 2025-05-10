@@ -5,7 +5,6 @@ use rand::Rng;
 use reqwest::Client;
 use scraper::Node::Element;
 use scraper::{ElementRef, Html, Selector};
-use std::mem::take;
 
 const API_HOST: &str = "https://www.wenku8.net";
 const USER_AGENT: &str =
@@ -143,8 +142,8 @@ impl Wenku8Client {
         Ok(user_detail)
     }
 
-    pub async fn novel_info(&self, id: &str) -> Result<NovelInfo> {
-        let url = format!("{API_HOST}/modules/article/articleinfo.php?id={id}&charset=gbk");
+    pub async fn novel_info(&self, aid: &str) -> Result<NovelInfo> {
+        let url = format!("{API_HOST}/modules/article/articleinfo.php?id={aid}&charset=gbk");
         let response = self
             .client
             .get(url)
@@ -296,7 +295,7 @@ impl Wenku8Client {
 
         Ok(novel_info)
     }
-    
+
     pub async fn index(&self) -> Result<Vec<HomeBlock>> {
         let resp = self
             .client
@@ -352,7 +351,8 @@ impl Wenku8Client {
                                 .attr("title")
                                 .ok_or_else(|| anyhow!("Failed to find title"))?
                                 .to_string();
-                            let mut img = img.value()
+                            let mut img = img
+                                .value()
                                 .attr("src")
                                 .ok_or_else(|| anyhow!("Failed to find img"))?
                                 .to_string();
@@ -513,6 +513,89 @@ impl Wenku8Client {
         }
 
         Ok(response.bytes().await?.to_vec())
+    }
+
+    pub(crate) fn parse_reader(text: &str) -> Result<Vec<Volume>> {
+        let mut volumes = Vec::new();
+        let html = Html::parse_document(text);
+        let table_selector = Selector::parse("table.css").unwrap();
+        let tr_selector = Selector::parse("tr").unwrap();
+        let vcss_td_selector = Selector::parse("td.vcss").unwrap();
+        let ccss_td_a_selector = Selector::parse("td.ccss>a").unwrap();
+
+        let mut vid = "".to_string();
+        let mut vtitle = "".to_string();
+        let mut chapters = Vec::<Chapter>::new();
+
+        let table = html
+            .select(&table_selector)
+            .next()
+            .ok_or_else(|| anyhow!("Failed to find table"))?;
+
+        for tr in table.select(&tr_selector) {
+            if let Some(td) = tr.select(&vcss_td_selector).next() {
+                if !"".eq(vid.as_str()) {
+                    volumes.push(Volume {
+                        id: vid,
+                        title: vtitle,
+                        chapters,
+                    });
+                }
+                vid = td.value().attr("vid").unwrap_or("").to_string();
+                vtitle = td.text().collect();
+                chapters = vec![];
+            } else {
+                for a in tr.select(&ccss_td_a_selector) {
+                    let title = a.text().collect::<String>();
+                    let url = a.value().attr("href").unwrap_or("");
+                    let url = url::Url::parse(url)?;
+                    let pairs = url.query_pairs();
+                    let pairs_map = pairs
+                        .into_owned()
+                        .collect::<std::collections::HashMap<_, _>>();
+                    let cid = pairs_map
+                        .get("cid")
+                        .ok_or_else(|| anyhow!("Failed to find cid"))?
+                        .to_string();
+                    let aid = pairs_map
+                        .get("aid")
+                        .ok_or_else(|| anyhow!("Failed to find aid"))?
+                        .to_string();
+                    chapters.push(Chapter {
+                        title,
+                        url: url.to_string(),
+                        cid,
+                        aid,
+                    });
+                }
+            }
+        }
+        if !"".eq(vid.as_str()) {
+            volumes.push(Volume {
+                id: vid,
+                title: vtitle,
+                chapters,
+            });
+        }
+
+        Ok(volumes)
+    }
+    
+    pub async fn novel_reader(&self, aid: &str) -> Result<Vec<Volume>> {
+        let url = format!("{API_HOST}/modules/article/reader.php?aid={aid}&charset=gbk");
+        let response = self
+            .client
+            .get(url)
+            .header("User-Agent", USER_AGENT)
+            .send()
+            .await?;
+        if !response.status().is_success() {
+            return Err(anyhow!("Failed to get novel reader: {}", response.status()));
+        }
+
+        let text = response.bytes().await?;
+        let text = decode_gbk(text)?;
+        Self::parse_reader(text.as_str())
     }
 }
 

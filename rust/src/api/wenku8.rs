@@ -1,4 +1,4 @@
-use crate::wenku8::{BookshelfItem, HomeBlock, UserDetail};
+use crate::wenku8::{BookshelfItem, HomeBlock, NovelInfo, UserDetail, Volume};
 use crate::Result;
 use crate::CLIENT;
 use crate::database;
@@ -33,4 +33,12 @@ pub async fn index() -> anyhow::Result<Vec<HomeBlock>> {
 
 pub async fn download_image(url: String) -> anyhow::Result<Vec<u8>> {
     crate::get_cached_image(url).await
+}
+
+pub async fn novel_info(aid: String) -> anyhow::Result<NovelInfo> {
+    CLIENT.novel_info(&aid).await
+}
+
+pub async fn novel_reader(aid: String) -> anyhow::Result<Vec<Volume>> {
+    CLIENT.novel_reader(&aid).await
 }
