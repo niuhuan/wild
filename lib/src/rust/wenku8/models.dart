@@ -24,6 +24,24 @@ class BookshelfItem {
           lastRead == other.lastRead;
 }
 
+class HomeBlock {
+  final String title;
+  final List<NovelCover> list;
+
+  const HomeBlock({required this.title, required this.list});
+
+  @override
+  int get hashCode => title.hashCode ^ list.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is HomeBlock &&
+          runtimeType == other.runtimeType &&
+          title == other.title &&
+          list == other.list;
+}
+
 class Novel {
   final String id;
   final String title;
@@ -61,6 +79,34 @@ class Novel {
           coverUrl == other.coverUrl &&
           lastChapter == other.lastChapter &&
           tags == other.tags;
+}
+
+class NovelCover {
+  final String title;
+  final String img;
+  final String detailUrl;
+  final String aid;
+
+  const NovelCover({
+    required this.title,
+    required this.img,
+    required this.detailUrl,
+    required this.aid,
+  });
+
+  @override
+  int get hashCode =>
+      title.hashCode ^ img.hashCode ^ detailUrl.hashCode ^ aid.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is NovelCover &&
+          runtimeType == other.runtimeType &&
+          title == other.title &&
+          img == other.img &&
+          detailUrl == other.detailUrl &&
+          aid == other.aid;
 }
 
 class UserDetail {

@@ -1,4 +1,4 @@
-use crate::wenku8::{BookshelfItem, UserDetail};
+use crate::wenku8::{BookshelfItem, HomeBlock, UserDetail};
 use crate::Result;
 use crate::CLIENT;
 
@@ -23,4 +23,12 @@ pub async fn download_checkcode() -> Result<Vec<u8>> {
 
 pub async fn user_detail() -> Result<UserDetail> {
     CLIENT.userdetail().await
+}
+
+pub async fn index() -> anyhow::Result<Vec<HomeBlock>> {
+    CLIENT.index().await
+}
+
+pub async fn download_image(url: String) -> anyhow::Result<Vec<u8>> {
+    CLIENT.download_image(url.as_str()).await
 }

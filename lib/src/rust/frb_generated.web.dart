@@ -36,16 +36,28 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   bool dco_decode_bool(dynamic raw);
 
   @protected
+  HomeBlock dco_decode_home_block(dynamic raw);
+
+  @protected
   List<String> dco_decode_list_String(dynamic raw);
 
   @protected
   List<BookshelfItem> dco_decode_list_bookshelf_item(dynamic raw);
 
   @protected
+  List<HomeBlock> dco_decode_list_home_block(dynamic raw);
+
+  @protected
+  List<NovelCover> dco_decode_list_novel_cover(dynamic raw);
+
+  @protected
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
 
   @protected
   Novel dco_decode_novel(dynamic raw);
+
+  @protected
+  NovelCover dco_decode_novel_cover(dynamic raw);
 
   @protected
   int dco_decode_u_8(dynamic raw);
@@ -69,6 +81,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   bool sse_decode_bool(SseDeserializer deserializer);
 
   @protected
+  HomeBlock sse_decode_home_block(SseDeserializer deserializer);
+
+  @protected
   List<String> sse_decode_list_String(SseDeserializer deserializer);
 
   @protected
@@ -77,10 +92,19 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  List<HomeBlock> sse_decode_list_home_block(SseDeserializer deserializer);
+
+  @protected
+  List<NovelCover> sse_decode_list_novel_cover(SseDeserializer deserializer);
+
+  @protected
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
 
   @protected
   Novel sse_decode_novel(SseDeserializer deserializer);
+
+  @protected
+  NovelCover sse_decode_novel_cover(SseDeserializer deserializer);
 
   @protected
   int sse_decode_u_8(SseDeserializer deserializer);
@@ -110,11 +134,26 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_bool(bool self, SseSerializer serializer);
 
   @protected
+  void sse_encode_home_block(HomeBlock self, SseSerializer serializer);
+
+  @protected
   void sse_encode_list_String(List<String> self, SseSerializer serializer);
 
   @protected
   void sse_encode_list_bookshelf_item(
     List<BookshelfItem> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_home_block(
+    List<HomeBlock> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_novel_cover(
+    List<NovelCover> self,
     SseSerializer serializer,
   );
 
@@ -126,6 +165,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_novel(Novel self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_novel_cover(NovelCover self, SseSerializer serializer);
 
   @protected
   void sse_encode_u_8(int self, SseSerializer serializer);

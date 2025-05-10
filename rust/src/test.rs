@@ -34,9 +34,25 @@ async fn test_cookie_store() -> anyhow::Result<()> {
 }
 
 #[test]
-fn test_decode() -> anyhow::Result<()> {
+fn test_parse_user_detail() -> anyhow::Result<()> {
     let text = std::fs::read_to_string("target/ud.txt")?;
     let ud = Wenku8Client::parse_user_detail(text.as_str())?;
     println!("{}", serde_json::to_string_pretty(&ud)?);
+    Ok(())
+}
+
+#[test]
+fn test_parse_novel_info() -> anyhow::Result<()> {
+    let text = std::fs::read_to_string("target/ti.txt")?;
+    let info = Wenku8Client::parse_novel_info(text.as_str())?;
+    println!("{}", serde_json::to_string_pretty(&info)?);
+    Ok(())
+}
+
+#[test]
+fn test_parse_index() -> anyhow::Result<()> {
+    let text = std::fs::read_to_string("target/idx.txt")?;
+    let index = Wenku8Client::parse_index(text.as_str())?;
+    println!("{}", serde_json::to_string_pretty(&index)?);
     Ok(())
 }

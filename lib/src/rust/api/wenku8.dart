@@ -28,3 +28,8 @@ Future<Uint8List> downloadCheckcode() =>
 
 Future<UserDetail> userDetail() =>
     RustLib.instance.api.crateApiWenku8UserDetail();
+
+Future<List<HomeBlock>> index() => RustLib.instance.api.crateApiWenku8Index();
+
+Future<Uint8List> downloadImage({required String url}) =>
+    RustLib.instance.api.crateApiWenku8DownloadImage(url: url);

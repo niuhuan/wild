@@ -39,3 +39,38 @@ pub struct UserDetail {
     pub personalized_signature: String,
     pub personalized_description: String,
 }
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub struct NovelInfo {
+    pub title: String,
+    pub author: String,
+    pub status: String,
+    pub fin_update: String,
+    pub img_url: String,
+    pub introduce: String,
+    pub tags: Vec<String>,
+    pub heat: String,
+    pub trending: String,
+    pub is_animated: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub struct HomeBlock {
+    pub title: String,
+    pub list: Vec<NovelCover>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub struct NovelCover {
+    pub title: String,
+    pub img: String,
+    pub detail_url: String,
+    pub aid: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub struct SimpleNovelCover {
+    pub title: String,
+    pub aid: String,
+}
+
