@@ -40,6 +40,15 @@ static INIT_LOCK: OnceCell<Mutex<()>> = OnceCell::new();
 static INIT_DONE: OnceCell<()> = OnceCell::new();
 static IMAGE_CACHE_DIR: OnceCell<String> = OnceCell::new();
 
+// 创建64个锁，用于防止同一个URL的并发下载
+static IMAGE_LOCKS: Lazy<Vec<Mutex<()>>> = Lazy::new(|| {
+    let mut locks = Vec::with_capacity(64);
+    for _ in 0..64 {
+        locks.push(Mutex::new(()));
+    }
+    locks
+});
+
 /// 全局初始化函数
 /// 只会执行一次，重复调用会直接返回
 /// 使用 Mutex 确保初始化过程不会并发执行
@@ -109,8 +118,12 @@ pub async fn get_cached_image(img_url: String) -> Result<Vec<u8>> {
     let url_md5 = hex::encode(url_md5);
     let file_path = format!("{}/{}", image_cache_dir, url_md5);
 
+    // 根据MD5最后一位选择锁
+    let lock_index = (url_md5.as_bytes()[url_md5.len() - 1] % 64) as usize;
+    let _guard = IMAGE_LOCKS[lock_index].lock().await;
+
     // 检查缓存记录
-    if let Some(cache) = image_cache::Entity::find_by_url(img_url.as_str()).await? {
+    if let Some(_cache) = image_cache::Entity::find_by_url(img_url.as_str()).await? {
         // 如果缓存记录存在，尝试读取文件
         if Path::new(&file_path).exists() {
             return Ok(async_fs::read(file_path).await?);
