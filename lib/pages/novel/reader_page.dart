@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wild/pages/novel/paragraph_spacing_cubit.dart';
 import 'package:wild/pages/novel/reader_cubit.dart';
+import 'package:wild/pages/novel/theme_cubit.dart';
 
 import '../../src/rust/wenku8/models.dart';
 import 'font_size_cubit.dart';
@@ -148,7 +149,26 @@ class _ReaderViewState extends State<_ReaderView> {
     final topPadding = mediaQuery.padding.top;
     final bottomPadding = mediaQuery.padding.bottom;
 
+    final ThemeCubit themeCubit = context.read<ThemeCubit>();
+    bool isDarkMode;
+    if (themeCubit.state.themeMode == ReaderThemeMode.dark) {
+      isDarkMode = true;
+    } else if (themeCubit.state.themeMode == ReaderThemeMode.light) {
+      isDarkMode = false;
+    } else {
+      isDarkMode = mediaQuery.platformBrightness == Brightness.dark;
+    }
+    final backgroundColor =
+        isDarkMode
+            ? themeCubit.state.darkBackgroundColor
+            : themeCubit.state.lightBackgroundColor;
+    final textColor =
+        isDarkMode
+            ? themeCubit.state.darkTextColor
+            : themeCubit.state.lightTextColor;
+
     var viewer = Scaffold(
+      backgroundColor: backgroundColor,
       body: GestureDetector(
         onTap: _toggleControls,
         child: Stack(
@@ -165,7 +185,7 @@ class _ReaderViewState extends State<_ReaderView> {
                 if (page.isImage) {
                   return _ImagePage(imageUrl: page.content);
                 }
-                return _TextPage(content: page.content);
+                return _TextPage(content: page.content, textColor: textColor);
               },
             ),
             // 控制栏
@@ -297,8 +317,9 @@ class _ReaderViewState extends State<_ReaderView> {
 
 class _TextPage extends StatelessWidget {
   final String content;
+  final Color textColor;
 
-  const _TextPage({required this.content});
+  const _TextPage({required this.content, required this.textColor});
 
   @override
   Widget build(BuildContext context) {
@@ -343,6 +364,7 @@ class _TextPage extends StatelessWidget {
                               fontSize: fontSize,
                               height: lineHeight,
                               letterSpacing: 0.5,
+                              color: textColor,
                             ),
                           ),
                         ),

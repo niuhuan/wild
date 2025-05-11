@@ -6,10 +6,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wild/pages/auth_cubit.dart';
 import 'package:wild/pages/novel/font_size_cubit.dart';
 import 'package:wild/pages/novel/paragraph_spacing_cubit.dart';
+import 'package:wild/pages/novel/line_height_cubit.dart';
+import 'package:wild/pages/novel/theme_cubit.dart';
 import 'package:wild/src/rust/api/system.dart';
 
 import '../methods.dart';
-import 'novel/line_height_cubit.dart';
 
 class InitPage extends StatefulWidget {
   const InitPage({super.key});
@@ -35,6 +36,7 @@ class _InitPageState extends State<InitPage> {
     final fontSizeCubit = context.read<FontSizeCubit>();
     final paragraphSpacingCubit = context.read<ParagraphSpacingCubit>();
     final lineHeightCubit = context.read<LineHeightCubit>();
+    final themeCubit = context.read<ThemeCubit>();
     final authCubit = context.read<AuthCubit>();
 
     // 等待所有 Cubit 初始化完成
@@ -42,6 +44,7 @@ class _InitPageState extends State<InitPage> {
       fontSizeCubit.loadFontSize(),
       paragraphSpacingCubit.loadSpacing(),
       lineHeightCubit.loadLineHeight(),
+      themeCubit.loadTheme(),
       authCubit.init(),
     ]);
 

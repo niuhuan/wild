@@ -9,6 +9,7 @@ import 'package:wild/pages/novel/novel_info_page.dart';
 import 'package:wild/pages/novel/reader_page.dart';
 import 'package:wild/pages/novel/font_size_cubit.dart';
 import 'package:wild/pages/novel/paragraph_spacing_cubit.dart';
+import 'package:wild/pages/novel/theme_cubit.dart';
 import 'package:wild/src/rust/frb_generated.dart';
 import 'package:wild/src/rust/wenku8/models.dart';
 
@@ -28,11 +29,19 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (context) => FontSizeCubit()),
         BlocProvider(create: (context) => ParagraphSpacingCubit()),
         BlocProvider(create: (context) => LineHeightCubit()),
+        BlocProvider(create: (context) => ThemeCubit()),
       ],
       child: MaterialApp(
         title: '轻小说文库',
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+          useMaterial3: true,
+        ),
+        darkTheme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: Colors.blue,
+            brightness: Brightness.dark,
+          ),
           useMaterial3: true,
         ),
         initialRoute: '/init',
@@ -50,6 +59,8 @@ class MyApp extends StatelessWidget {
               providers: [
                 BlocProvider.value(value: context.read<FontSizeCubit>()),
                 BlocProvider.value(value: context.read<ParagraphSpacingCubit>()),
+                BlocProvider.value(value: context.read<LineHeightCubit>()),
+                BlocProvider.value(value: context.read<ThemeCubit>()),
               ],
               child: ReaderPage(
                 aid: args['novelId'] as String,
