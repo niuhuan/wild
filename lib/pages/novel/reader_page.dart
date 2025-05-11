@@ -100,10 +100,57 @@ class _ReaderViewState extends State<_ReaderView> {
     super.dispose();
   }
 
-  void _toggleControls() {
-    setState(() {
-      _showControls = !_showControls;
-    });
+  void _handleTap(TapDownDetails details) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final tapX = details.globalPosition.dx;
+    final tapY = details.globalPosition.dy;
+
+    // 将屏幕分为左、中、右三个区域
+    final leftArea = screenWidth * 0.3;
+    final rightArea = screenWidth * 0.7;
+    // 将屏幕分为上、中、下三个区域
+    final topArea = screenHeight * 0.3;
+    final bottomArea = screenHeight * 0.7;
+
+    if (tapX < leftArea || tapY < topArea) {
+      // 点击左侧或上方区域，上一页
+      if (widget.state.currentPageIndex > 0) {
+        _pageController.previousPage(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      } else {
+        // 如果是第一页，尝试加载上一章
+        final currentVolumeIndex = _findCurrentVolumeIndex();
+        final currentChapterIndex = _findCurrentChapterIndex();
+        if (currentChapterIndex > 0 || currentVolumeIndex > 0) {
+          context.read<ReaderCubit>().goToPreviousChapter();
+        }
+      }
+    } else if (tapX > rightArea || tapY > bottomArea) {
+      // 点击右侧或下方区域，下一页
+      if (widget.state.currentPageIndex < widget.state.pages.length - 1) {
+        _pageController.nextPage(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      } else {
+        // 如果是最后一页，尝试加载下一章
+        final currentVolumeIndex = _findCurrentVolumeIndex();
+        final currentChapterIndex = _findCurrentChapterIndex();
+        final volume = widget.state.volumes[currentVolumeIndex];
+        if (currentChapterIndex < volume.chapters.length - 1 ||
+            currentVolumeIndex < widget.state.volumes.length - 1) {
+          context.read<ReaderCubit>().goToNextChapter();
+        }
+      }
+    } else {
+      // 点击中央区域，切换菜单栏显示状态
+      setState(() {
+        _showControls = !_showControls;
+      });
+    }
   }
 
   void _showChapterList() {
@@ -172,7 +219,7 @@ class _ReaderViewState extends State<_ReaderView> {
     var viewer = Scaffold(
       backgroundColor: backgroundColor,
       body: GestureDetector(
-        onTap: _toggleControls,
+        onTapDown: _handleTap,
         child: Stack(
           children: [
             // 阅读内容
