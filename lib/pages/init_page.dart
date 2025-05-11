@@ -9,6 +9,7 @@ import 'package:wild/pages/novel/paragraph_spacing_cubit.dart';
 import 'package:wild/src/rust/api/system.dart';
 
 import '../methods.dart';
+import 'novel/line_height_cubit.dart';
 
 class InitPage extends StatefulWidget {
   const InitPage({super.key});
@@ -33,12 +34,14 @@ class _InitPageState extends State<InitPage> {
     // 初始化所有 Cubit
     final fontSizeCubit = context.read<FontSizeCubit>();
     final paragraphSpacingCubit = context.read<ParagraphSpacingCubit>();
+    final lineHeightCubit = context.read<LineHeightCubit>();
     final authCubit = context.read<AuthCubit>();
 
     // 等待所有 Cubit 初始化完成
     await Future.wait([
       fontSizeCubit.loadFontSize(),
       paragraphSpacingCubit.loadSpacing(),
+      lineHeightCubit.loadLineHeight(),
       authCubit.init(),
     ]);
 

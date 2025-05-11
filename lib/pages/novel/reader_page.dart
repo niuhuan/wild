@@ -5,6 +5,7 @@ import 'package:wild/pages/novel/reader_cubit.dart';
 
 import '../../src/rust/wenku8/models.dart';
 import 'font_size_cubit.dart';
+import 'line_height_cubit.dart';
 
 class ReaderPage extends StatelessWidget {
   final String aid;
@@ -24,6 +25,7 @@ class ReaderPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final fontSizeCubit = context.read<FontSizeCubit>();
     final paragraphSpacingCubit = context.read<ParagraphSpacingCubit>();
+    final lineHeightCubit = context.read<LineHeightCubit>();
 
     return BlocProvider(
       create:
@@ -33,6 +35,7 @@ class ReaderPage extends StatelessWidget {
             initialVolumes: volumes,
             fontSizeCubit: fontSizeCubit,
             paragraphSpacingCubit: paragraphSpacingCubit,
+            lineHeightCubit: lineHeightCubit,
           )..loadChapter(),
       child: BlocBuilder<ReaderCubit, ReaderState>(
         builder: (context, state) {
@@ -145,7 +148,7 @@ class _ReaderViewState extends State<_ReaderView> {
     final topPadding = mediaQuery.padding.top;
     final bottomPadding = mediaQuery.padding.bottom;
 
-    return Scaffold(
+    var viewer = Scaffold(
       body: GestureDetector(
         onTap: _toggleControls,
         child: Stack(
@@ -262,6 +265,7 @@ class _ReaderViewState extends State<_ReaderView> {
         ),
       ),
     );
+    return viewer;
   }
 
   int _findCurrentVolumeIndex() {
@@ -321,31 +325,33 @@ class _TextPage extends StatelessWidget {
       builder: (context, fontSize) {
         return BlocBuilder<ParagraphSpacingCubit, double>(
           builder: (context, spacing) {
-            var texts = content.split("\n");
-            return Column(
-              children: [
-                Container(height: topPadding),
-                Container(height: topBarHeight),
-                for (var i = 0; i < texts.length; i++) ...[
-                  SizedBox(
-                    width: canvasWidth,
-                    child: Text.rich(
-                      strutStyle: StrutStyle(
-                        height: 1.3,
-                      ),
-                      TextSpan(
-                        text: texts[i],
-                        style: TextStyle(
-                          fontSize: fontSize,
-                          height: 1.3,
-                          letterSpacing: 0.5,
+            return BlocBuilder<LineHeightCubit, double>(
+              builder: (context, lineHeight) {
+                var texts = content.split("\n");
+                return Column(
+                  children: [
+                    Container(height: topPadding),
+                    Container(height: topBarHeight),
+                    for (var i = 0; i < texts.length; i++) ...[
+                      SizedBox(
+                        width: canvasWidth,
+                        child: Text.rich(
+                          strutStyle: StrutStyle(height: lineHeight),
+                          TextSpan(
+                            text: texts[i],
+                            style: TextStyle(
+                              fontSize: fontSize,
+                              height: lineHeight,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                  if (i < texts.length - 1) Container(height: spacing),
-                ],
-              ],
+                      if (i < texts.length - 1) Container(height: spacing),
+                    ],
+                  ],
+                );
+              },
             );
           },
         );
@@ -546,6 +552,7 @@ class _ReaderSettings extends StatefulWidget {
 class _ReaderSettingsState extends State<_ReaderSettings> {
   late final paragraphSpacingCubit = context.read<ParagraphSpacingCubit>();
   late final fontSizeCubit = context.read<FontSizeCubit>();
+  late final lineHeightCubit = context.read<LineHeightCubit>();
 
   @override
   Widget build(BuildContext context) {
@@ -603,6 +610,30 @@ class _ReaderSettingsState extends State<_ReaderSettings> {
                     ),
                   ),
                   Text('${spacing.round()}'),
+                ],
+              );
+            },
+          ),
+          // 段落间距设置
+          BlocBuilder<LineHeightCubit, double>(
+            builder: (context, lineHeight) {
+              return Row(
+                children: [
+                  const Text('文字行高'),
+                  Expanded(
+                    child: Slider(
+                      value: lineHeight,
+                      min: 1.0,
+                      max: 3.0,
+                      divisions: 20,
+                      label: lineHeight.toString(),
+                      onChanged: (value) async {
+                        await lineHeightCubit.updateLineHeight(value);
+                        await widget.readerCubit.reloadCurrentPage();
+                      },
+                    ),
+                  ),
+                  Text('$lineHeight'),
                 ],
               );
             },

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wild/models/reader_page.dart';
 import 'package:flutter/rendering.dart';
+import 'package:wild/pages/novel/line_height_cubit.dart';
 import 'package:wild/src/rust/api/wenku8.dart';
 import 'package:wild/pages/novel/font_size_cubit.dart';
 import 'package:wild/pages/novel/paragraph_spacing_cubit.dart';
@@ -13,6 +14,7 @@ class ReaderCubit extends Cubit<ReaderState> {
   final List<Volume> initialVolumes;
   final FontSizeCubit fontSizeCubit;
   final ParagraphSpacingCubit paragraphSpacingCubit;
+  final LineHeightCubit lineHeightCubit;
 
   ReaderCubit({
     required this.initialAid,
@@ -20,6 +22,7 @@ class ReaderCubit extends Cubit<ReaderState> {
     required this.initialVolumes,
     required this.fontSizeCubit,
     required this.paragraphSpacingCubit,
+    required this.lineHeightCubit,
   }) : super(ReaderInitial());
 
   String _findChapterTitle(String aid, String cid) {
@@ -47,6 +50,7 @@ class ReaderCubit extends Cubit<ReaderState> {
 
       final fontSize = fontSizeCubit.state;
       final paragraphSpacing = paragraphSpacingCubit.state;
+      final lineHeight = lineHeightCubit.state;
 
       emit(
         ReaderLoaded(
@@ -61,6 +65,7 @@ class ReaderCubit extends Cubit<ReaderState> {
             content,
             fontSize,
             paragraphSpacing,
+            lineHeight,
           ),
           currentPageIndex: 0,
         ),
@@ -72,7 +77,11 @@ class ReaderCubit extends Cubit<ReaderState> {
 
   Future reloadCurrentPage() async {
     try {
-      emit(ReaderLoading());
+      var currentPageIndex =
+          super.state is ReaderLoaded
+              ? (super.state as ReaderLoaded).currentPageIndex
+              : 0;
+      // emit(ReaderLoading());
 
       final targetAid = initialAid;
       final targetCid = initialCid;
@@ -82,6 +91,7 @@ class ReaderCubit extends Cubit<ReaderState> {
 
       final fontSize = fontSizeCubit.state;
       final paragraphSpacing = paragraphSpacingCubit.state;
+      final lineHeight = lineHeightCubit.state;
 
       final pages = _paginateContent(
         targetAid,
@@ -90,12 +100,8 @@ class ReaderCubit extends Cubit<ReaderState> {
         content,
         fontSize,
         paragraphSpacing,
+        lineHeight,
       );
-
-      var currentPageIndex =
-          super.state is ReaderLoaded
-              ? (super.state as ReaderLoaded).currentPageIndex
-              : 0;
 
       if (currentPageIndex >= pages.length) {
         currentPageIndex = pages.length - 1;
@@ -119,37 +125,6 @@ class ReaderCubit extends Cubit<ReaderState> {
   void onPageChanged(int index) {
     if (state is ReaderLoaded) {
       emit((state as ReaderLoaded).copyWith(currentPageIndex: index));
-    }
-  }
-
-  void updateFontSize(double size) {
-    if (state is ReaderLoaded) {
-      final currentState = state as ReaderLoaded;
-      // 保存当前页码
-      final currentPageIndex = currentState.currentPageIndex;
-      // 重新计算分页
-      final pages = _paginateContent(
-        currentState.aid,
-        currentState.cid,
-        currentState.title,
-        currentState.pages[currentPageIndex].content,
-        size,
-        paragraphSpacingCubit.state,
-      );
-      // 确保新的页码索引有效
-      final newPageIndex =
-          currentPageIndex < pages.length ? currentPageIndex : 0;
-
-      emit(
-        ReaderLoaded(
-          aid: currentState.aid,
-          cid: currentState.cid,
-          title: currentState.title,
-          volumes: currentState.volumes,
-          pages: pages,
-          currentPageIndex: newPageIndex,
-        ),
-      );
     }
   }
 
@@ -240,6 +215,7 @@ class ReaderCubit extends Cubit<ReaderState> {
     String content,
     double fontSize,
     double paragraphSpacing,
+    double lineHeight,
   ) {
     final pages = <ReaderPage>[];
     final paragraphs = content.split('\n');
@@ -271,12 +247,10 @@ class ReaderCubit extends Cubit<ReaderState> {
           textDirection: TextDirection.ltr,
           maxLines: null,
         );
-        textPainter.strutStyle = StrutStyle(
-          height: 1.3,
-        );
+        textPainter.strutStyle = StrutStyle(height: lineHeight);
         final textStyle = TextStyle(
           fontSize: fontSize,
-          height: 1.3,
+          height: lineHeight,
           letterSpacing: 0.5,
         );
         textPainter.text = TextSpan(text: paragraph, style: textStyle);

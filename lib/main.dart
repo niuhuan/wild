@@ -4,6 +4,7 @@ import 'package:wild/pages/auth_cubit.dart';
 import 'package:wild/pages/init_page.dart';
 import 'package:wild/pages/login_page.dart';
 import 'package:wild/pages/home_page.dart';
+import 'package:wild/pages/novel/line_height_cubit.dart';
 import 'package:wild/pages/novel/novel_info_page.dart';
 import 'package:wild/pages/novel/reader_page.dart';
 import 'package:wild/pages/novel/font_size_cubit.dart';
@@ -26,6 +27,7 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (context) => AuthCubit()),
         BlocProvider(create: (context) => FontSizeCubit()),
         BlocProvider(create: (context) => ParagraphSpacingCubit()),
+        BlocProvider(create: (context) => LineHeightCubit()),
       ],
       child: MaterialApp(
         title: '轻小说文库',
