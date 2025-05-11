@@ -267,7 +267,6 @@ class _VolumeItem extends StatelessWidget {
             return InkWell(
               onTap: () {
                 final volumes = context.read<NovelInfoCubit>().volumes;
-                if (volumes == null) return;
                 Navigator.pushNamed(
                   context,
                   '/novel/reader',

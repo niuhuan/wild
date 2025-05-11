@@ -41,8 +41,8 @@ class MyApp extends StatelessWidget {
             return ReaderPage(
               aid: args['novelId'] as String,
               cid: args['chapterId'] as String,
-              title: args['title'] as String,
-              volumes: args['volumes'] as List<Volume>,
+              initialTitle: args['title'] as String,
+              volumes: (args['volumes'] as List).cast<Volume>(),
             );
           },
         },

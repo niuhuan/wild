@@ -7,14 +7,14 @@ import '../../src/rust/wenku8/models.dart';
 class ReaderPage extends StatelessWidget {
   final String aid;
   final String cid;
-  final String title;
+  final String initialTitle;
   final List<Volume> volumes;
 
   const ReaderPage({
     super.key,
     required this.aid,
     required this.cid,
-    required this.title,
+    required this.initialTitle,
     required this.volumes,
   });
 
@@ -55,7 +55,7 @@ class ReaderPage extends StatelessWidget {
           if (state is ReaderLoaded) {
             return _ReaderView(
               state: state,
-              title: title,
+              title: state.title,
             );
           }
           return const SizedBox.shrink();
@@ -88,6 +88,16 @@ class _ReaderViewState extends State<_ReaderView> {
     super.initState();
     _pageController = PageController();
     _fontSize = widget.state.fontSize;
+  }
+
+  @override
+  void didUpdateWidget(_ReaderView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.state.fontSize != widget.state.fontSize) {
+      setState(() {
+        _fontSize = widget.state.fontSize;
+      });
+    }
   }
 
   @override
@@ -231,19 +241,29 @@ class _ReaderViewState extends State<_ReaderView> {
                     children: [
                       IconButton(
                         icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-                        onPressed: widget.state.canGoPrevious
-                            ? () => context.read<ReaderCubit>().goToPreviousChapter()
-                            : null,
+                        onPressed: () {
+                          final currentVolumeIndex = _findCurrentVolumeIndex();
+                          final currentChapterIndex = _findCurrentChapterIndex();
+                          if (currentChapterIndex > 0 || currentVolumeIndex > 0) {
+                            context.read<ReaderCubit>().goToPreviousChapter();
+                          }
+                        },
                       ),
                       Text(
-                        '${widget.state.currentPage + 1}/${widget.state.pages.length}',
+                        '${widget.state.currentPageIndex + 1}/${widget.state.pages.length}',
                         style: const TextStyle(color: Colors.white),
                       ),
                       IconButton(
                         icon: const Icon(Icons.arrow_forward_ios, color: Colors.white),
-                        onPressed: widget.state.canGoNext
-                            ? () => context.read<ReaderCubit>().goToNextChapter()
-                            : null,
+                        onPressed: () {
+                          final currentVolumeIndex = _findCurrentVolumeIndex();
+                          final currentChapterIndex = _findCurrentChapterIndex();
+                          final volume = widget.state.volumes[currentVolumeIndex];
+                          if (currentChapterIndex < volume.chapters.length - 1 || 
+                              currentVolumeIndex < widget.state.volumes.length - 1) {
+                            context.read<ReaderCubit>().goToNextChapter();
+                          }
+                        },
                       ),
                     ],
                   ),
@@ -254,6 +274,30 @@ class _ReaderViewState extends State<_ReaderView> {
         ),
       ),
     );
+  }
+
+  int _findCurrentVolumeIndex() {
+    for (var i = 0; i < widget.state.volumes.length; i++) {
+      final volume = widget.state.volumes[i];
+      if (volume.chapters.any((chapter) => 
+          chapter.aid == widget.state.aid && chapter.cid == widget.state.cid)) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  int _findCurrentChapterIndex() {
+    final volumeIndex = _findCurrentVolumeIndex();
+    if (volumeIndex == -1) return -1;
+    final volume = widget.state.volumes[volumeIndex];
+    for (var i = 0; i < volume.chapters.length; i++) {
+      final chapter = volume.chapters[i];
+      if (chapter.aid == widget.state.aid && chapter.cid == widget.state.cid) {
+        return i;
+      }
+    }
+    return -1;
   }
 }
 
@@ -266,18 +310,48 @@ class _TextPage extends StatelessWidget {
     required this.fontSize,
   });
 
+  String _formatContent(String text) {
+    // 将文本按段落分割
+    final paragraphs = text.split('\n');
+    // 处理每个段落，限制最多2行
+    final processedParagraphs = paragraphs.map((p) {
+      if (p.trim().isEmpty) return '\n';
+      // 如果段落包含多个换行，只保留第一个
+      final lines = p.split('\n');
+      if (lines.length > 2) {
+        return '${lines[0]}\n${lines[1]}';
+      }
+      return p;
+    }).toList();
+    return processedParagraphs.join('\n');
+  }
+
   @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
-    final topPadding = mediaQuery.padding.top + 72; // 顶部栏高度
-    final bottomPadding = mediaQuery.padding.bottom + 72; // 底部栏高度
+    final screenHeight = mediaQuery.size.height;
+    final screenWidth = mediaQuery.size.width;
+    final topPadding = mediaQuery.padding.top;
+    final bottomPadding = mediaQuery.padding.bottom;
+    final topBarHeight = 56.0;
+    final bottomBarHeight = 56.0;
+    final availableHeight = screenHeight - topPadding - bottomPadding - topBarHeight - bottomBarHeight;
 
     return Container(
-      color: Theme.of(context).scaffoldBackgroundColor,
-      padding: EdgeInsets.fromLTRB(16, topPadding, 16, bottomPadding),
-      child: SingleChildScrollView(
+      color: Colors.white,
+      padding: EdgeInsets.fromLTRB(
+        16,
+        topPadding + topBarHeight,
+        16,
+        bottomPadding + bottomBarHeight,
+      ),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          minHeight: availableHeight,
+          maxHeight: availableHeight,
+        ),
         child: Text(
-          content,
+          _formatContent(content),
           style: TextStyle(
             fontSize: fontSize,
             height: 1.5,
@@ -296,27 +370,72 @@ class _ImagePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: InteractiveViewer(
-        child: Image.network(
-          imageUrl,
-          fit: BoxFit.contain,
-          loadingBuilder: (context, child, loadingProgress) {
-            if (loadingProgress == null) return child;
-            return Center(
-              child: CircularProgressIndicator(
-                value: loadingProgress.expectedTotalBytes != null
-                    ? loadingProgress.cumulativeBytesLoaded /
-                        loadingProgress.expectedTotalBytes!
-                    : null,
-              ),
-            );
-          },
-          errorBuilder: (context, error, stackTrace) {
-            return const Center(
-              child: Icon(Icons.error_outline, size: 48, color: Colors.red),
-            );
-          },
+    final mediaQuery = MediaQuery.of(context);
+    final screenHeight = mediaQuery.size.height;
+    final screenWidth = mediaQuery.size.width;
+    final topPadding = mediaQuery.padding.top;
+    final bottomPadding = mediaQuery.padding.bottom;
+    final topBarHeight = 56.0;
+    final bottomBarHeight = 56.0;
+    final availableHeight = screenHeight - topPadding - bottomPadding - topBarHeight - bottomBarHeight;
+
+    return Container(
+      color: Colors.white,
+      padding: EdgeInsets.fromLTRB(
+        16,
+        topPadding + topBarHeight,
+        16,
+        bottomPadding + bottomBarHeight,
+      ),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: availableHeight,
+            maxWidth: screenWidth - 32,
+          ),
+          child: Image.network(
+            imageUrl,
+            fit: BoxFit.contain,
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return Center(
+                child: CircularProgressIndicator(
+                  value: loadingProgress.expectedTotalBytes != null
+                      ? loadingProgress.cumulativeBytesLoaded /
+                          loadingProgress.expectedTotalBytes!
+                      : null,
+                ),
+              );
+            },
+            errorBuilder: (context, error, stackTrace) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                    const SizedBox(height: 16),
+                    Text(
+                      '图片加载失败\n$error',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                  ],
+                ),
+              );
+            },
+            // 添加缓存和内存管理选项
+            cacheWidth: (screenWidth * MediaQuery.of(context).devicePixelRatio).round(),
+            cacheHeight: (availableHeight * MediaQuery.of(context).devicePixelRatio).round(),
+            frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+              if (wasSynchronouslyLoaded) return child;
+              return AnimatedOpacity(
+                opacity: frame != null ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeOut,
+                child: child,
+              );
+            },
+          ),
         ),
       ),
     );
@@ -451,7 +570,10 @@ class _ReaderSettings extends StatelessWidget {
                       max: 24,
                       divisions: 10,
                       label: currentFontSize.round().toString(),
-                      onChanged: onFontSizeChanged,
+                      onChanged: (value) {
+                        // 直接更新字体大小，不需要重新加载章节
+                        onFontSizeChanged(value);
+                      },
                     ),
                   ),
                   Text('${currentFontSize.round()}'),
