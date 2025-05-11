@@ -65,6 +65,129 @@ class ThemeCubit extends Cubit<ReaderTheme> {
       ),
     );
   }
+
+  Future<void> updateLightBackgroundColor(Color color) async {
+    try {
+      await saveProperty(key: _keyLightBackgroundColor, value: color.value.toString());
+      emit(ReaderTheme(
+        themeMode: state.themeMode,
+        lightBackgroundColor: color,
+        lightTextColor: state.lightTextColor,
+        darkBackgroundColor: state.darkBackgroundColor,
+        darkTextColor: state.darkTextColor,
+      ));
+    } catch (e) {
+      // 如果保存失败，仍然更新状态
+      emit(ReaderTheme(
+        themeMode: state.themeMode,
+        lightBackgroundColor: color,
+        lightTextColor: state.lightTextColor,
+        darkBackgroundColor: state.darkBackgroundColor,
+        darkTextColor: state.darkTextColor,
+      ));
+    }
+  }
+
+  Future<void> updateLightTextColor(Color color) async {
+    try {
+      await saveProperty(key: _keyLightTextColor, value: color.value.toString());
+      emit(ReaderTheme(
+        themeMode: state.themeMode,
+        lightBackgroundColor: state.lightBackgroundColor,
+        lightTextColor: color,
+        darkBackgroundColor: state.darkBackgroundColor,
+        darkTextColor: state.darkTextColor,
+      ));
+    } catch (e) {
+      // 如果保存失败，仍然更新状态
+      emit(ReaderTheme(
+        themeMode: state.themeMode,
+        lightBackgroundColor: state.lightBackgroundColor,
+        lightTextColor: color,
+        darkBackgroundColor: state.darkBackgroundColor,
+        darkTextColor: state.darkTextColor,
+      ));
+    }
+  }
+
+  Future<void> updateDarkBackgroundColor(Color color) async {
+    try {
+      await saveProperty(key: _keyDarkBackgroundColor, value: color.value.toString());
+      emit(ReaderTheme(
+        themeMode: state.themeMode,
+        lightBackgroundColor: state.lightBackgroundColor,
+        lightTextColor: state.lightTextColor,
+        darkBackgroundColor: color,
+        darkTextColor: state.darkTextColor,
+      ));
+    } catch (e) {
+      // 如果保存失败，仍然更新状态
+      emit(ReaderTheme(
+        themeMode: state.themeMode,
+        lightBackgroundColor: state.lightBackgroundColor,
+        lightTextColor: state.lightTextColor,
+        darkBackgroundColor: color,
+        darkTextColor: state.darkTextColor,
+      ));
+    }
+  }
+
+  Future<void> updateDarkTextColor(Color color) async {
+    try {
+      await saveProperty(key: _keyDarkTextColor, value: color.value.toString());
+      emit(ReaderTheme(
+        themeMode: state.themeMode,
+        lightBackgroundColor: state.lightBackgroundColor,
+        lightTextColor: state.lightTextColor,
+        darkBackgroundColor: state.darkBackgroundColor,
+        darkTextColor: color,
+      ));
+    } catch (e) {
+      // 如果保存失败，仍然更新状态
+      emit(ReaderTheme(
+        themeMode: state.themeMode,
+        lightBackgroundColor: state.lightBackgroundColor,
+        lightTextColor: state.lightTextColor,
+        darkBackgroundColor: state.darkBackgroundColor,
+        darkTextColor: color,
+      ));
+    }
+  }
+
+  Future<void> setThemeMode(ReaderThemeMode mode) async {
+    try {
+      await saveProperty(key: _keyThemeMode, value: mode.toString());
+      emit(ReaderTheme(
+        themeMode: mode,
+        lightBackgroundColor: state.lightBackgroundColor,
+        lightTextColor: state.lightTextColor,
+        darkBackgroundColor: state.darkBackgroundColor,
+        darkTextColor: state.darkTextColor,
+      ));
+    } catch (e) {
+      // 如果保存失败，仍然更新状态
+      emit(ReaderTheme(
+        themeMode: mode,
+        lightBackgroundColor: state.lightBackgroundColor,
+        lightTextColor: state.lightTextColor,
+        darkBackgroundColor: state.darkBackgroundColor,
+        darkTextColor: state.darkTextColor,
+      ));
+    }
+  }
+
+  Future<void> resetToDefault() async {
+    try {
+      await saveProperty(key: _keyThemeMode, value: ReaderThemeMode.auto.toString());
+      await saveProperty(key: _keyLightBackgroundColor, value: Colors.white.value.toString());
+      await saveProperty(key: _keyLightTextColor, value: Colors.black87.value.toString());
+      await saveProperty(key: _keyDarkBackgroundColor, value: const Color(0xFF1A1A1A).value.toString());
+      await saveProperty(key: _keyDarkTextColor, value: const Color(0xFFE0E0E0).value.toString());
+    } catch (e) {
+      // 如果保存失败，仍然重置状态
+    }
+    emit(ReaderTheme.defaultTheme());
+  }
 }
 
 class ReaderTheme {

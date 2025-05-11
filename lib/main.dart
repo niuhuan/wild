@@ -13,6 +13,18 @@ import 'package:wild/pages/novel/theme_cubit.dart';
 import 'package:wild/src/rust/frb_generated.dart';
 import 'package:wild/src/rust/wenku8/models.dart';
 
+final lightTheme = ThemeData(
+  colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+  useMaterial3: true,
+);
+final darkTheme = ThemeData(
+  colorScheme: ColorScheme.fromSeed(
+    seedColor: Colors.blue,
+    brightness: Brightness.dark,
+  ),
+  useMaterial3: true,
+);
+
 Future<void> main() async {
   await RustLib.init();
   runApp(const MyApp());
@@ -31,47 +43,63 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (context) => LineHeightCubit()),
         BlocProvider(create: (context) => ThemeCubit()),
       ],
-      child: MaterialApp(
-        title: '轻小说文库',
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-          useMaterial3: true,
-        ),
-        darkTheme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: Colors.blue,
-            brightness: Brightness.dark,
-          ),
-          useMaterial3: true,
-        ),
-        initialRoute: '/init',
-        routes: {
-          '/init': (context) => const InitPage(),
-          '/login': (context) => const LoginPage(),
-          '/home': (context) => const HomePage(),
-          '/novel/info': (context) {
-            final novelId = ModalRoute.of(context)!.settings.arguments as String;
-            return NovelInfoPage(novelId: novelId);
+      child: YourApp(),
+    );
+  }
+}
+
+class YourApp extends StatelessWidget {
+  const YourApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<ThemeCubit, ReaderTheme>(
+      builder: (context, theme) {
+        return MaterialApp(
+          title: '轻小说文库',
+          theme:
+          theme.themeMode == ReaderThemeMode.dark
+                  ? darkTheme
+                  : lightTheme,
+          darkTheme:
+              theme.themeMode ==
+                      ReaderThemeMode.light
+                  ? lightTheme
+                  : darkTheme,
+          initialRoute: '/init',
+          routes: {
+            '/init': (context) => const InitPage(),
+            '/login': (context) => const LoginPage(),
+            '/home': (context) => const HomePage(),
+            '/novel/info': (context) {
+              final novelId =
+                  ModalRoute.of(context)!.settings.arguments as String;
+              return NovelInfoPage(novelId: novelId);
+            },
+            '/novel/reader': (context) {
+              final args =
+                  ModalRoute.of(context)!.settings.arguments
+                      as Map<String, dynamic>;
+              return MultiBlocProvider(
+                providers: [
+                  BlocProvider.value(value: context.read<FontSizeCubit>()),
+                  BlocProvider.value(
+                    value: context.read<ParagraphSpacingCubit>(),
+                  ),
+                  BlocProvider.value(value: context.read<LineHeightCubit>()),
+                  BlocProvider.value(value: context.read<ThemeCubit>()),
+                ],
+                child: ReaderPage(
+                  aid: args['novelId'] as String,
+                  cid: args['chapterId'] as String,
+                  initialTitle: args['title'] as String,
+                  volumes: (args['volumes'] as List).cast<Volume>(),
+                ),
+              );
+            },
           },
-          '/novel/reader': (context) {
-            final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
-            return MultiBlocProvider(
-              providers: [
-                BlocProvider.value(value: context.read<FontSizeCubit>()),
-                BlocProvider.value(value: context.read<ParagraphSpacingCubit>()),
-                BlocProvider.value(value: context.read<LineHeightCubit>()),
-                BlocProvider.value(value: context.read<ThemeCubit>()),
-              ],
-              child: ReaderPage(
-                aid: args['novelId'] as String,
-                cid: args['chapterId'] as String,
-                initialTitle: args['title'] as String,
-                volumes: (args['volumes'] as List).cast<Volume>(),
-              ),
-            );
-          },
-        },
-      ),
+        );
+      },
     );
   }
 }

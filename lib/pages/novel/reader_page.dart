@@ -137,6 +137,7 @@ class _ReaderViewState extends State<_ReaderView> {
     final readerCubit = context.read<ReaderCubit>();
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       builder: (BuildContext context) {
         return _ReaderSettings(readerCubit);
       },
@@ -578,89 +579,430 @@ class _ReaderSettingsState extends State<_ReaderSettings> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Text(
-            '设置',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+    return BlocBuilder<ThemeCubit, ReaderTheme>(
+      builder: (context, theme) {
+        return Container(
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            top: 16,
+            bottom: MediaQuery.of(context).padding.bottom + 16,
           ),
-          const SizedBox(height: 16),
-          // 字体大小设置
-          BlocBuilder<FontSizeCubit, double>(
-            builder: (context, fontSize) {
-              return Row(
+          decoration: BoxDecoration(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '设置',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              // 字体大小设置
+              BlocBuilder<FontSizeCubit, double>(
+                builder: (context, fontSize) {
+                  return Row(
+                    children: [
+                      Text('字体大小'),
+                      Expanded(
+                        child: Slider(
+                          value: fontSize,
+                          min: 14,
+                          max: 24,
+                          divisions: 10,
+                          label: fontSize.round().toString(),
+                          onChanged: (value) async {
+                            await fontSizeCubit.updateFontSize(value);
+                            await widget.readerCubit.reloadCurrentPage();
+                          },
+                        ),
+                      ),
+                      Text('${fontSize.round()}', style: TextStyle()),
+                    ],
+                  );
+                },
+              ),
+              // 段落间距设置
+              BlocBuilder<ParagraphSpacingCubit, double>(
+                builder: (context, spacing) {
+                  return Row(
+                    children: [
+                      Text('段落间距', style: TextStyle()),
+                      Expanded(
+                        child: Slider(
+                          value: spacing,
+                          min: 16,
+                          max: 32,
+                          divisions: 8,
+                          label: spacing.round().toString(),
+                          onChanged: (value) async {
+                            await paragraphSpacingCubit.updateSpacing(value);
+                            await widget.readerCubit.reloadCurrentPage();
+                          },
+                        ),
+                      ),
+                      Text('${spacing.round()}', style: TextStyle()),
+                    ],
+                  );
+                },
+              ),
+              // 行高设置
+              BlocBuilder<LineHeightCubit, double>(
+                builder: (context, lineHeight) {
+                  return Row(
+                    children: [
+                      Text('行高', style: TextStyle()),
+                      Expanded(
+                        child: Slider(
+                          value: lineHeight,
+                          min: 1.0,
+                          max: 2.0,
+                          divisions: 20,
+                          label: lineHeight.toStringAsFixed(1),
+                          onChanged: (value) async {
+                            await lineHeightCubit.updateLineHeight(value);
+                            await widget.readerCubit.reloadCurrentPage();
+                          },
+                        ),
+                      ),
+                      Text(lineHeight.toStringAsFixed(1), style: TextStyle()),
+                    ],
+                  );
+                },
+              ),
+              const Divider(),
+              // 主题模式选择
+              Row(
                 children: [
-                  const Text('字体大小'),
+                  Text(
+                    '主题模式',
+                    style: TextStyle(
+                    ),
+                  ),
+                  const SizedBox(width: 16),
                   Expanded(
-                    child: Slider(
-                      value: fontSize,
-                      min: 14,
-                      max: 24,
-                      divisions: 10,
-                      label: fontSize.round().toString(),
-                      onChanged: (value) async {
-                        await fontSizeCubit.updateFontSize(value);
+                    child: SegmentedButton<ReaderThemeMode>(
+                      segments: const [
+                        ButtonSegment<ReaderThemeMode>(
+                          value: ReaderThemeMode.auto,
+                          label: Text('自动'),
+                          icon: Icon(Icons.brightness_auto),
+                        ),
+                        ButtonSegment<ReaderThemeMode>(
+                          value: ReaderThemeMode.light,
+                          label: Text('浅色'),
+                          icon: Icon(Icons.light_mode),
+                        ),
+                        ButtonSegment<ReaderThemeMode>(
+                          value: ReaderThemeMode.dark,
+                          label: Text('深色'),
+                          icon: Icon(Icons.dark_mode),
+                        ),
+                      ],
+                      selected: {theme.themeMode},
+                      onSelectionChanged: (Set<ReaderThemeMode> modes) async {
+                        await context.read<ThemeCubit>().setThemeMode(
+                          modes.first,
+                        );
                         await widget.readerCubit.reloadCurrentPage();
                       },
                     ),
                   ),
-                  Text('${fontSize.round()}'),
                 ],
-              );
-            },
-          ),
-          // 段落间距设置
-          BlocBuilder<ParagraphSpacingCubit, double>(
-            builder: (context, spacing) {
-              return Row(
-                children: [
-                  const Text('段落间距'),
-                  Expanded(
-                    child: Slider(
-                      value: spacing,
-                      min: 16,
-                      max: 32,
-                      divisions: 8,
-                      label: spacing.round().toString(),
-                      onChanged: (value) async {
-                        await paragraphSpacingCubit.updateSpacing(value);
-                        await widget.readerCubit.reloadCurrentPage();
-                      },
-                    ),
+              ),
+              const SizedBox(height: 8),
+              // 浅色主题颜色设置
+              ExpansionTile(
+                title: Text(
+                  '浅色主题颜色',
+                  style: TextStyle(
                   ),
-                  Text('${spacing.round()}'),
-                ],
-              );
-            },
-          ),
-          // 段落间距设置
-          BlocBuilder<LineHeightCubit, double>(
-            builder: (context, lineHeight) {
-              return Row(
+                ),
                 children: [
-                  const Text('文字行高'),
-                  Expanded(
-                    child: Slider(
-                      value: lineHeight,
-                      min: 1.0,
-                      max: 3.0,
-                      divisions: 20,
-                      label: lineHeight.toString(),
-                      onChanged: (value) async {
-                        await lineHeightCubit.updateLineHeight(value);
-                        await widget.readerCubit.reloadCurrentPage();
-                      },
-                    ),
+                  // 浅色背景颜色选择
+                  Row(
+                    children: [
+                      Text('背景颜色', style: TextStyle()),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            _ColorOption(
+                              color: Colors.white,
+                              isSelected:
+                                  theme.lightBackgroundColor == Colors.white,
+                              onTap: () async {
+                                await context
+                                    .read<ThemeCubit>()
+                                    .updateLightBackgroundColor(Colors.white);
+                                await widget.readerCubit.reloadCurrentPage();
+                              },
+                            ),
+                            _ColorOption(
+                              color: const Color(0xFFF5F5F5),
+                              isSelected:
+                                  theme.lightBackgroundColor ==
+                                  const Color(0xFFF5F5F5),
+                              onTap: () async {
+                                await context
+                                    .read<ThemeCubit>()
+                                    .updateLightBackgroundColor(
+                                      const Color(0xFFF5F5F5),
+                                    );
+                                await widget.readerCubit.reloadCurrentPage();
+                              },
+                            ),
+                            _ColorOption(
+                              color: const Color(0xFFF0F0F0),
+                              isSelected:
+                                  theme.lightBackgroundColor ==
+                                  const Color(0xFFF0F0F0),
+                              onTap: () async {
+                                await context
+                                    .read<ThemeCubit>()
+                                    .updateLightBackgroundColor(
+                                      const Color(0xFFF0F0F0),
+                                    );
+                                await widget.readerCubit.reloadCurrentPage();
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                  Text('$lineHeight'),
+                  const SizedBox(height: 8),
+                  // 浅色文字颜色选择
+                  Row(
+                    children: [
+                      Text('文字颜色', style: TextStyle()),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            _ColorOption(
+                              color: Colors.black87,
+                              isSelected:
+                                  theme.lightTextColor == Colors.black87,
+                              onTap: () async {
+                                await context
+                                    .read<ThemeCubit>()
+                                    .updateLightTextColor(Colors.black87);
+                                await widget.readerCubit.reloadCurrentPage();
+                              },
+                            ),
+                            _ColorOption(
+                              color: const Color(0xFF424242),
+                              isSelected:
+                                  theme.lightTextColor ==
+                                  const Color(0xFF424242),
+                              onTap: () async {
+                                await context
+                                    .read<ThemeCubit>()
+                                    .updateLightTextColor(
+                                      const Color(0xFF424242),
+                                    );
+                                await widget.readerCubit.reloadCurrentPage();
+                              },
+                            ),
+                            _ColorOption(
+                              color: const Color(0xFF616161),
+                              isSelected:
+                                  theme.lightTextColor ==
+                                  const Color(0xFF616161),
+                              onTap: () async {
+                                await context
+                                    .read<ThemeCubit>()
+                                    .updateLightTextColor(
+                                      const Color(0xFF616161),
+                                    );
+                                await widget.readerCubit.reloadCurrentPage();
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
-              );
-            },
+              ),
+              // 深色主题颜色设置
+              ExpansionTile(
+                title: Text(
+                  '深色主题颜色',
+                  style: TextStyle(
+                  ),
+                ),
+                children: [
+                  // 深色背景颜色选择
+                  Row(
+                    children: [
+                      Text('背景颜色', style: TextStyle()),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            _ColorOption(
+                              color: const Color(0xFF1A1A1A),
+                              isSelected:
+                                  theme.darkBackgroundColor ==
+                                  const Color(0xFF1A1A1A),
+                              onTap: () async {
+                                await context
+                                    .read<ThemeCubit>()
+                                    .updateDarkBackgroundColor(
+                                      const Color(0xFF1A1A1A),
+                                    );
+                                await widget.readerCubit.reloadCurrentPage();
+                              },
+                            ),
+                            _ColorOption(
+                              color: const Color(0xFF2C2C2C),
+                              isSelected:
+                                  theme.darkBackgroundColor ==
+                                  const Color(0xFF2C2C2C),
+                              onTap: () async {
+                                await context
+                                    .read<ThemeCubit>()
+                                    .updateDarkBackgroundColor(
+                                      const Color(0xFF2C2C2C),
+                                    );
+                                await widget.readerCubit.reloadCurrentPage();
+                              },
+                            ),
+                            _ColorOption(
+                              color: const Color(0xFF121212),
+                              isSelected:
+                                  theme.darkBackgroundColor ==
+                                  const Color(0xFF121212),
+                              onTap: () async {
+                                await context
+                                    .read<ThemeCubit>()
+                                    .updateDarkBackgroundColor(
+                                      const Color(0xFF121212),
+                                    );
+                                await widget.readerCubit.reloadCurrentPage();
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  // 深色文字颜色选择
+                  Row(
+                    children: [
+                      Text('文字颜色', style: TextStyle()),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            _ColorOption(
+                              color: const Color(0xFFE0E0E0),
+                              isSelected:
+                                  theme.darkTextColor ==
+                                  const Color(0xFFE0E0E0),
+                              onTap: () async {
+                                await context
+                                    .read<ThemeCubit>()
+                                    .updateDarkTextColor(
+                                      const Color(0xFFE0E0E0),
+                                    );
+                                await widget.readerCubit.reloadCurrentPage();
+                              },
+                            ),
+                            _ColorOption(
+                              color: const Color(0xFFBDBDBD),
+                              isSelected:
+                                  theme.darkTextColor ==
+                                  const Color(0xFFBDBDBD),
+                              onTap: () async {
+                                await context
+                                    .read<ThemeCubit>()
+                                    .updateDarkTextColor(
+                                      const Color(0xFFBDBDBD),
+                                    );
+                                await widget.readerCubit.reloadCurrentPage();
+                              },
+                            ),
+                            _ColorOption(
+                              color: const Color(0xFF9E9E9E),
+                              isSelected:
+                                  theme.darkTextColor ==
+                                  const Color(0xFF9E9E9E),
+                              onTap: () async {
+                                await context
+                                    .read<ThemeCubit>()
+                                    .updateDarkTextColor(
+                                      const Color(0xFF9E9E9E),
+                                    );
+                                await widget.readerCubit.reloadCurrentPage();
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              // 重置按钮
+              TextButton(
+                onPressed: () async {
+                  await context.read<ThemeCubit>().resetToDefault();
+                  await widget.readerCubit.reloadCurrentPage();
+                },
+                child: Text(
+                  '重置为默认',
+                  style: TextStyle(
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
+        );
+      },
+    );
+  }
+}
+
+class _ColorOption extends StatelessWidget {
+  final Color color;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _ColorOption({
+    required this.color,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 32,
+        height: 32,
+        decoration: BoxDecoration(
+          color: color,
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: isSelected ? Colors.blue : Colors.grey,
+            width: isSelected ? 2 : 1,
+          ),
+        ),
       ),
     );
   }
