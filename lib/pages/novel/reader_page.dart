@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wild/pages/novel/paragraph_spacing_cubit.dart';
 import 'package:wild/pages/novel/reader_cubit.dart';
 import 'package:wild/pages/novel/theme_cubit.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
 import '../../src/rust/wenku8/models.dart';
 import 'font_size_cubit.dart';
@@ -186,7 +187,12 @@ class _ReaderViewState extends State<_ReaderView> {
                 if (page.isImage) {
                   return _ImagePage(imageUrl: page.content);
                 }
-                return _TextPage(content: page.content, textColor: textColor);
+                return _TextPage(
+                  content: page.content,
+                  textColor: textColor,
+                  pageNumber: widget.state.currentPageIndex + 1,
+                  pageCount: widget.state.pages.length,
+                );
               },
             ),
             // 控制栏
@@ -229,58 +235,58 @@ class _ReaderViewState extends State<_ReaderView> {
                 ),
               ),
               // 底部栏
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: Container(
-                  color: Colors.black.withOpacity(0.7),
-                  padding: EdgeInsets.fromLTRB(16, 16, 16, bottomPadding + 16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      IconButton(
-                        icon: const Icon(
-                          Icons.arrow_back_ios,
-                          color: Colors.white,
-                        ),
-                        onPressed: () {
-                          final currentVolumeIndex = _findCurrentVolumeIndex();
-                          final currentChapterIndex =
-                              _findCurrentChapterIndex();
-                          if (currentChapterIndex > 0 ||
-                              currentVolumeIndex > 0) {
-                            context.read<ReaderCubit>().goToPreviousChapter();
-                          }
-                        },
-                      ),
-                      Text(
-                        '${widget.state.currentPageIndex + 1}/${widget.state.pages.length}',
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                      IconButton(
-                        icon: const Icon(
-                          Icons.arrow_forward_ios,
-                          color: Colors.white,
-                        ),
-                        onPressed: () {
-                          final currentVolumeIndex = _findCurrentVolumeIndex();
-                          final currentChapterIndex =
-                              _findCurrentChapterIndex();
-                          final volume =
-                              widget.state.volumes[currentVolumeIndex];
-                          if (currentChapterIndex <
-                                  volume.chapters.length - 1 ||
-                              currentVolumeIndex <
-                                  widget.state.volumes.length - 1) {
-                            context.read<ReaderCubit>().goToNextChapter();
-                          }
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+              // Positioned(
+              //   bottom: 0,
+              //   left: 0,
+              //   right: 0,
+              //   child: Container(
+              //     color: Colors.black.withOpacity(0.7),
+              //     padding: EdgeInsets.fromLTRB(16, 16, 16, bottomPadding + 16),
+              //     child: Row(
+              //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              //       children: [
+              //         IconButton(
+              //           icon: const Icon(
+              //             Icons.arrow_back_ios,
+              //             color: Colors.white,
+              //           ),
+              //           onPressed: () {
+              //             final currentVolumeIndex = _findCurrentVolumeIndex();
+              //             final currentChapterIndex =
+              //                 _findCurrentChapterIndex();
+              //             if (currentChapterIndex > 0 ||
+              //                 currentVolumeIndex > 0) {
+              //               context.read<ReaderCubit>().goToPreviousChapter();
+              //             }
+              //           },
+              //         ),
+              //         Text(
+              //           '${widget.state.currentPageIndex + 1}/${widget.state.pages.length}',
+              //           style: const TextStyle(color: Colors.white),
+              //         ),
+              //         IconButton(
+              //           icon: const Icon(
+              //             Icons.arrow_forward_ios,
+              //             color: Colors.white,
+              //           ),
+              //           onPressed: () {
+              //             final currentVolumeIndex = _findCurrentVolumeIndex();
+              //             final currentChapterIndex =
+              //                 _findCurrentChapterIndex();
+              //             final volume =
+              //                 widget.state.volumes[currentVolumeIndex];
+              //             if (currentChapterIndex <
+              //                     volume.chapters.length - 1 ||
+              //                 currentVolumeIndex <
+              //                     widget.state.volumes.length - 1) {
+              //               context.read<ReaderCubit>().goToNextChapter();
+              //             }
+              //           },
+              //         ),
+              //       ],
+              //     ),
+              //   ),
+              // ),
             ],
           ],
         ),
@@ -319,8 +325,15 @@ class _ReaderViewState extends State<_ReaderView> {
 class _TextPage extends StatelessWidget {
   final String content;
   final Color textColor;
+  final int pageNumber;
+  final int pageCount;
 
-  const _TextPage({required this.content, required this.textColor});
+  const _TextPage({
+    required this.content,
+    required this.textColor,
+    required this.pageNumber,
+    required this.pageCount,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -372,6 +385,20 @@ class _TextPage extends StatelessWidget {
                       ),
                       if (i < texts.length - 1) Container(height: spacing),
                     ],
+                    Expanded(child: Container()),
+                    SizedBox(
+                      child: Align(
+                        alignment: Alignment.bottomCenter,
+                        child: Opacity(
+                          opacity: 0.3,
+                          child: Text(
+                            '$pageNumber/$pageCount',
+                            style: TextStyle(fontSize: 10, color: textColor),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Container(height: bottomPadding),
                   ],
                 );
               },
@@ -577,6 +604,50 @@ class _ReaderSettingsState extends State<_ReaderSettings> {
   late final fontSizeCubit = context.read<FontSizeCubit>();
   late final lineHeightCubit = context.read<LineHeightCubit>();
 
+  void _showColorPicker(
+    BuildContext context,
+    Color initialColor,
+    Function(Color) onColorChanged,
+  ) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        Color pickerColor = initialColor;
+        return AlertDialog(
+          title: const Text('选择颜色'),
+          content: SingleChildScrollView(
+            child: ColorPicker(
+              pickerColor: pickerColor,
+              onColorChanged: (Color color) {
+                pickerColor = color;
+              },
+              pickerAreaHeightPercent: 0.8,
+              enableAlpha: false,
+              labelTypes: const [],
+              displayThumbColor: true,
+              showLabel: false,
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('取消'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('确定'),
+              onPressed: () async {
+                onColorChanged(pickerColor);
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ThemeCubit, ReaderTheme>(
@@ -675,11 +746,7 @@ class _ReaderSettingsState extends State<_ReaderSettings> {
               // 主题模式选择
               Row(
                 children: [
-                  Text(
-                    '主题模式',
-                    style: TextStyle(
-                    ),
-                  ),
+                  Text('主题模式', style: TextStyle()),
                   const SizedBox(width: 16),
                   Expanded(
                     child: SegmentedButton<ReaderThemeMode>(
@@ -711,299 +778,143 @@ class _ReaderSettingsState extends State<_ReaderSettings> {
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 16),
               // 浅色主题颜色设置
-              ExpansionTile(
-                title: Text(
-                  '浅色主题颜色',
-                  style: TextStyle(
-                  ),
-                ),
+              Row(
                 children: [
-                  // 浅色背景颜色选择
-                  Row(
-                    children: [
-                      Text('背景颜色', style: TextStyle()),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: [
-                            _ColorOption(
-                              color: Colors.white,
-                              isSelected:
-                                  theme.lightBackgroundColor == Colors.white,
-                              onTap: () async {
-                                await context
-                                    .read<ThemeCubit>()
-                                    .updateLightBackgroundColor(Colors.white);
-                                await widget.readerCubit.reloadCurrentPage();
-                              },
-                            ),
-                            _ColorOption(
-                              color: const Color(0xFFF5F5F5),
-                              isSelected:
-                                  theme.lightBackgroundColor ==
-                                  const Color(0xFFF5F5F5),
-                              onTap: () async {
-                                await context
-                                    .read<ThemeCubit>()
-                                    .updateLightBackgroundColor(
-                                      const Color(0xFFF5F5F5),
-                                    );
-                                await widget.readerCubit.reloadCurrentPage();
-                              },
-                            ),
-                            _ColorOption(
-                              color: const Color(0xFFF0F0F0),
-                              isSelected:
-                                  theme.lightBackgroundColor ==
-                                  const Color(0xFFF0F0F0),
-                              onTap: () async {
-                                await context
-                                    .read<ThemeCubit>()
-                                    .updateLightBackgroundColor(
-                                      const Color(0xFFF0F0F0),
-                                    );
-                                await widget.readerCubit.reloadCurrentPage();
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  // 浅色文字颜色选择
-                  Row(
-                    children: [
-                      Text('文字颜色', style: TextStyle()),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: [
-                            _ColorOption(
-                              color: Colors.black87,
-                              isSelected:
-                                  theme.lightTextColor == Colors.black87,
-                              onTap: () async {
-                                await context
-                                    .read<ThemeCubit>()
-                                    .updateLightTextColor(Colors.black87);
-                                await widget.readerCubit.reloadCurrentPage();
-                              },
-                            ),
-                            _ColorOption(
-                              color: const Color(0xFF424242),
-                              isSelected:
-                                  theme.lightTextColor ==
-                                  const Color(0xFF424242),
-                              onTap: () async {
-                                await context
-                                    .read<ThemeCubit>()
-                                    .updateLightTextColor(
-                                      const Color(0xFF424242),
-                                    );
-                                await widget.readerCubit.reloadCurrentPage();
-                              },
-                            ),
-                            _ColorOption(
-                              color: const Color(0xFF616161),
-                              isSelected:
-                                  theme.lightTextColor ==
-                                  const Color(0xFF616161),
-                              onTap: () async {
-                                await context
-                                    .read<ThemeCubit>()
-                                    .updateLightTextColor(
-                                      const Color(0xFF616161),
-                                    );
-                                await widget.readerCubit.reloadCurrentPage();
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              // 深色主题颜色设置
-              ExpansionTile(
-                title: Text(
-                  '深色主题颜色',
-                  style: TextStyle(
-                  ),
-                ),
-                children: [
-                  // 深色背景颜色选择
-                  Row(
-                    children: [
-                      Text('背景颜色', style: TextStyle()),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: [
-                            _ColorOption(
-                              color: const Color(0xFF1A1A1A),
-                              isSelected:
-                                  theme.darkBackgroundColor ==
-                                  const Color(0xFF1A1A1A),
-                              onTap: () async {
-                                await context
-                                    .read<ThemeCubit>()
-                                    .updateDarkBackgroundColor(
-                                      const Color(0xFF1A1A1A),
-                                    );
-                                await widget.readerCubit.reloadCurrentPage();
-                              },
-                            ),
-                            _ColorOption(
-                              color: const Color(0xFF2C2C2C),
-                              isSelected:
-                                  theme.darkBackgroundColor ==
-                                  const Color(0xFF2C2C2C),
-                              onTap: () async {
-                                await context
-                                    .read<ThemeCubit>()
-                                    .updateDarkBackgroundColor(
-                                      const Color(0xFF2C2C2C),
-                                    );
-                                await widget.readerCubit.reloadCurrentPage();
-                              },
-                            ),
-                            _ColorOption(
-                              color: const Color(0xFF121212),
-                              isSelected:
-                                  theme.darkBackgroundColor ==
-                                  const Color(0xFF121212),
-                              onTap: () async {
-                                await context
-                                    .read<ThemeCubit>()
-                                    .updateDarkBackgroundColor(
-                                      const Color(0xFF121212),
-                                    );
-                                await widget.readerCubit.reloadCurrentPage();
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  // 深色文字颜色选择
-                  Row(
-                    children: [
-                      Text('文字颜色', style: TextStyle()),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: [
-                            _ColorOption(
-                              color: const Color(0xFFE0E0E0),
-                              isSelected:
-                                  theme.darkTextColor ==
-                                  const Color(0xFFE0E0E0),
-                              onTap: () async {
-                                await context
-                                    .read<ThemeCubit>()
-                                    .updateDarkTextColor(
-                                      const Color(0xFFE0E0E0),
-                                    );
-                                await widget.readerCubit.reloadCurrentPage();
-                              },
-                            ),
-                            _ColorOption(
-                              color: const Color(0xFFBDBDBD),
-                              isSelected:
-                                  theme.darkTextColor ==
-                                  const Color(0xFFBDBDBD),
-                              onTap: () async {
-                                await context
-                                    .read<ThemeCubit>()
-                                    .updateDarkTextColor(
-                                      const Color(0xFFBDBDBD),
-                                    );
-                                await widget.readerCubit.reloadCurrentPage();
-                              },
-                            ),
-                            _ColorOption(
-                              color: const Color(0xFF9E9E9E),
-                              isSelected:
-                                  theme.darkTextColor ==
-                                  const Color(0xFF9E9E9E),
-                              onTap: () async {
-                                await context
-                                    .read<ThemeCubit>()
-                                    .updateDarkTextColor(
-                                      const Color(0xFF9E9E9E),
-                                    );
-                                await widget.readerCubit.reloadCurrentPage();
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+                  Text('浅色主题', style: TextStyle(fontWeight: FontWeight.bold)),
                 ],
               ),
               const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      icon: Container(
+                        width: 24,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          color: theme.lightBackgroundColor,
+                          border: Border.all(color: Colors.grey),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      label: const Text('背景颜色'),
+                      onPressed:
+                          () => _showColorPicker(
+                            context,
+                            theme.lightBackgroundColor,
+                            (color) async {
+                              await context
+                                  .read<ThemeCubit>()
+                                  .updateLightBackgroundColor(color);
+                              await widget.readerCubit.reloadCurrentPage();
+                            },
+                          ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      icon: Container(
+                        width: 24,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          color: theme.lightTextColor,
+                          border: Border.all(color: Colors.grey),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      label: const Text('文字颜色'),
+                      onPressed:
+                          () => _showColorPicker(
+                            context,
+                            theme.lightTextColor,
+                            (color) async {
+                              await context
+                                  .read<ThemeCubit>()
+                                  .updateLightTextColor(color);
+                              await widget.readerCubit.reloadCurrentPage();
+                            },
+                          ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              // 深色主题颜色设置
+              Row(
+                children: [
+                  Text('深色主题', style: TextStyle(fontWeight: FontWeight.bold)),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      icon: Container(
+                        width: 24,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          color: theme.darkBackgroundColor,
+                          border: Border.all(color: Colors.grey),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      label: const Text('背景颜色'),
+                      onPressed:
+                          () => _showColorPicker(
+                            context,
+                            theme.darkBackgroundColor,
+                            (color) async {
+                              await context
+                                  .read<ThemeCubit>()
+                                  .updateDarkBackgroundColor(color);
+                              await widget.readerCubit.reloadCurrentPage();
+                            },
+                          ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      icon: Container(
+                        width: 24,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          color: theme.darkTextColor,
+                          border: Border.all(color: Colors.grey),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      label: const Text('文字颜色'),
+                      onPressed:
+                          () => _showColorPicker(context, theme.darkTextColor, (
+                            color,
+                          ) async {
+                            await context
+                                .read<ThemeCubit>()
+                                .updateDarkTextColor(color);
+                            await widget.readerCubit.reloadCurrentPage();
+                          }),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
               // 重置按钮
               TextButton(
                 onPressed: () async {
                   await context.read<ThemeCubit>().resetToDefault();
                   await widget.readerCubit.reloadCurrentPage();
                 },
-                child: Text(
-                  '重置为默认',
-                  style: TextStyle(
-                  ),
-                ),
+                child: const Text('重置为默认'),
               ),
             ],
           ),
         );
       },
-    );
-  }
-}
-
-class _ColorOption extends StatelessWidget {
-  final Color color;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _ColorOption({
-    required this.color,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 32,
-        height: 32,
-        decoration: BoxDecoration(
-          color: color,
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: isSelected ? Colors.blue : Colors.grey,
-            width: isSelected ? 2 : 1,
-          ),
-        ),
-      ),
     );
   }
 }
