@@ -39,6 +39,7 @@ dependencies:
   flutter_rust_bridge: 2.9.0
   flutter_bloc: ^8.1.4
   equatable: ^2.0.5
+  flutter_html: ^3.0.0
 
 dev_dependencies:
   flutter_test:

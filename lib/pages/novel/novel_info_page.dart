@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wild/src/rust/api/wenku8.dart';
 import 'package:wild/src/rust/frb_generated.dart';
+import 'package:wild/widgets/cached_image.dart';
+import 'package:flutter_html/flutter_html.dart';
 
 import '../../src/rust/wenku8/models.dart';
 import 'novel_info_cubit.dart';
@@ -51,17 +53,35 @@ class _NovelInfoContent extends StatelessWidget {
       slivers: [
         SliverToBoxAdapter(child: _NovelHeader(novelInfo: novelInfo)),
         SliverToBoxAdapter(
-          child: _NovelDescription(description: novelInfo.introduce),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _StatItem(
+                  icon: Icons.update,
+                  label: '更新',
+                  value: novelInfo.finUpdate,
+                ),
+                _StatItem(
+                  icon: Icons.local_fire_department,
+                  label: '热度',
+                  value: novelInfo.heat,
+                ),
+                _StatItem(
+                  icon: Icons.trending_up,
+                  label: '趋势',
+                  value: novelInfo.trending,
+                ),
+              ],
+            ),
+          ),
         ),
         SliverToBoxAdapter(
           child: _NovelTags(tags: novelInfo.tags),
         ),
         SliverToBoxAdapter(
-          child: _NovelStats(
-            heat: novelInfo.heat,
-            trending: novelInfo.trending,
-            finUpdate: novelInfo.finUpdate,
-          ),
+          child: _NovelDescription(description: novelInfo.introduce),
         ),
         SliverList(
           delegate: SliverChildBuilderDelegate((context, index) {
@@ -86,22 +106,12 @@ class _NovelHeader extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ClipRRect(
+          CachedImage(
+            url: novelInfo.imgUrl,
+            width: 120,
+            height: 160,
+            fit: BoxFit.cover,
             borderRadius: BorderRadius.circular(8),
-            child: Image.network(
-              novelInfo.imgUrl,
-              width: 120,
-              height: 160,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  width: 120,
-                  height: 160,
-                  color: Colors.grey[300],
-                  child: const Icon(Icons.error_outline),
-                );
-              },
-            ),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -141,6 +151,33 @@ class _NovelHeader extends StatelessWidget {
   }
 }
 
+class _StatItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+
+  const _StatItem({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 16, color: Theme.of(context).colorScheme.primary),
+        const SizedBox(width: 4),
+        Text(
+          '$label: $value',
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+      ],
+    );
+  }
+}
+
 class _NovelDescription extends StatelessWidget {
   final String description;
 
@@ -155,7 +192,23 @@ class _NovelDescription extends StatelessWidget {
         children: [
           Text('简介', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
-          Text(description, style: Theme.of(context).textTheme.bodyMedium),
+          Html(
+            data: description,
+            style: {
+              'body': Style(
+                margin: Margins.zero,
+                padding: HtmlPaddings.zero,
+                fontSize: FontSize(14),
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+              'p': Style(
+                margin: Margins.only(bottom: 8),
+              ),
+              'br': Style(
+                margin: Margins.only(bottom: 8),
+              ),
+            },
+          ),
         ],
       ),
     );
@@ -188,70 +241,6 @@ class _NovelTags extends StatelessWidget {
   }
 }
 
-class _NovelStats extends StatelessWidget {
-  final String heat;
-  final String trending;
-  final String finUpdate;
-
-  const _NovelStats({
-    required this.heat,
-    required this.trending,
-    required this.finUpdate,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _StatItem(
-            icon: Icons.local_fire_department,
-            label: '热度',
-            value: heat,
-          ),
-          _StatItem(
-            icon: Icons.trending_up,
-            label: '趋势',
-            value: trending,
-          ),
-          _StatItem(
-            icon: Icons.update,
-            label: '更新',
-            value: finUpdate,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StatItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-
-  const _StatItem({
-    required this.icon,
-    required this.label,
-    required this.value,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Icon(icon, size: 24),
-        const SizedBox(height: 4),
-        Text(label, style: Theme.of(context).textTheme.bodySmall),
-        const SizedBox(height: 2),
-        Text(value, style: Theme.of(context).textTheme.bodyMedium),
-      ],
-    );
-  }
-}
-
 class _VolumeItem extends StatelessWidget {
   final Volume volume;
 
@@ -259,23 +248,58 @@ class _VolumeItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ExpansionTile(
-      title: Text(volume.title),
-      children: volume.chapters.map((chapter) {
-        return ListTile(
-          title: Text(chapter.title),
-          onTap: () {
-            Navigator.pushNamed(
-              context,
-              '/novel/reader',
-              arguments: {
-                'novelId': chapter.aid,
-                'chapterId': chapter.cid,
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              volume.title,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+          ),
+          const Divider(height: 1),
+          ...volume.chapters.map((chapter) {
+            return InkWell(
+              onTap: () {
+                Navigator.pushNamed(
+                  context,
+                  '/novel/reader',
+                  arguments: {
+                    'novelId': chapter.aid,
+                    'chapterId': chapter.cid,
+                  },
+                );
               },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        chapter.title,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                    ),
+                    Icon(
+                      Icons.chevron_right,
+                      size: 20,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ],
+                ),
+              ),
             );
-          },
-        );
-      }).toList(),
+          }).toList(),
+        ],
+      ),
     );
   }
 }

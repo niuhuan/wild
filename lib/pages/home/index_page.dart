@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wild/pages/home/index_cubit.dart';
 import 'package:wild/src/rust/wenku8/models.dart';
 import 'package:wild/src/rust/api/wenku8.dart';
+import 'package:wild/widgets/cached_image.dart';
 
 class IndexPage extends StatelessWidget {
   const IndexPage({super.key});
@@ -117,27 +118,9 @@ class _NovelCoverCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
-            child: FutureBuilder<List<int>>(
-              future: downloadImage(url: novel.img),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Container(
-                    color: Colors.grey[200],
-                    child: const Center(child: CircularProgressIndicator()),
-                  );
-                }
-                if (snapshot.hasError || !snapshot.hasData) {
-                  return Container(
-                    color: Colors.grey[200],
-                    child: const Icon(Icons.broken_image),
-                  );
-                }
-                return Image.memory(
-                  Uint8List.fromList(snapshot.data!),
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                );
-              },
+            child: CachedImage(
+              url: novel.img,
+              fit: BoxFit.cover,
             ),
           ),
           Padding(
