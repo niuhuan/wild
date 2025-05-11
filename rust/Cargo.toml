@@ -30,6 +30,7 @@ md5 = "0.7"
 hex = "0.4.3"
 url = "2.5.4"
 base64 = "0.22.1"
+lazy_static = "1.4"
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(frb_expand)'] }

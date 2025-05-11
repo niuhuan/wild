@@ -1,3 +1,4 @@
+use crate::database::entities::active::chapter_cache;
 use crate::database::entities::active::image_cache;
 use crate::database::entities::cookie::cookie_store::DatabaseCookieStore;
 use crate::wenku8::Wenku8Client;
@@ -83,6 +84,7 @@ pub async fn init(root: String) -> Result<()> {
 
     // 清理过期的图片缓存
     cleanup_image_cache().await?;
+    cleanup_expired_chapters().await?;
 
     // 标记初始化完成
     let _ = INIT_DONE.set(());
@@ -161,5 +163,32 @@ pub fn get_image_cache_dir() -> &'static str {
 }
 
 pub(crate) async fn get_chapter_content(aid: &str, cid: &str) -> anyhow::Result<String> {
-    CLIENT.c_content(aid, cid).await
+
+    // 根据MD5最后一位选择锁
+    let url_md5 = md5::compute(format!("{aid}:{cid}").as_bytes()).0;
+    let url_md5 = hex::encode(url_md5);
+    let lock_index = (url_md5.as_bytes()[url_md5.len() - 1] % 64) as usize;
+    let _guard = IMAGE_LOCKS[lock_index].lock().await;
+
+    // 先尝试从缓存获取
+    if let Some(cache) = chapter_cache::Entity::get_chapter_content(aid, cid).await? {
+        return Ok(cache.content);
+    }
+
+    // 下载章节内容
+    let content = CLIENT.c_content(aid, cid).await?;
+
+    // 保存到缓存
+    chapter_cache::Entity::save_chapter_content(aid.to_string(), cid.to_string(), content.clone())
+        .await?;
+
+    Ok(content)
+}
+
+// 清理过期的章节缓存
+pub(crate) async fn cleanup_expired_chapters() -> anyhow::Result<()> {
+    // 清理7天前的缓存
+    let expire_time = Utc::now().timestamp() - 7 * 24 * 60 * 60;
+    chapter_cache::Entity::delete_expired_chapters(expire_time).await?;
+    Ok(())
 }

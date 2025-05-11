@@ -2121,6 +2121,7 @@ dependencies = [
  "flutter_rust_bridge",
  "hex",
  "image",
+ "lazy_static",
  "md5",
  "once_cell",
  "rand 0.9.1",
