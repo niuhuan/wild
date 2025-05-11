@@ -163,163 +163,89 @@ class ReaderCubit extends Cubit<ReaderState> {
   List<ReaderPage> _splitIntoPages(String content, String aid) {
     final pages = <ReaderPage>[];
     final paragraphs = content.split('\n');
-    var currentPage = StringBuffer();
-    var currentHeight = 0.0;
     final screenWidth = MediaQueryData.fromView(WidgetsBinding.instance.window).size.width - 32;
     final screenHeight = MediaQueryData.fromView(WidgetsBinding.instance.window).size.height;
     final topPadding = MediaQueryData.fromView(WidgetsBinding.instance.window).padding.top;
     final bottomPadding = MediaQueryData.fromView(WidgetsBinding.instance.window).padding.bottom;
     final topBarHeight = 56.0;
     final bottomBarHeight = 56.0;
-    final canvasHeight = screenHeight - topPadding - bottomPadding - topBarHeight - bottomBarHeight - 4;
+    final canvasHeight = screenHeight - topPadding - bottomPadding - topBarHeight - bottomBarHeight + 16;
 
     final currentFontSize = state is ReaderLoaded ? (state as ReaderLoaded).fontSize : 18.0;
-
-    TextStyle getTextStyle(double fontSize) => TextStyle(
-      fontSize: fontSize,
+    final textStyle = TextStyle(
+      fontSize: currentFontSize,
       height: 1.5,
       letterSpacing: 0.5,
     );
 
-    String _splitText(String text, double maxHeight) {
-      if (text.isEmpty) return '';
-      
-      // 如果整个文本都能放入一页，直接返回
-      _textPainter.text = TextSpan(
-        text: text,
-        style: getTextStyle(currentFontSize),
-      );
-      _textPainter.layout(maxWidth: screenWidth);
-      if (_textPainter.height <= maxHeight) {
-        return text;
-      }
+    _textPainter.textDirection = TextDirection.ltr;
 
-      var start = 0;
-      var end = text.length;
-      var lastValidEnd = 0;
-      
-      // 最多尝试 log2(text.length) 次
-      var maxAttempts = (text.length.bitLength + 1);
-      var attempts = 0;
-      
-      while (start < end && attempts < maxAttempts) {
-        attempts++;
-        var mid = (start + end) ~/ 2;
-        
-        // 找到下一个合适的分割点（标点符号或空格）
-        while (mid < text.length && 
-               text[mid].isNotEmpty && 
-               !RegExp(r'[\s,，.。!！?？]').hasMatch(text[mid])) {
-          mid++;
-        }
-        if (mid >= text.length) {
-          mid = text.length - 1;
-        }
-        
-        final testText = text.substring(0, mid + 1);
-        _textPainter.text = TextSpan(
-          text: testText,
-          style: getTextStyle(currentFontSize),
-        );
-        _textPainter.layout(maxWidth: screenWidth);
-
-        if (_textPainter.height <= maxHeight) {
-          lastValidEnd = mid + 1;
-          start = mid + 1;
-          // 如果已经到达文本末尾，直接返回
-          if (start >= text.length) {
-            return text;
-          }
-        } else {
-          end = mid;
-        }
-      }
-      
-      // 如果没有找到合适的分割点，强制在中间分割
-      if (lastValidEnd == 0) {
-        // 尝试在最后一个完整字符处分割
-        var splitPoint = text.length ~/ 2;
-        while (splitPoint > 0 && 
-               text[splitPoint].isNotEmpty && 
-               !RegExp(r'[\s,，.。!！?？]').hasMatch(text[splitPoint])) {
-          splitPoint--;
-        }
-        if (splitPoint == 0) {
-          // 如果找不到标点符号，就在中间强制分割
-          splitPoint = text.length ~/ 2;
-        }
-        return text.substring(0, splitPoint + 1);
-      }
-      
-      return text.substring(0, lastValidEnd);
-    }
+    var currentPage = StringBuffer();
+    var currentHeight = 0.0;
+    var lastParagraphHeight = 0.0;
+    var isFirstParagraph = true;
 
     for (var paragraph in paragraphs) {
       if (paragraph.trim().isEmpty) {
         if (currentPage.isNotEmpty) {
           currentPage.write('\n');
-          currentHeight += 24;
+          currentHeight += 24; // 段落间距
         }
         continue;
       }
 
-      // 处理段落，限制最多2行
-      final lines = paragraph.split('\n');
-      final processedParagraph = lines.length > 2 
-          ? '${lines[0]}\n${lines[1]}'
-          : paragraph;
-
-      _textPainter.text = TextSpan(
-        text: processedParagraph,
-        style: getTextStyle(currentFontSize),
-      );
+      // 测量当前段落的高度
+      _textPainter.text = TextSpan(text: paragraph, style: textStyle);
       _textPainter.layout(maxWidth: screenWidth);
+      lastParagraphHeight = _textPainter.height;
 
-      if (currentHeight + _textPainter.height > canvasHeight) {
-        if (currentPage.isNotEmpty) {
+      // 如果是新页面的第一个段落，直接添加
+      if (currentPage.isEmpty) {
+        currentPage.write(paragraph);
+        currentHeight = lastParagraphHeight;
+        isFirstParagraph = false;
+        continue;
+      }
+
+      // 如果添加这个段落后会超过画布高度，且当前页面已经有内容，则创建新页面
+      if (currentHeight + 24 + lastParagraphHeight > canvasHeight) {
+        // 只有当当前页面内容超过画布高度的一半时才创建新页面
+        if (currentHeight > canvasHeight * 0.5) {
           pages.add(ReaderPage(
             content: currentPage.toString(),
             isImage: false,
           ));
           currentPage.clear();
           currentHeight = 0.0;
+          isFirstParagraph = true;
+          // 重新处理当前段落
+          continue;
         }
-
-        if (_textPainter.height > canvasHeight) {
-          var remainingText = processedParagraph;
-          while (remainingText.isNotEmpty) {
-            final pageText = _splitText(remainingText, canvasHeight);
-            if (pageText.isEmpty) break; // 防止死循环
-            
-            pages.add(ReaderPage(
-              content: pageText,
-              isImage: false,
-            ));
-            
-            remainingText = remainingText.substring(pageText.length);
-            if (remainingText.isNotEmpty && remainingText[0] == '\n') {
-              remainingText = remainingText.substring(1);
-            }
-          }
-        } else {
-          currentPage.write(processedParagraph);
-          currentHeight = _textPainter.height;
-        }
-      } else {
-        if (currentPage.isNotEmpty) {
-          currentPage.write('\n');
-          currentHeight += 24;
-        }
-        currentPage.write(processedParagraph);
-        currentHeight += _textPainter.height;
       }
+
+      // 添加段落到当前页面
+      currentPage.write('\n');
+      currentPage.write(paragraph);
+      currentHeight += 24 + lastParagraphHeight; // 段落间距 + 段落高度
+      isFirstParagraph = false;
     }
 
+    // 添加最后一页
     if (currentPage.isNotEmpty) {
-      pages.add(ReaderPage(
-        content: currentPage.toString(),
-        isImage: false,
-      ));
+      // 如果最后一页内容太少，尝试合并到前一页
+      if (pages.isNotEmpty && currentHeight < canvasHeight * 0.3) {
+        final lastPage = pages.removeLast();
+        final combinedContent = lastPage.content + '\n' + currentPage.toString();
+        pages.add(ReaderPage(
+          content: combinedContent,
+          isImage: false,
+        ));
+      } else {
+        pages.add(ReaderPage(
+          content: currentPage.toString(),
+          isImage: false,
+        ));
+      }
     }
 
     return pages;

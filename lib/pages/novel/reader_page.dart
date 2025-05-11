@@ -310,22 +310,6 @@ class _TextPage extends StatelessWidget {
     required this.fontSize,
   });
 
-  String _formatContent(String text) {
-    // 将文本按段落分割
-    final paragraphs = text.split('\n');
-    // 处理每个段落，限制最多2行
-    final processedParagraphs = paragraphs.map((p) {
-      if (p.trim().isEmpty) return '\n';
-      // 如果段落包含多个换行，只保留第一个
-      final lines = p.split('\n');
-      if (lines.length > 2) {
-        return '${lines[0]}\n${lines[1]}';
-      }
-      return p;
-    }).toList();
-    return processedParagraphs.join('\n');
-  }
-
   @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
@@ -351,11 +335,17 @@ class _TextPage extends StatelessWidget {
           maxHeight: availableHeight,
         ),
         child: Text(
-          _formatContent(content),
+          content,
           style: TextStyle(
             fontSize: fontSize,
             height: 1.5,
             letterSpacing: 0.5,
+          ),
+          // 使用 strutStyle 来设置段落间距
+          strutStyle: StrutStyle(
+            fontSize: fontSize,
+            height: 1.5,
+            leading: 24 / fontSize, // 将24像素的段落间距转换为行高倍数
           ),
         ),
       ),

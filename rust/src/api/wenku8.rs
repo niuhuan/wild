@@ -36,7 +36,38 @@ pub async fn download_image(url: String) -> anyhow::Result<Vec<u8>> {
 }
 
 pub async fn chapter_content(aid: String, cid: String) -> anyhow::Result<String> {
-    crate::get_chapter_content(&aid, &cid).await
+    let content = crate::get_chapter_content(&aid, &cid).await?;
+    
+    // 处理内容中的空白字符
+    let processed_content = content
+        .lines()  // 按行分割
+        .filter(|line| !line.trim().is_empty())  // 移除空行
+        .collect::<Vec<&str>>()
+        .join("\n")  // 重新组合，每行之间用单个换行符连接
+        .replace(|c: char| c.is_whitespace() && c != '\n', " ");  // 将其他空白字符替换为空格
+    
+    // 将连续的两个以上换行符替换为两个换行符
+    let mut result = String::new();
+    let mut newline_count = 0;
+    
+    for c in processed_content.chars() {
+        if c == '\n' {
+            newline_count += 1;
+            if newline_count <= 2 {
+                result.push(c);
+            }
+        } else {
+            if newline_count > 2 {
+                // 如果之前有超过两个换行符，添加两个换行符
+                result.push('\n');
+                result.push('\n');
+            }
+            newline_count = 0;
+            result.push(c);
+        }
+    }
+    
+    Ok(result)
 }
 
 pub async fn novel_info(aid: String) -> anyhow::Result<NovelInfo> {
