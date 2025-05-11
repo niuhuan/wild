@@ -6,6 +6,8 @@ import 'package:wild/pages/login_page.dart';
 import 'package:wild/pages/home_page.dart';
 import 'package:wild/pages/novel/novel_info_page.dart';
 import 'package:wild/pages/novel/reader_page.dart';
+import 'package:wild/pages/novel/font_size_cubit.dart';
+import 'package:wild/pages/novel/paragraph_spacing_cubit.dart';
 import 'package:wild/src/rust/frb_generated.dart';
 import 'package:wild/src/rust/wenku8/models.dart';
 
@@ -20,7 +22,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
-      providers: [BlocProvider(create: (context) => AuthCubit())],
+      providers: [
+        BlocProvider(create: (context) => AuthCubit()),
+        BlocProvider(create: (context) => FontSizeCubit()),
+        BlocProvider(create: (context) => ParagraphSpacingCubit()),
+      ],
       child: MaterialApp(
         title: '轻小说文库',
         theme: ThemeData(
@@ -38,11 +44,17 @@ class MyApp extends StatelessWidget {
           },
           '/novel/reader': (context) {
             final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
-            return ReaderPage(
-              aid: args['novelId'] as String,
-              cid: args['chapterId'] as String,
-              initialTitle: args['title'] as String,
-              volumes: (args['volumes'] as List).cast<Volume>(),
+            return MultiBlocProvider(
+              providers: [
+                BlocProvider.value(value: context.read<FontSizeCubit>()),
+                BlocProvider.value(value: context.read<ParagraphSpacingCubit>()),
+              ],
+              child: ReaderPage(
+                aid: args['novelId'] as String,
+                cid: args['chapterId'] as String,
+                initialTitle: args['title'] as String,
+                volumes: (args['volumes'] as List).cast<Volume>(),
+              ),
             );
           },
         },

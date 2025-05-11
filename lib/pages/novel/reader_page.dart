@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:wild/pages/novel/paragraph_spacing_cubit.dart';
 import 'package:wild/pages/novel/reader_cubit.dart';
 
 import '../../src/rust/wenku8/models.dart';
+import 'font_size_cubit.dart';
 
 class ReaderPage extends StatelessWidget {
   final String aid;
@@ -20,19 +22,23 @@ class ReaderPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final fontSizeCubit = context.read<FontSizeCubit>();
+    final paragraphSpacingCubit = context.read<ParagraphSpacingCubit>();
+
     return BlocProvider(
-      create: (context) => ReaderCubit(
-        initialAid: aid,
-        initialCid: cid,
-        initialVolumes: volumes,
-      )..loadChapter(),
+      create:
+          (context) => ReaderCubit(
+            initialAid: aid,
+            initialCid: cid,
+            initialVolumes: volumes,
+            fontSizeCubit: fontSizeCubit,
+            paragraphSpacingCubit: paragraphSpacingCubit,
+          )..loadChapter(),
       child: BlocBuilder<ReaderCubit, ReaderState>(
         builder: (context, state) {
           if (state is ReaderLoading) {
             return const Scaffold(
-              body: Center(
-                child: CircularProgressIndicator(),
-              ),
+              body: Center(child: CircularProgressIndicator()),
             );
           }
           if (state is ReaderError) {
@@ -44,7 +50,8 @@ class ReaderPage extends StatelessWidget {
                     Text(state.error),
                     const SizedBox(height: 16),
                     ElevatedButton(
-                      onPressed: () => context.read<ReaderCubit>().loadChapter(),
+                      onPressed:
+                          () => context.read<ReaderCubit>().loadChapter(),
                       child: const Text('重试'),
                     ),
                   ],
@@ -53,10 +60,7 @@ class ReaderPage extends StatelessWidget {
             );
           }
           if (state is ReaderLoaded) {
-            return _ReaderView(
-              state: state,
-              title: state.title,
-            );
+            return _ReaderView(state: state, title: state.title);
           }
           return const SizedBox.shrink();
         },
@@ -69,10 +73,7 @@ class _ReaderView extends StatefulWidget {
   final ReaderLoaded state;
   final String title;
 
-  const _ReaderView({
-    required this.state,
-    required this.title,
-  });
+  const _ReaderView({required this.state, required this.title});
 
   @override
   State<_ReaderView> createState() => _ReaderViewState();
@@ -80,24 +81,12 @@ class _ReaderView extends StatefulWidget {
 
 class _ReaderViewState extends State<_ReaderView> {
   late PageController _pageController;
-  late double _fontSize;
   bool _showControls = true;
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController();
-    _fontSize = widget.state.fontSize;
-  }
-
-  @override
-  void didUpdateWidget(_ReaderView oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.state.fontSize != widget.state.fontSize) {
-      setState(() {
-        _fontSize = widget.state.fontSize;
-      });
-    }
   }
 
   @override
@@ -124,15 +113,16 @@ class _ReaderViewState extends State<_ReaderView> {
             initialChildSize: 0.9,
             maxChildSize: 0.9,
             minChildSize: 0.5,
-            builder: (context, scrollController) => _ChapterList(
-              volumes: widget.state.volumes,
-              currentAid: widget.state.aid,
-              currentCid: widget.state.cid,
-              onChapterSelected: (aid, cid) {
-                Navigator.pop(context);
-                readerCubit.loadChapter(aid: aid, cid: cid);
-              },
-            ),
+            builder:
+                (context, scrollController) => _ChapterList(
+                  volumes: widget.state.volumes,
+                  currentAid: widget.state.aid,
+                  currentCid: widget.state.cid,
+                  onChapterSelected: (aid, cid) {
+                    Navigator.pop(context);
+                    readerCubit.loadChapter(aid: aid, cid: cid);
+                  },
+                ),
           ),
         );
       },
@@ -144,18 +134,7 @@ class _ReaderViewState extends State<_ReaderView> {
     showModalBottomSheet(
       context: context,
       builder: (BuildContext context) {
-        return BlocProvider.value(
-          value: readerCubit,
-          child: _ReaderSettings(
-            fontSize: _fontSize,
-            onFontSizeChanged: (size) {
-              setState(() {
-                _fontSize = size;
-              });
-              readerCubit.updateFontSize(size);
-            },
-          ),
-        );
+        return _ReaderSettings(readerCubit);
       },
     );
   }
@@ -183,10 +162,7 @@ class _ReaderViewState extends State<_ReaderView> {
                 if (page.isImage) {
                   return _ImagePage(imageUrl: page.content);
                 }
-                return _TextPage(
-                  content: page.content,
-                  fontSize: _fontSize,
-                );
+                return _TextPage(content: page.content);
               },
             ),
             // 控制栏
@@ -240,11 +216,16 @@ class _ReaderViewState extends State<_ReaderView> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+                        icon: const Icon(
+                          Icons.arrow_back_ios,
+                          color: Colors.white,
+                        ),
                         onPressed: () {
                           final currentVolumeIndex = _findCurrentVolumeIndex();
-                          final currentChapterIndex = _findCurrentChapterIndex();
-                          if (currentChapterIndex > 0 || currentVolumeIndex > 0) {
+                          final currentChapterIndex =
+                              _findCurrentChapterIndex();
+                          if (currentChapterIndex > 0 ||
+                              currentVolumeIndex > 0) {
                             context.read<ReaderCubit>().goToPreviousChapter();
                           }
                         },
@@ -254,13 +235,20 @@ class _ReaderViewState extends State<_ReaderView> {
                         style: const TextStyle(color: Colors.white),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.arrow_forward_ios, color: Colors.white),
+                        icon: const Icon(
+                          Icons.arrow_forward_ios,
+                          color: Colors.white,
+                        ),
                         onPressed: () {
                           final currentVolumeIndex = _findCurrentVolumeIndex();
-                          final currentChapterIndex = _findCurrentChapterIndex();
-                          final volume = widget.state.volumes[currentVolumeIndex];
-                          if (currentChapterIndex < volume.chapters.length - 1 || 
-                              currentVolumeIndex < widget.state.volumes.length - 1) {
+                          final currentChapterIndex =
+                              _findCurrentChapterIndex();
+                          final volume =
+                              widget.state.volumes[currentVolumeIndex];
+                          if (currentChapterIndex <
+                                  volume.chapters.length - 1 ||
+                              currentVolumeIndex <
+                                  widget.state.volumes.length - 1) {
                             context.read<ReaderCubit>().goToNextChapter();
                           }
                         },
@@ -279,8 +267,10 @@ class _ReaderViewState extends State<_ReaderView> {
   int _findCurrentVolumeIndex() {
     for (var i = 0; i < widget.state.volumes.length; i++) {
       final volume = widget.state.volumes[i];
-      if (volume.chapters.any((chapter) => 
-          chapter.aid == widget.state.aid && chapter.cid == widget.state.cid)) {
+      if (volume.chapters.any(
+        (chapter) =>
+            chapter.aid == widget.state.aid && chapter.cid == widget.state.cid,
+      )) {
         return i;
       }
     }
@@ -303,52 +293,63 @@ class _ReaderViewState extends State<_ReaderView> {
 
 class _TextPage extends StatelessWidget {
   final String content;
-  final double fontSize;
 
-  const _TextPage({
-    required this.content,
-    required this.fontSize,
-  });
+  const _TextPage({required this.content});
 
   @override
   Widget build(BuildContext context) {
-    final mediaQuery = MediaQuery.of(context);
-    final screenHeight = mediaQuery.size.height;
-    final screenWidth = mediaQuery.size.width;
-    final topPadding = mediaQuery.padding.top;
-    final bottomPadding = mediaQuery.padding.bottom;
+    final screenWidth =
+        MediaQueryData.fromView(WidgetsBinding.instance.window).size.width;
+    final screenHeight =
+        MediaQueryData.fromView(WidgetsBinding.instance.window).size.height;
+    final topPadding =
+        MediaQueryData.fromView(WidgetsBinding.instance.window).padding.top;
+    final bottomPadding =
+        MediaQueryData.fromView(WidgetsBinding.instance.window).padding.bottom;
     final topBarHeight = 56.0;
     final bottomBarHeight = 56.0;
-    final availableHeight = screenHeight - topPadding - bottomPadding - topBarHeight - bottomBarHeight;
+    final leftAndRightPadding = 32.0;
+    final canvasWidth = screenWidth - leftAndRightPadding;
+    final canvasHeight =
+        screenHeight -
+        topPadding -
+        bottomPadding -
+        topBarHeight -
+        bottomBarHeight;
 
-    return Container(
-      color: Colors.white,
-      padding: EdgeInsets.fromLTRB(
-        16,
-        topPadding + topBarHeight,
-        16,
-        bottomPadding + bottomBarHeight,
-      ),
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          minHeight: availableHeight,
-          maxHeight: availableHeight,
-        ),
-        child: Text(
-          content,
-          style: TextStyle(
-            fontSize: fontSize,
-            height: 1.5,
-            letterSpacing: 0.5,
-          ),
-          // 使用 strutStyle 来设置段落间距
-          strutStyle: StrutStyle(
-            fontSize: fontSize,
-            height: 1.5,
-            leading: 24 / fontSize, // 将24像素的段落间距转换为行高倍数
-          ),
-        ),
-      ),
+    return BlocBuilder<FontSizeCubit, double>(
+      builder: (context, fontSize) {
+        return BlocBuilder<ParagraphSpacingCubit, double>(
+          builder: (context, spacing) {
+            var texts = content.split("\n");
+            return Column(
+              children: [
+                Container(height: topPadding),
+                Container(height: topBarHeight),
+                for (var i = 0; i < texts.length; i++) ...[
+                  SizedBox(
+                    width: canvasWidth,
+                    child: Text.rich(
+                      strutStyle: StrutStyle(
+                        height: 1.3,
+                      ),
+                      TextSpan(
+                        text: texts[i],
+                        style: TextStyle(
+                          fontSize: fontSize,
+                          height: 1.3,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                  ),
+                  if (i < texts.length - 1) Container(height: spacing),
+                ],
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }
@@ -367,7 +368,12 @@ class _ImagePage extends StatelessWidget {
     final bottomPadding = mediaQuery.padding.bottom;
     final topBarHeight = 56.0;
     final bottomBarHeight = 56.0;
-    final availableHeight = screenHeight - topPadding - bottomPadding - topBarHeight - bottomBarHeight;
+    final availableHeight =
+        screenHeight -
+        topPadding -
+        bottomPadding -
+        topBarHeight -
+        bottomBarHeight;
 
     return Container(
       color: Colors.white,
@@ -390,10 +396,11 @@ class _ImagePage extends StatelessWidget {
               if (loadingProgress == null) return child;
               return Center(
                 child: CircularProgressIndicator(
-                  value: loadingProgress.expectedTotalBytes != null
-                      ? loadingProgress.cumulativeBytesLoaded /
-                          loadingProgress.expectedTotalBytes!
-                      : null,
+                  value:
+                      loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded /
+                              loadingProgress.expectedTotalBytes!
+                          : null,
                 ),
               );
             },
@@ -402,7 +409,11 @@ class _ImagePage extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                    const Icon(
+                      Icons.error_outline,
+                      size: 48,
+                      color: Colors.red,
+                    ),
                     const SizedBox(height: 16),
                     Text(
                       '图片加载失败\n$error',
@@ -414,8 +425,11 @@ class _ImagePage extends StatelessWidget {
               );
             },
             // 添加缓存和内存管理选项
-            cacheWidth: (screenWidth * MediaQuery.of(context).devicePixelRatio).round(),
-            cacheHeight: (availableHeight * MediaQuery.of(context).devicePixelRatio).round(),
+            cacheWidth:
+                (screenWidth * MediaQuery.of(context).devicePixelRatio).round(),
+            cacheHeight:
+                (availableHeight * MediaQuery.of(context).devicePixelRatio)
+                    .round(),
             frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
               if (wasSynchronouslyLoaded) return child;
               return AnimatedOpacity(
@@ -458,9 +472,7 @@ class _ChapterList extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               border: Border(
-                bottom: BorderSide(
-                  color: Theme.of(context).dividerColor,
-                ),
+                bottom: BorderSide(color: Theme.of(context).dividerColor),
               ),
             ),
             child: const Row(
@@ -469,10 +481,7 @@ class _ChapterList extends StatelessWidget {
                 SizedBox(width: 8),
                 Text(
                   '目录',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -497,19 +506,21 @@ class _ChapterList extends StatelessWidget {
                     ),
                     ...volume.chapters.map((chapter) {
                       final isSelected =
-                          chapter.aid == currentAid && chapter.cid == currentCid;
+                          chapter.aid == currentAid &&
+                          chapter.cid == currentCid;
                       return ListTile(
                         title: Text(
                           chapter.title,
                           style: TextStyle(
-                            color: isSelected
-                                ? Theme.of(context).primaryColor
-                                : null,
-                            fontWeight:
-                                isSelected ? FontWeight.bold : null,
+                            color:
+                                isSelected
+                                    ? Theme.of(context).primaryColor
+                                    : null,
+                            fontWeight: isSelected ? FontWeight.bold : null,
                           ),
                         ),
-                        onTap: () => onChapterSelected(chapter.aid, chapter.cid),
+                        onTap:
+                            () => onChapterSelected(chapter.aid, chapter.cid),
                       );
                     }),
                   ],
@@ -523,56 +534,81 @@ class _ChapterList extends StatelessWidget {
   }
 }
 
-class _ReaderSettings extends StatelessWidget {
-  final double fontSize;
-  final Function(double) onFontSizeChanged;
+class _ReaderSettings extends StatefulWidget {
+  final ReaderCubit readerCubit;
 
-  const _ReaderSettings({
-    required this.fontSize,
-    required this.onFontSizeChanged,
-  });
+  const _ReaderSettings(this.readerCubit);
+
+  @override
+  State<_ReaderSettings> createState() => _ReaderSettingsState();
+}
+
+class _ReaderSettingsState extends State<_ReaderSettings> {
+  late final paragraphSpacingCubit = context.read<ParagraphSpacingCubit>();
+  late final fontSizeCubit = context.read<FontSizeCubit>();
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ReaderCubit, ReaderState>(
-      builder: (context, state) {
-        final currentFontSize = state is ReaderLoaded ? state.fontSize : fontSize;
-        return Container(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                '设置',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Row(
+    return Container(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text(
+            '设置',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 16),
+          // 字体大小设置
+          BlocBuilder<FontSizeCubit, double>(
+            builder: (context, fontSize) {
+              return Row(
                 children: [
                   const Text('字体大小'),
                   Expanded(
                     child: Slider(
-                      value: currentFontSize,
+                      value: fontSize,
                       min: 14,
                       max: 24,
                       divisions: 10,
-                      label: currentFontSize.round().toString(),
-                      onChanged: (value) {
-                        // 直接更新字体大小，不需要重新加载章节
-                        onFontSizeChanged(value);
+                      label: fontSize.round().toString(),
+                      onChanged: (value) async {
+                        await fontSizeCubit.updateFontSize(value);
+                        await widget.readerCubit.reloadCurrentPage();
                       },
                     ),
                   ),
-                  Text('${currentFontSize.round()}'),
+                  Text('${fontSize.round()}'),
                 ],
-              ),
-            ],
+              );
+            },
           ),
-        );
-      },
+          // 段落间距设置
+          BlocBuilder<ParagraphSpacingCubit, double>(
+            builder: (context, spacing) {
+              return Row(
+                children: [
+                  const Text('段落间距'),
+                  Expanded(
+                    child: Slider(
+                      value: spacing,
+                      min: 16,
+                      max: 32,
+                      divisions: 8,
+                      label: spacing.round().toString(),
+                      onChanged: (value) async {
+                        await paragraphSpacingCubit.updateSpacing(value);
+                        await widget.readerCubit.reloadCurrentPage();
+                      },
+                    ),
+                  ),
+                  Text('${spacing.round()}'),
+                ],
+              );
+            },
+          ),
+        ],
+      ),
     );
   }
-} 
+}

@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wild/pages/auth_cubit.dart';
+import 'package:wild/pages/novel/font_size_cubit.dart';
+import 'package:wild/pages/novel/paragraph_spacing_cubit.dart';
 import 'package:wild/src/rust/api/system.dart';
 
 import '../methods.dart';
@@ -27,9 +29,19 @@ class _InitPageState extends State<InitPage> {
       print('root: $root');
     }
     await init(root: root);
-    final authCubit = context.read<AuthCubit>();
+
     // 初始化所有 Cubit
-    await Future.wait([authCubit.init()]);
+    final fontSizeCubit = context.read<FontSizeCubit>();
+    final paragraphSpacingCubit = context.read<ParagraphSpacingCubit>();
+    final authCubit = context.read<AuthCubit>();
+
+    // 等待所有 Cubit 初始化完成
+    await Future.wait([
+      fontSizeCubit.loadFontSize(),
+      paragraphSpacingCubit.loadSpacing(),
+      authCubit.init(),
+    ]);
+
     if (authCubit.state.status == AuthStatus.authenticated) {
       // 如果已经登录，跳转到首页
       Navigator.pushReplacementNamed(context, '/home');
