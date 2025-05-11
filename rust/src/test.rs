@@ -13,6 +13,7 @@ async fn init_context() -> anyhow::Result<()> {
     crate::init("target/test_data".to_string()).await?;
     Ok(())
 }
+
 #[tokio::test]
 async fn test_init() -> anyhow::Result<()> {
     init_context().await?;
@@ -62,5 +63,13 @@ fn test_parse_reader() -> anyhow::Result<()> {
     let text = std::fs::read_to_string("target/rd.txt")?;
     let reader = Wenku8Client::parse_reader(text.as_str())?;
     println!("{}", serde_json::to_string_pretty(&reader)?);
+    Ok(())
+}
+
+#[tokio::test(flavor = "multi_thread")]
+async fn test_c_content() -> anyhow::Result<()> {
+    init_context().await?;
+    let response = CLIENT.c_content("3103", "128331").await?;
+    println!("response : {}", response);
     Ok(())
 }

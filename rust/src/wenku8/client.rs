@@ -1,5 +1,6 @@
 use super::models::*;
 use anyhow::{anyhow, Result};
+use base64::Engine;
 use encoding_rs::GBK;
 use rand::Rng;
 use reqwest::Client;
@@ -7,6 +8,7 @@ use scraper::Node::Element;
 use scraper::{ElementRef, Html, Selector};
 
 const API_HOST: &str = "https://www.wenku8.net";
+const APP_HOST: &str = "http://app.wenku8.com";
 const USER_AGENT: &str =
     "Dalvik/2.1.0 (Linux; U; Android 15; Android SDK built for arm64 Build/AE3A.240806.019)";
 
@@ -571,7 +573,7 @@ impl Wenku8Client {
 
         Ok(volumes)
     }
-    
+
     pub async fn novel_reader(&self, aid: &str) -> Result<Vec<Volume>> {
         let url = format!("{API_HOST}/modules/article/reader.php?aid={aid}&charset=gbk");
         let response = self
@@ -587,6 +589,31 @@ impl Wenku8Client {
         let text = response.bytes().await?;
         let text = decode_gbk(text)?;
         Self::parse_reader(text.as_str())
+    }
+
+    pub async fn c_content(&self, aid: &str, cid: &str) -> Result<String> {
+        let url = format!("{APP_HOST}/android.php");
+        let params = [
+            (
+                "request",
+                base64::prelude::BASE64_STANDARD
+                    .encode(format!("action=book&do=text&aid={aid}&cid={cid}&t=0").as_bytes()),
+            ),
+            ("appver", "1.18".to_string()),
+            ("timetoken", chrono::Utc::now().timestamp().to_string()),
+        ];
+        let response = self
+            .client
+            .post(url)
+            .header("User-Agent", USER_AGENT)
+            .form(&params)
+            .send()
+            .await?;
+        if !response.status().is_success() {
+            return Err(anyhow!("Failed to get novel reader: {}", response.status()));
+        }
+        let text = response.text().await?;
+        Ok(text)
     }
 }
 

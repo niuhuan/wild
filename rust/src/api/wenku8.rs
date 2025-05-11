@@ -35,6 +35,10 @@ pub async fn download_image(url: String) -> anyhow::Result<Vec<u8>> {
     crate::get_cached_image(url).await
 }
 
+pub async fn chapter_content(aid: String, cid: String) -> anyhow::Result<String> {
+    crate::get_chapter_content(&aid, &cid).await
+}
+
 pub async fn novel_info(aid: String) -> anyhow::Result<NovelInfo> {
     CLIENT.novel_info(&aid).await
 }

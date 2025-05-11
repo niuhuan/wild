@@ -160,3 +160,6 @@ pub fn get_image_cache_dir() -> &'static str {
     IMAGE_CACHE_DIR.get().unwrap()
 }
 
+pub(crate) async fn get_chapter_content(aid: &str, cid: &str) -> anyhow::Result<String> {
+    CLIENT.c_content(aid, cid).await
+}
