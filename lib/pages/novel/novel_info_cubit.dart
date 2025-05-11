@@ -27,17 +27,20 @@ class NovelInfoError extends NovelInfoState {
 
 class NovelInfoCubit extends Cubit<NovelInfoState> {
   final String novelId;
+  List<Volume>? _volumes;
 
   NovelInfoCubit(this.novelId) : super(NovelInfoInitial());
+
+  List<Volume>? get volumes => _volumes;
 
   Future<void> load() async {
     emit(NovelInfoLoading());
     try {
       final novelInfo = await w8.novelInfo(aid: novelId);
-      final volumes = await w8.novelReader(aid: novelId);
+      _volumes = await w8.novelReader(aid: novelId);
       emit(NovelInfoLoaded(
         novelInfo: novelInfo,
-        volumes: volumes,
+        volumes: _volumes!,
       ));
     } catch (e) {
       emit(NovelInfoError(e.toString()));

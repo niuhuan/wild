@@ -266,12 +266,16 @@ class _VolumeItem extends StatelessWidget {
           ...volume.chapters.map((chapter) {
             return InkWell(
               onTap: () {
+                final volumes = context.read<NovelInfoCubit>().volumes;
+                if (volumes == null) return;
                 Navigator.pushNamed(
                   context,
                   '/novel/reader',
                   arguments: {
                     'novelId': chapter.aid,
                     'chapterId': chapter.cid,
+                    'title': chapter.title,
+                    'volumes': volumes,
                   },
                 );
               },

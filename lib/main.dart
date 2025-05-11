@@ -5,7 +5,9 @@ import 'package:wild/pages/init_page.dart';
 import 'package:wild/pages/login_page.dart';
 import 'package:wild/pages/home_page.dart';
 import 'package:wild/pages/novel/novel_info_page.dart';
+import 'package:wild/pages/novel/reader_page.dart';
 import 'package:wild/src/rust/frb_generated.dart';
+import 'package:wild/src/rust/wenku8/models.dart';
 
 Future<void> main() async {
   await RustLib.init();
@@ -33,6 +35,15 @@ class MyApp extends StatelessWidget {
           '/novel/info': (context) {
             final novelId = ModalRoute.of(context)!.settings.arguments as String;
             return NovelInfoPage(novelId: novelId);
+          },
+          '/novel/reader': (context) {
+            final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+            return ReaderPage(
+              aid: args['novelId'] as String,
+              cid: args['chapterId'] as String,
+              title: args['title'] as String,
+              volumes: args['volumes'] as List<Volume>,
+            );
           },
         },
       ),
