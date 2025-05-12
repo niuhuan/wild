@@ -34,7 +34,7 @@ pub(super) mod migrations {
 
         impl MigrationName for Migration {
             fn name(&self) -> &str {
-                "m00001_create_table_reading_histories"
+                "m000001_create_table_reading_histories"
             }
         }
 

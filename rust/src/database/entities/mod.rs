@@ -16,3 +16,7 @@ pub use active::chapter_cache::Model as ChapterCache;
 
 pub use cookie::cookie::Entity as CookieEntity;
 pub use cookie::cookie::Model as Cookie;
+
+pub use active::web_cache::Entity as WebCacheEntity;
+pub use active::web_cache::Model as WebCache;
+

@@ -1,8 +1,9 @@
+use crate::database;
 use crate::wenku8::{BookshelfItem, HomeBlock, NovelInfo, UserDetail, Volume};
 use crate::Result;
 use crate::CLIENT;
-use crate::database;
 use std::path::Path;
+use std::time::Duration;
 
 #[flutter_rust_bridge::frb]
 pub async fn wenku8_login(username: String, password: String, checkcode: String) -> Result<()> {
@@ -28,7 +29,13 @@ pub async fn user_detail() -> Result<UserDetail> {
 }
 
 pub async fn index() -> anyhow::Result<Vec<HomeBlock>> {
-    CLIENT.index().await
+    let key = "INDEX_DATA".to_string();
+    crate::cache_first(
+        key,
+        Duration::from_secs(60 * 10),
+        Box::pin(async move { CLIENT.index().await }),
+    )
+    .await
 }
 
 pub async fn download_image(url: String) -> anyhow::Result<Vec<u8>> {
@@ -37,19 +44,19 @@ pub async fn download_image(url: String) -> anyhow::Result<Vec<u8>> {
 
 pub async fn chapter_content(aid: String, cid: String) -> anyhow::Result<String> {
     let content = crate::get_chapter_content(&aid, &cid).await?;
-    
+
     // 处理内容中的空白字符
     let processed_content = content
-        .lines()  // 按行分割
-        .filter(|line| !line.trim().is_empty())  // 移除空行
+        .lines() // 按行分割
+        .filter(|line| !line.trim().is_empty()) // 移除空行
         .collect::<Vec<&str>>()
-        .join("\n")  // 重新组合，每行之间用单个换行符连接
-        .replace(|c: char| c.is_whitespace() && c != '\n', " ");  // 将其他空白字符替换为空格
-    
+        .join("\n") // 重新组合，每行之间用单个换行符连接
+        .replace(|c: char| c.is_whitespace() && c != '\n', " "); // 将其他空白字符替换为空格
+
     // 将连续的两个以上换行符替换为两个换行符
     let mut result = String::new();
     let mut newline_count = 0;
-    
+
     for c in processed_content.chars() {
         if c == '\n' {
             newline_count += 1;
@@ -66,14 +73,26 @@ pub async fn chapter_content(aid: String, cid: String) -> anyhow::Result<String>
             result.push(c);
         }
     }
-    
+
     Ok(result)
 }
 
 pub async fn novel_info(aid: String) -> anyhow::Result<NovelInfo> {
-    CLIENT.novel_info(&aid).await
+    let key = format!("NOVEL_INFO${}", aid);
+    crate::cache_first(
+        key,
+        Duration::from_secs(60 * 60),
+        Box::pin(async move { CLIENT.novel_info(&aid).await }),
+    )
+    .await
 }
 
 pub async fn novel_reader(aid: String) -> anyhow::Result<Vec<Volume>> {
-    CLIENT.novel_reader(&aid).await
+    let key = format!("NOVEL_READER${}", aid);
+    crate::cache_first(
+        key,
+        Duration::from_secs(60 * 60),
+        Box::pin(async move { CLIENT.novel_reader(&aid).await }),
+    )
+    .await
 }

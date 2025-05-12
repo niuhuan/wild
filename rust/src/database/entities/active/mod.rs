@@ -6,6 +6,7 @@ use std::ops::Deref;
 pub mod reading_history;
 pub mod image_cache;
 pub mod chapter_cache;
+pub mod web_cache;
 
 async fn get_connect() -> tokio::sync::MutexGuard<'static, DatabaseConnection> {
     ACTIVE_DB_CONNECT.get().unwrap().lock().await
@@ -39,6 +40,12 @@ impl MigratorTrait for Migrator {
             ),
             Box::new(
                 chapter_cache::migrations::m000002_idx_chapter_cache_aid_cid::Migration,
+            ),
+            Box::new(
+                web_cache::migrations::Migration,
+            ),
+            Box::new(
+                web_cache::migrations::MigrationIdx,
             ),
         ]
     }
