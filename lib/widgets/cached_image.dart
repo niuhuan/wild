@@ -25,13 +25,13 @@ class CachedImage extends StatelessWidget {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Container(
-            color: Colors.grey[200],
+            color: Colors.grey.withAlpha(80),
             child: const Center(child: CircularProgressIndicator()),
           );
         }
         if (snapshot.hasError || !snapshot.hasData) {
           return Container(
-            color: Colors.grey[200],
+            color: Colors.grey.withAlpha(80),
             child: const Icon(Icons.broken_image),
           );
         }

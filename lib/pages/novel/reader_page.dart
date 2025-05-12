@@ -4,6 +4,7 @@ import 'package:wild/pages/novel/paragraph_spacing_cubit.dart';
 import 'package:wild/pages/novel/reader_cubit.dart';
 import 'package:wild/pages/novel/theme_cubit.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:wild/widgets/cached_image.dart';
 
 import '../../src/rust/wenku8/models.dart';
 import 'font_size_cubit.dart';
@@ -252,7 +253,12 @@ class _ReaderViewState extends State<_ReaderView> {
                   itemBuilder: (context, index) {
                     final page = widget.state.pages[index];
                     if (page.isImage) {
-                      return _ImagePage(imageUrl: page.content);
+                      return _ImagePage(
+                        imageUrl: page.content,
+                        textColor: textColor,
+                        pageNumber: widget.state.currentPageIndex + 1,
+                        pageCount: widget.state.pages.length,
+                      );
                     }
                     return _TextPage(
                       content: page.content,
@@ -490,8 +496,16 @@ class _TextPage extends StatelessWidget {
 
 class _ImagePage extends StatelessWidget {
   final String imageUrl;
+  final Color textColor;
+  final int pageNumber;
+  final int pageCount;
 
-  const _ImagePage({required this.imageUrl});
+  const _ImagePage({
+    required this.imageUrl,
+    required this.textColor,
+    required this.pageNumber,
+    required this.pageCount,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -509,73 +523,42 @@ class _ImagePage extends StatelessWidget {
         topBarHeight -
         bottomBarHeight;
 
-    return Container(
-      color: Colors.white,
-      padding: EdgeInsets.fromLTRB(
-        16,
-        topPadding + topBarHeight,
-        16,
-        bottomPadding + bottomBarHeight,
-      ),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxHeight: availableHeight,
-            maxWidth: screenWidth - 32,
-          ),
-          child: Image.network(
-            imageUrl,
-            fit: BoxFit.contain,
-            loadingBuilder: (context, child, loadingProgress) {
-              if (loadingProgress == null) return child;
-              return Center(
-                child: CircularProgressIndicator(
-                  value:
-                      loadingProgress.expectedTotalBytes != null
-                          ? loadingProgress.cumulativeBytesLoaded /
-                              loadingProgress.expectedTotalBytes!
-                          : null,
-                ),
-              );
-            },
-            errorBuilder: (context, error, stackTrace) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.error_outline,
-                      size: 48,
-                      color: Colors.red,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      '图片加载失败\n$error',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(color: Colors.red),
-                    ),
-                  ],
-                ),
-              );
-            },
-            // 添加缓存和内存管理选项
-            cacheWidth:
-                (screenWidth * MediaQuery.of(context).devicePixelRatio).round(),
-            cacheHeight:
-                (availableHeight * MediaQuery.of(context).devicePixelRatio)
-                    .round(),
-            frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-              if (wasSynchronouslyLoaded) return child;
-              return AnimatedOpacity(
-                opacity: frame != null ? 1.0 : 0.0,
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeOut,
-                child: child,
-              );
-            },
+    return Column(
+      children: [
+        Container(height: topPadding + topBarHeight),
+        SizedBox(
+          width: screenWidth - 32,
+          height: availableHeight,
+          child: Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: availableHeight,
+                maxWidth: screenWidth - 32,
+              ),
+              child: CachedImage(
+                url: imageUrl,
+                fit: BoxFit.contain,
+                width: screenWidth - 32,
+                height: availableHeight,
+              ),
+            ),
           ),
         ),
-      ),
+        Expanded(child: Container()),
+        SizedBox(
+          child: Align(
+            alignment: Alignment.bottomCenter,
+            child: Opacity(
+              opacity: 0.3,
+              child: Text(
+                '$pageNumber/$pageCount',
+                style: TextStyle(fontSize: 10, color: textColor),
+              ),
+            ),
+          ),
+        ),
+        Container(height: bottomPadding),
+      ],
     );
   }
 }
@@ -614,9 +597,11 @@ class _ChapterListState extends State<_ChapterList> {
         const estimatedItemHeight = 56.0; // ListTile 的默认高度
         const estimatedVolumeTitleHeight = 48.0; // 卷标题的高度
         const estimatedSpacing = 16.0; // 间距
-        
+
         // 计算目标滚动位置
-        double targetScroll = _currentChapterGlobalIndex * (estimatedItemHeight + estimatedSpacing);
+        double targetScroll =
+            _currentChapterGlobalIndex *
+            (estimatedItemHeight + estimatedSpacing);
         // 加上之前所有卷标题的高度
         int volumeIndex = 0;
         for (var i = 0; i < widget.volumes.length; i++) {
@@ -627,7 +612,7 @@ class _ChapterListState extends State<_ChapterList> {
             break;
           }
         }
-        
+
         // 滚动到目标位置，并稍微向上偏移一点以显示上下文
         _scrollController.animateTo(
           targetScroll - 100, // 向上偏移100像素，显示一些上下文
@@ -648,7 +633,9 @@ class _ChapterListState extends State<_ChapterList> {
     for (var i = 0; i < widget.volumes.length; i++) {
       final volume = widget.volumes[i];
       if (volume.chapters.any(
-        (chapter) => chapter.aid == widget.currentAid && chapter.cid == widget.currentCid,
+        (chapter) =>
+            chapter.aid == widget.currentAid &&
+            chapter.cid == widget.currentCid,
       )) {
         return i;
       }
@@ -660,7 +647,8 @@ class _ChapterListState extends State<_ChapterList> {
     int globalIndex = 0;
     for (var volume in widget.volumes) {
       for (var chapter in volume.chapters) {
-        if (chapter.aid == widget.currentAid && chapter.cid == widget.currentCid) {
+        if (chapter.aid == widget.currentAid &&
+            chapter.cid == widget.currentCid) {
           return globalIndex;
         }
         globalIndex++;
@@ -725,11 +713,20 @@ class _ChapterListState extends State<_ChapterList> {
                       ),
                     ),
                     ...volume.chapters.map((chapter) {
-                      final isSelected = chapter.aid == widget.currentAid && chapter.cid == widget.currentCid;
+                      final isSelected =
+                          chapter.aid == widget.currentAid &&
+                          chapter.cid == widget.currentCid;
                       return Container(
-                        color: isSelected ? Colors.grey.withAlpha(80) : Colors.transparent,
+                        color:
+                            isSelected
+                                ? Colors.grey.withAlpha(80)
+                                : Colors.transparent,
                         child: ListTile(
-                          onTap: () => widget.onChapterSelected(chapter.aid, chapter.cid),
+                          onTap:
+                              () => widget.onChapterSelected(
+                                chapter.aid,
+                                chapter.cid,
+                              ),
                           title: Text(
                             chapter.title,
                             style: TextStyle(
