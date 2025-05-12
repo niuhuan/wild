@@ -38,7 +38,7 @@ class ReaderCubit extends Cubit<ReaderState> {
 
   Future<void> loadChapter({String? aid, String? cid}) async {
     try {
-      emit(ReaderLoading());
+      emit(ReaderLoading(super.state.showControls));
       initialAid = aid ?? initialAid;
       initialCid = cid ?? initialCid;
 
@@ -68,6 +68,7 @@ class ReaderCubit extends Cubit<ReaderState> {
             lineHeight,
           ),
           currentPageIndex: 0,
+          showControls: super.state.showControls,
         ),
       );
     } catch (e) {
@@ -115,6 +116,7 @@ class ReaderCubit extends Cubit<ReaderState> {
           volumes: initialVolumes,
           pages: pages,
           currentPageIndex: currentPageIndex,
+          showControls: super.state.showControls,
         ),
       );
     } catch (e) {
@@ -287,18 +289,38 @@ class ReaderCubit extends Cubit<ReaderState> {
 
     return pages;
   }
+
+  void toggleControls() {
+    if (state is ReaderLoaded) {
+      final currentState = state as ReaderLoaded;
+      emit(currentState.copyWith(showControls: !currentState.showControls));
+    }
+  }
 }
 
-abstract class ReaderState {}
+abstract class ReaderState {
+  bool get showControls;
+}
 
-class ReaderInitial extends ReaderState {}
+class ReaderInitial extends ReaderState {
+  @override
+  get showControls => false;
+}
 
-class ReaderLoading extends ReaderState {}
+class ReaderLoading extends ReaderState {
+  @override
+  final bool showControls;
+
+  ReaderLoading(this.showControls);
+}
 
 class ReaderError extends ReaderState {
   final String error;
 
   ReaderError(this.error);
+
+  @override
+  get showControls => false;
 }
 
 class ReaderLoaded extends ReaderState {
@@ -308,6 +330,8 @@ class ReaderLoaded extends ReaderState {
   final List<ReaderPage> pages;
   final List<Volume> volumes;
   final int currentPageIndex;
+  @override
+  final bool showControls;
 
   ReaderLoaded({
     required this.aid,
@@ -316,6 +340,7 @@ class ReaderLoaded extends ReaderState {
     required this.volumes,
     required this.pages,
     required this.currentPageIndex,
+    required this.showControls,
   });
 
   ReaderLoaded copyWith({
@@ -325,6 +350,7 @@ class ReaderLoaded extends ReaderState {
     List<ReaderPage>? pages,
     List<Volume>? volumes,
     int? currentPageIndex,
+    bool? showControls,
   }) {
     return ReaderLoaded(
       aid: aid ?? this.aid,
@@ -333,6 +359,7 @@ class ReaderLoaded extends ReaderState {
       volumes: volumes ?? this.volumes,
       pages: pages ?? this.pages,
       currentPageIndex: currentPageIndex ?? this.currentPageIndex,
+      showControls: showControls ?? this.showControls,
     );
   }
 }

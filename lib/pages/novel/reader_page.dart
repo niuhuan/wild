@@ -86,7 +86,6 @@ class _ReaderView extends StatefulWidget {
 
 class _ReaderViewState extends State<_ReaderView> {
   late PageController _pageController;
-  bool _showControls = true;
 
   @override
   void initState() {
@@ -116,10 +115,11 @@ class _ReaderViewState extends State<_ReaderView> {
     if (tapX < leftArea || tapY < topArea) {
       // 点击左侧或上方区域，上一页
       if (widget.state.currentPageIndex > 0) {
-        _pageController.previousPage(
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-        );
+        // _pageController.previousPage(
+        //   duration: const Duration(milliseconds: 300),
+        //   curve: Curves.easeInOut,
+        // );
+        _pageController.jumpToPage(widget.state.currentPageIndex - 1);
       } else {
         // 如果是第一页，尝试加载上一章
         final currentVolumeIndex = _findCurrentVolumeIndex();
@@ -131,10 +131,11 @@ class _ReaderViewState extends State<_ReaderView> {
     } else if (tapX > rightArea || tapY > bottomArea) {
       // 点击右侧或下方区域，下一页
       if (widget.state.currentPageIndex < widget.state.pages.length - 1) {
-        _pageController.nextPage(
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-        );
+        // _pageController.nextPage(
+        //   duration: const Duration(milliseconds: 300),
+        //   curve: Curves.easeInOut,
+        // );
+        _pageController.jumpToPage(widget.state.currentPageIndex + 1);
       } else {
         // 如果是最后一页，尝试加载下一章
         final currentVolumeIndex = _findCurrentVolumeIndex();
@@ -147,9 +148,7 @@ class _ReaderViewState extends State<_ReaderView> {
       }
     } else {
       // 点击中央区域，切换菜单栏显示状态
-      setState(() {
-        _showControls = !_showControls;
-      });
+      context.read<ReaderCubit>().toggleControls();
     }
   }
 
@@ -216,128 +215,141 @@ class _ReaderViewState extends State<_ReaderView> {
             ? themeCubit.state.darkTextColor
             : themeCubit.state.lightTextColor;
 
-    var viewer = Scaffold(
-      backgroundColor: backgroundColor,
-      body: GestureDetector(
-        onTapDown: _handleTap,
-        child: Stack(
-          children: [
-            // 阅读内容
-            PageView.builder(
-              controller: _pageController,
-              itemCount: widget.state.pages.length,
-              onPageChanged: (index) {
-                context.read<ReaderCubit>().onPageChanged(index);
-              },
-              itemBuilder: (context, index) {
-                final page = widget.state.pages[index];
-                if (page.isImage) {
-                  return _ImagePage(imageUrl: page.content);
-                }
-                return _TextPage(
-                  content: page.content,
-                  textColor: textColor,
-                  pageNumber: widget.state.currentPageIndex + 1,
-                  pageCount: widget.state.pages.length,
-                );
-              },
-            ),
-            // 控制栏
-            if (_showControls) ...[
-              // 顶部栏
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                child: Container(
-                  color: Colors.black.withOpacity(0.7),
-                  padding: EdgeInsets.fromLTRB(16, topPadding + 8, 16, 16),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back, color: Colors.white),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                      Expanded(
-                        child: Text(
-                          widget.title,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.menu_book, color: Colors.white),
-                        onPressed: _showChapterList,
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.settings, color: Colors.white),
-                        onPressed: _showSettings,
-                      ),
-                    ],
-                  ),
+    var viewer = BlocBuilder<ReaderCubit, ReaderState>(
+      builder: (BuildContext context, state) {
+        return Scaffold(
+          backgroundColor: backgroundColor,
+          body: GestureDetector(
+            onTapDown: _handleTap,
+            child: Stack(
+              children: [
+                // 阅读内容
+                PageView.builder(
+                  controller: _pageController,
+                  itemCount: widget.state.pages.length,
+                  onPageChanged: (index) {
+                    context.read<ReaderCubit>().onPageChanged(index);
+                  },
+                  itemBuilder: (context, index) {
+                    final page = widget.state.pages[index];
+                    if (page.isImage) {
+                      return _ImagePage(imageUrl: page.content);
+                    }
+                    return _TextPage(
+                      content: page.content,
+                      textColor: textColor,
+                      pageNumber: widget.state.currentPageIndex + 1,
+                      pageCount: widget.state.pages.length,
+                    );
+                  },
                 ),
-              ),
-              // 底部栏
-              // Positioned(
-              //   bottom: 0,
-              //   left: 0,
-              //   right: 0,
-              //   child: Container(
-              //     color: Colors.black.withOpacity(0.7),
-              //     padding: EdgeInsets.fromLTRB(16, 16, 16, bottomPadding + 16),
-              //     child: Row(
-              //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              //       children: [
-              //         IconButton(
-              //           icon: const Icon(
-              //             Icons.arrow_back_ios,
-              //             color: Colors.white,
-              //           ),
-              //           onPressed: () {
-              //             final currentVolumeIndex = _findCurrentVolumeIndex();
-              //             final currentChapterIndex =
-              //                 _findCurrentChapterIndex();
-              //             if (currentChapterIndex > 0 ||
-              //                 currentVolumeIndex > 0) {
-              //               context.read<ReaderCubit>().goToPreviousChapter();
-              //             }
-              //           },
-              //         ),
-              //         Text(
-              //           '${widget.state.currentPageIndex + 1}/${widget.state.pages.length}',
-              //           style: const TextStyle(color: Colors.white),
-              //         ),
-              //         IconButton(
-              //           icon: const Icon(
-              //             Icons.arrow_forward_ios,
-              //             color: Colors.white,
-              //           ),
-              //           onPressed: () {
-              //             final currentVolumeIndex = _findCurrentVolumeIndex();
-              //             final currentChapterIndex =
-              //                 _findCurrentChapterIndex();
-              //             final volume =
-              //                 widget.state.volumes[currentVolumeIndex];
-              //             if (currentChapterIndex <
-              //                     volume.chapters.length - 1 ||
-              //                 currentVolumeIndex <
-              //                     widget.state.volumes.length - 1) {
-              //               context.read<ReaderCubit>().goToNextChapter();
-              //             }
-              //           },
-              //         ),
-              //       ],
-              //     ),
-              //   ),
-              // ),
-            ],
-          ],
-        ),
-      ),
+                // 控制栏
+                if (state.showControls) ...[
+                  // 顶部栏
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    child: Container(
+                      color: Colors.black.withOpacity(0.7),
+                      padding: EdgeInsets.fromLTRB(16, topPadding + 8, 16, 16),
+                      child: Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(
+                              Icons.arrow_back,
+                              color: Colors.white,
+                            ),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                          Expanded(
+                            child: Text(
+                              widget.title,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(
+                              Icons.menu_book,
+                              color: Colors.white,
+                            ),
+                            onPressed: _showChapterList,
+                          ),
+                          IconButton(
+                            icon: const Icon(
+                              Icons.settings,
+                              color: Colors.white,
+                            ),
+                            onPressed: _showSettings,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  // 底部栏
+                  // Positioned(
+                  //   bottom: 0,
+                  //   left: 0,
+                  //   right: 0,
+                  //   child: Container(
+                  //     color: Colors.black.withOpacity(0.7),
+                  //     padding: EdgeInsets.fromLTRB(16, 16, 16, bottomPadding + 16),
+                  //     child: Row(
+                  //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  //       children: [
+                  //         IconButton(
+                  //           icon: const Icon(
+                  //             Icons.arrow_back_ios,
+                  //             color: Colors.white,
+                  //           ),
+                  //           onPressed: () {
+                  //             final currentVolumeIndex = _findCurrentVolumeIndex();
+                  //             final currentChapterIndex =
+                  //                 _findCurrentChapterIndex();
+                  //             if (currentChapterIndex > 0 ||
+                  //                 currentVolumeIndex > 0) {
+                  //               context.read<ReaderCubit>().goToPreviousChapter();
+                  //             }
+                  //           },
+                  //         ),
+                  //         Text(
+                  //           '${widget.state.currentPageIndex + 1}/${widget.state.pages.length}',
+                  //           style: const TextStyle(color: Colors.white),
+                  //         ),
+                  //         IconButton(
+                  //           icon: const Icon(
+                  //             Icons.arrow_forward_ios,
+                  //             color: Colors.white,
+                  //           ),
+                  //           onPressed: () {
+                  //             final currentVolumeIndex = _findCurrentVolumeIndex();
+                  //             final currentChapterIndex =
+                  //                 _findCurrentChapterIndex();
+                  //             final volume =
+                  //                 widget.state.volumes[currentVolumeIndex];
+                  //             if (currentChapterIndex <
+                  //                     volume.chapters.length - 1 ||
+                  //                 currentVolumeIndex <
+                  //                     widget.state.volumes.length - 1) {
+                  //               context.read<ReaderCubit>().goToNextChapter();
+                  //             }
+                  //           },
+                  //         ),
+                  //       ],
+                  //     ),
+                  //   ),
+                  // ),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
     );
     return viewer;
   }
