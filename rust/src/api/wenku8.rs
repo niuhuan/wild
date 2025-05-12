@@ -4,6 +4,7 @@ use crate::Result;
 use crate::CLIENT;
 use std::path::Path;
 use std::time::Duration;
+use crate::database::entities::{ReadingHistory, ReadingHistoryEntity};
 
 #[flutter_rust_bridge::frb]
 pub async fn wenku8_login(username: String, password: String, checkcode: String) -> Result<()> {
@@ -95,4 +96,33 @@ pub async fn novel_reader(aid: String) -> anyhow::Result<Vec<Volume>> {
         Box::pin(async move { CLIENT.novel_reader(&aid).await }),
     )
     .await
+}
+
+pub async fn update_history(
+    novel_id: &str,
+    novel_name: &str,
+    volume_id: &str,
+    volume_name: &str,
+    chapter_id: &str,
+    chapter_title: &str,
+    progress: i32,
+    cover: &str,
+    author: &str,
+) -> anyhow::Result<()> {
+    ReadingHistoryEntity::upsert(
+        novel_id,
+        novel_name,
+        volume_id,
+        volume_name,
+        chapter_id,
+        chapter_title,
+        progress,
+        cover,
+        author,
+    ).await?;
+    Ok(())
+}
+
+pub async fn novel_history_by_id(novel_id: &str) -> anyhow::Result<Option<ReadingHistory>> {
+    ReadingHistoryEntity::find_latest_by_novel_id(novel_id).await
 }

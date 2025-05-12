@@ -47,6 +47,12 @@ impl MigratorTrait for Migrator {
             Box::new(
                 web_cache::migrations::MigrationIdx,
             ),
+            Box::new(
+                reading_history::migrations::m000003_create_table_reading_histories_volume::Migration,
+            ),
+            Box::new(
+                reading_history::migrations::m000003_create_table_reading_histories_cover_author::Migration,
+            ),
         ]
     }
 }

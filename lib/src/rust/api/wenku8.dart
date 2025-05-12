@@ -42,3 +42,31 @@ Future<NovelInfo> novelInfo({required String aid}) =>
 
 Future<List<Volume>> novelReader({required String aid}) =>
     RustLib.instance.api.crateApiWenku8NovelReader(aid: aid);
+
+Future<void> updateHistory({
+  required String novelId,
+  required String novelName,
+  required String volumeId,
+  required String volumeName,
+  required String chapterId,
+  required String chapterTitle,
+  required int progress,
+  required String cover,
+  required String author,
+}) => RustLib.instance.api.crateApiWenku8UpdateHistory(
+  novelId: novelId,
+  novelName: novelName,
+  volumeId: volumeId,
+  volumeName: volumeName,
+  chapterId: chapterId,
+  chapterTitle: chapterTitle,
+  progress: progress,
+  cover: cover,
+  author: author,
+);
+
+Future<ReadingHistory?> novelHistoryById({required String novelId}) =>
+    RustLib.instance.api.crateApiWenku8NovelHistoryById(novelId: novelId);
+
+// Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ReadingHistory>>
+abstract class ReadingHistory implements RustOpaqueInterface {}

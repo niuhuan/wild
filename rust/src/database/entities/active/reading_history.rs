@@ -1,16 +1,12 @@
-use sea_orm::{
-    prelude::*,
-    sea_query::{Index, SqliteQueryBuilder},
-    Order, QueryOrder, Schema, Statement,
-};
+use sea_orm::{prelude::*, sea_query::{Index, SqliteQueryBuilder}, Order, QueryOrder, QuerySelect, Schema, Set, Statement};
 use serde::{Deserialize, Serialize};
+use std::ops::Deref;
+use flutter_rust_bridge::frb;
 
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "reading_history")]
 pub struct Model {
-    #[sea_orm(primary_key)]
-    pub id: i32,
-    #[sea_orm(indexed)]
+    #[sea_orm(primary_key, auto_increment = false)]
     pub novel_id: String,
     pub novel_name: String,
     pub volume_id: String,
@@ -19,6 +15,8 @@ pub struct Model {
     pub chapter_title: String,
     pub last_read_at: i64,
     pub progress: i32, // 阅读进度 0-1
+    pub cover: String,
+    pub author: String,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
@@ -119,7 +117,7 @@ pub(super) mod migrations {
 
         impl MigrationName for Migration {
             fn name(&self) -> &str {
-                "m000003_idx_reading_histories_novel_id"
+                "m000003_create_table_reading_histories_volume"
             }
         }
 
@@ -132,23 +130,112 @@ pub(super) mod migrations {
                 let db = manager.get_connection();
                 let backend = db.get_database_backend();
                 let schema = Schema::new(backend);
-                if !manager.has_column(super::super::Entity.table_name(), super::super::Column::VolumeId.as_str()).await? {
-                    manager.alter_table(
-                        Table::alter()
-                            .table(super::super::Entity.table_ref())
-                            .add_column(&mut schema.get_column_def::<super::super::Entity>(super::super::Column::VolumeId))
-                            .to_owned(),
+                if !manager
+                    .has_column(
+                        super::super::Entity.table_name(),
+                        super::super::Column::VolumeId.as_str(),
                     )
-                    .await?;
+                    .await?
+                {
+                    manager
+                        .alter_table(
+                            Table::alter()
+                                .table(super::super::Entity.table_ref())
+                                .add_column(&mut schema.get_column_def::<super::super::Entity>(
+                                    super::super::Column::VolumeId,
+                                ))
+                                .to_owned(),
+                        )
+                        .await?;
                 }
-                if !manager.has_column(super::super::Entity.table_name(), super::super::Column::NovelId.as_str()).await? {
-                    manager.alter_table(
-                        Table::alter()
-                            .table(super::super::Entity.table_ref())
-                            .add_column(&mut schema.get_column_def::<super::super::Entity>(super::super::Column::NovelId))
-                            .to_owned(),
+                if !manager
+                    .has_column(
+                        super::super::Entity.table_name(),
+                        super::super::Column::NovelId.as_str(),
                     )
-                    .await?;
+                    .await?
+                {
+                    manager
+                        .alter_table(
+                            Table::alter()
+                                .table(super::super::Entity.table_ref())
+                                .add_column(&mut schema.get_column_def::<super::super::Entity>(
+                                    super::super::Column::NovelId,
+                                ))
+                                .to_owned(),
+                        )
+                        .await?;
+                }
+                Ok(())
+            }
+
+            async fn down(
+                &self,
+                manager: &SchemaManager,
+            ) -> std::result::Result<(), sea_orm_migration::DbErr> {
+                Ok(())
+            }
+        }
+    }
+
+
+    pub(crate) mod m000003_create_table_reading_histories_cover_author {
+        use sea_orm::sea_query::{Index, Table};
+        use sea_orm::{ColumnTrait, ConnectionTrait, EntityName, IdenStatic, Schema};
+        use sea_orm_migration::{MigrationName, MigrationTrait, SchemaManager};
+
+        pub struct Migration;
+
+        impl MigrationName for Migration {
+            fn name(&self) -> &str {
+                "m000003_create_table_reading_histories_cover_author"
+            }
+        }
+
+        #[async_trait::async_trait]
+        impl MigrationTrait for Migration {
+            async fn up(
+                &self,
+                manager: &SchemaManager,
+            ) -> std::result::Result<(), sea_orm_migration::DbErr> {
+                let db = manager.get_connection();
+                let backend = db.get_database_backend();
+                let schema = Schema::new(backend);
+                if !manager
+                    .has_column(
+                        super::super::Entity.table_name(),
+                        super::super::Column::Cover.as_str(),
+                    )
+                    .await?
+                {
+                    manager
+                        .alter_table(
+                            Table::alter()
+                                .table(super::super::Entity.table_ref())
+                                .add_column(&mut schema.get_column_def::<super::super::Entity>(
+                                    super::super::Column::Cover,
+                                ))
+                                .to_owned(),
+                        )
+                        .await?;
+                }
+                if !manager
+                    .has_column(
+                        super::super::Entity.table_name(),
+                        super::super::Column::Author.as_str(),
+                    )
+                    .await?
+                {
+                    manager
+                        .alter_table(
+                            Table::alter()
+                                .table(super::super::Entity.table_ref())
+                                .add_column(&mut schema.get_column_def::<super::super::Entity>(
+                                    super::super::Column::Author,
+                                ))
+                                .to_owned(),
+                        )
+                        .await?;
                 }
                 Ok(())
             }
@@ -173,5 +260,40 @@ impl Entity {
             .one(&*db)
             .await?;
         Ok(record)
+    }
+
+    pub async fn upsert(
+        novel_id: &str,
+        novel_name: &str,
+        volume_id: &str,
+        volume_name: &str,
+        chapter_id: &str,
+        chapter_title: &str,
+        progress: i32,
+        cover: &str,
+        author: &str,
+    ) -> crate::Result<()> {
+        let db = super::get_connect().await;
+        let time = chrono::Local::now().timestamp_millis();
+        let model = ActiveModel {
+            novel_id: Set(novel_id.to_string()),
+            novel_name: Set(novel_name.to_string()),
+            volume_id: Set(volume_id.to_string()),
+            volume_name: Set(volume_name.to_string()),
+            chapter_id: Set(chapter_id.to_string()),
+            chapter_title: Set(chapter_title.to_string()),
+            last_read_at: Set(time),
+            progress: Set(progress),
+            cover: Set(cover.to_string()),
+            author: Set(author.to_string()),
+        };
+        if let Some(_existing_record) = Entity::find_by_id(novel_id).one(db.deref()).await? {
+            // 如果记录已存在，则更新
+            model.update(db.deref()).await?;
+        } else {
+            // 如果记录不存在，则插入
+            model.insert(db.deref()).await?;
+        }
+        Ok(())
     }
 }
