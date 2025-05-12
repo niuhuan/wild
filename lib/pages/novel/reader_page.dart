@@ -580,7 +580,7 @@ class _ImagePage extends StatelessWidget {
   }
 }
 
-class _ChapterList extends StatelessWidget {
+class _ChapterList extends StatefulWidget {
   final List<Volume> volumes;
   final String currentAid;
   final String currentCid;
@@ -592,6 +592,82 @@ class _ChapterList extends StatelessWidget {
     required this.currentCid,
     required this.onChapterSelected,
   });
+
+  @override
+  State<_ChapterList> createState() => _ChapterListState();
+}
+
+class _ChapterListState extends State<_ChapterList> {
+  late ScrollController _scrollController;
+  int _currentChapterGlobalIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+    // 计算当前章节的全局索引
+    _currentChapterGlobalIndex = _calculateCurrentChapterIndex();
+    // 在下一帧滚动到当前章节
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        // 估算每个章节的高度（包括标题和间距）
+        const estimatedItemHeight = 56.0; // ListTile 的默认高度
+        const estimatedVolumeTitleHeight = 48.0; // 卷标题的高度
+        const estimatedSpacing = 16.0; // 间距
+        
+        // 计算目标滚动位置
+        double targetScroll = _currentChapterGlobalIndex * (estimatedItemHeight + estimatedSpacing);
+        // 加上之前所有卷标题的高度
+        int volumeIndex = 0;
+        for (var i = 0; i < widget.volumes.length; i++) {
+          if (i < _findCurrentVolumeIndex()) {
+            targetScroll += estimatedVolumeTitleHeight + estimatedSpacing;
+            volumeIndex = i;
+          } else {
+            break;
+          }
+        }
+        
+        // 滚动到目标位置，并稍微向上偏移一点以显示上下文
+        _scrollController.animateTo(
+          targetScroll - 100, // 向上偏移100像素，显示一些上下文
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  int _findCurrentVolumeIndex() {
+    for (var i = 0; i < widget.volumes.length; i++) {
+      final volume = widget.volumes[i];
+      if (volume.chapters.any(
+        (chapter) => chapter.aid == widget.currentAid && chapter.cid == widget.currentCid,
+      )) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  int _calculateCurrentChapterIndex() {
+    int globalIndex = 0;
+    for (var volume in widget.volumes) {
+      for (var chapter in volume.chapters) {
+        if (chapter.aid == widget.currentAid && chapter.cid == widget.currentCid) {
+          return globalIndex;
+        }
+        globalIndex++;
+      }
+    }
+    return 0;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -622,9 +698,10 @@ class _ChapterList extends StatelessWidget {
           ),
           Expanded(
             child: ListView.builder(
-              itemCount: volumes.length,
+              controller: _scrollController,
+              itemCount: widget.volumes.length,
               itemBuilder: (context, volumeIndex) {
-                final volume = volumes[volumeIndex];
+                final volume = widget.volumes[volumeIndex];
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -639,17 +716,11 @@ class _ChapterList extends StatelessWidget {
                       ),
                     ),
                     ...volume.chapters.map((chapter) {
-                      final isSelected =
-                          chapter.aid == currentAid &&
-                          chapter.cid == currentCid;
+                      final isSelected = chapter.aid == widget.currentAid && chapter.cid == widget.currentCid;
                       return Container(
-                        color:
-                            isSelected
-                                ? Colors.grey.withAlpha(80)
-                                : Colors.transparent,
+                        color: isSelected ? Colors.grey.withAlpha(80) : Colors.transparent,
                         child: ListTile(
-                          onTap:
-                              () => onChapterSelected(chapter.aid, chapter.cid),
+                          onTap: () => widget.onChapterSelected(chapter.aid, chapter.cid),
                           title: Text(
                             chapter.title,
                             style: TextStyle(
