@@ -54,7 +54,10 @@ class _NovelInfoContent extends StatelessWidget {
         SliverToBoxAdapter(child: _NovelHeader(novelInfo: novelInfo)),
         SliverToBoxAdapter(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 8.0,
+            ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -77,9 +80,7 @@ class _NovelInfoContent extends StatelessWidget {
             ),
           ),
         ),
-        SliverToBoxAdapter(
-          child: _NovelTags(tags: novelInfo.tags),
-        ),
+        SliverToBoxAdapter(child: _NovelTags(tags: novelInfo.tags)),
         SliverToBoxAdapter(
           child: _NovelDescription(description: novelInfo.introduce),
         ),
@@ -138,8 +139,8 @@ class _NovelHeader extends StatelessWidget {
                     child: Text(
                       '动画化',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
                     ),
                   ),
               ],
@@ -169,10 +170,7 @@ class _StatItem extends StatelessWidget {
       children: [
         Icon(icon, size: 16, color: Theme.of(context).colorScheme.primary),
         const SizedBox(width: 4),
-        Text(
-          '$label: $value',
-          style: Theme.of(context).textTheme.bodySmall,
-        ),
+        Text('$label: $value', style: Theme.of(context).textTheme.bodySmall),
       ],
     );
   }
@@ -201,12 +199,8 @@ class _NovelDescription extends StatelessWidget {
                 fontSize: FontSize(14),
                 color: Theme.of(context).colorScheme.onSurface,
               ),
-              'p': Style(
-                margin: Margins.only(bottom: 8),
-              ),
-              'br': Style(
-                margin: Margins.only(bottom: 8),
-              ),
+              'p': Style(margin: Margins.only(bottom: 8)),
+              'br': Style(margin: Margins.only(bottom: 8)),
             },
           ),
         ],
@@ -227,15 +221,16 @@ class _NovelTags extends StatelessWidget {
       child: Wrap(
         spacing: 8,
         runSpacing: 8,
-        children: tags.map((tag) {
-          return Chip(
-            label: Text(tag),
-            backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-            labelStyle: TextStyle(
-              color: Theme.of(context).colorScheme.onPrimaryContainer,
-            ),
-          );
-        }).toList(),
+        children:
+            tags.map((tag) {
+              return Chip(
+                label: Text(tag),
+                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                labelStyle: TextStyle(
+                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                ),
+              );
+            }).toList(),
       ),
     );
   }
@@ -257,16 +252,18 @@ class _VolumeItem extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             child: Text(
               volume.title,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
           ),
           const Divider(height: 1),
           ...volume.chapters.map((chapter) {
             return InkWell(
               onTap: () {
-                final novelInfo = (context.read<NovelInfoCubit>().state as NovelInfoLoaded).novelInfo;
+                final novelInfo =
+                    (context.read<NovelInfoCubit>().state as NovelInfoLoaded)
+                        .novelInfo;
                 final volumes = context.read<NovelInfoCubit>().volumes;
                 Navigator.pushNamed(
                   context,

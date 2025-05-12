@@ -129,7 +129,22 @@ class _ReaderViewState extends State<_ReaderView> {
         final currentVolumeIndex = _findCurrentVolumeIndex();
         final currentChapterIndex = _findCurrentChapterIndex();
         if (currentChapterIndex > 0 || currentVolumeIndex > 0) {
-          context.read<ReaderCubit>().goToPreviousChapter();
+          var now = DateTime.now().millisecondsSinceEpoch;
+          if (now - preTime > 2000) {
+            preTime = now;
+            // 显示提示信息
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('再次点击加载上一章'),
+                duration: Duration(seconds: 2),
+                behavior: SnackBarBehavior.floating,
+                margin: EdgeInsets.only(bottom: 16),
+              ),
+            );
+          } else {
+            preTime = 0;
+            context.read<ReaderCubit>().goToPreviousChapter();
+          }
         }
       }
     } else if (tapX > rightArea || tapY > bottomArea) {
@@ -147,14 +162,7 @@ class _ReaderViewState extends State<_ReaderView> {
         final volume = widget.state.volumes[currentVolumeIndex];
         if (currentChapterIndex < volume.chapters.length - 1 ||
             currentVolumeIndex < widget.state.volumes.length - 1) {
-          var now = DateTime.now().millisecondsSinceEpoch;
-          if (now - preTime > 2000) {
-            preTime = now;
-            // todo: 提示用户“再次点击加载下一章”
-          } else {
-            preTime = 0;
-            context.read<ReaderCubit>().goToNextChapter();
-          }
+          context.read<ReaderCubit>().goToNextChapter();
         }
       }
     } else {
@@ -634,19 +642,21 @@ class _ChapterList extends StatelessWidget {
                       final isSelected =
                           chapter.aid == currentAid &&
                           chapter.cid == currentCid;
-                      return ListTile(
-                        title: Text(
-                          chapter.title,
-                          style: TextStyle(
-                            color:
-                                isSelected
-                                    ? Theme.of(context).primaryColor
-                                    : null,
-                            fontWeight: isSelected ? FontWeight.bold : null,
+                      return Container(
+                        color:
+                            isSelected
+                                ? Colors.grey.withAlpha(80)
+                                : Colors.transparent,
+                        child: ListTile(
+                          onTap:
+                              () => onChapterSelected(chapter.aid, chapter.cid),
+                          title: Text(
+                            chapter.title,
+                            style: TextStyle(
+                              fontWeight: isSelected ? FontWeight.bold : null,
+                            ),
                           ),
                         ),
-                        onTap:
-                            () => onChapterSelected(chapter.aid, chapter.cid),
                       );
                     }),
                   ],
