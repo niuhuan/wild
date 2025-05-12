@@ -47,8 +47,29 @@ class _NovelInfoContent extends StatelessWidget {
 
   const _NovelInfoContent({required this.novelInfo, required this.volumes});
 
+  Future<void> _navigateToReader(BuildContext context, String novelId, String chapterId, String title) async {
+    await Navigator.pushNamed(
+      context,
+      '/novel/reader',
+      arguments: {
+        'novelId': novelId,
+        'chapterId': chapterId,
+        'title': title,
+        'volumes': volumes,
+        'novelInfo': novelInfo,
+      },
+    );
+    // 返回后刷新数据
+    if (context.mounted) {
+      context.read<NovelInfoCubit>().loadHistory();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final state = context.watch<NovelInfoCubit>().state;
+    if (state is! NovelInfoLoaded) return const SizedBox.shrink();
+
     return CustomScrollView(
       slivers: [
         SliverToBoxAdapter(child: _NovelHeader(novelInfo: novelInfo)),
@@ -81,13 +102,41 @@ class _NovelInfoContent extends StatelessWidget {
           ),
         ),
         SliverToBoxAdapter(child: _NovelTags(tags: novelInfo.tags)),
+        // 添加继续阅读按钮
+        if (state.readingHistory != null)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 24, bottom: 16, left: 16, right: 16),
+              child: ElevatedButton.icon(
+                onPressed: () => _navigateToReader(
+                  context,
+                  state.readingHistory!.novelId,
+                  state.readingHistory!.chapterId,
+                  state.readingHistory!.novelName,
+                ),
+                icon: const Icon(Icons.book),
+                label: Text('继续阅读 - ${state.readingHistory!.chapterTitle}'),
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 48),
+                ),
+              ),
+            ),
+          ),
         SliverToBoxAdapter(
           child: _NovelDescription(description: novelInfo.introduce),
         ),
         SliverList(
           delegate: SliverChildBuilderDelegate((context, index) {
             final volume = volumes[index];
-            return _VolumeItem(volume: volume);
+            return _VolumeItem(
+              volume: volume,
+              onChapterTap: (chapter) => _navigateToReader(
+                context,
+                chapter.aid,
+                chapter.cid,
+                chapter.title,
+              ),
+            );
           }, childCount: volumes.length),
         ),
       ],
@@ -238,8 +287,12 @@ class _NovelTags extends StatelessWidget {
 
 class _VolumeItem extends StatelessWidget {
   final Volume volume;
+  final Function(Chapter) onChapterTap;
 
-  const _VolumeItem({required this.volume});
+  const _VolumeItem({
+    required this.volume,
+    required this.onChapterTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -252,31 +305,15 @@ class _VolumeItem extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             child: Text(
               volume.title,
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
           const Divider(height: 1),
           ...volume.chapters.map((chapter) {
             return InkWell(
-              onTap: () {
-                final novelInfo =
-                    (context.read<NovelInfoCubit>().state as NovelInfoLoaded)
-                        .novelInfo;
-                final volumes = context.read<NovelInfoCubit>().volumes;
-                Navigator.pushNamed(
-                  context,
-                  '/novel/reader',
-                  arguments: {
-                    'novelId': chapter.aid,
-                    'chapterId': chapter.cid,
-                    'title': chapter.title,
-                    'volumes': volumes,
-                    'novelInfo': novelInfo,
-                  },
-                );
-              },
+              onTap: () => onChapterTap(chapter),
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,

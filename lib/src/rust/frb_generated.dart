@@ -136,15 +136,6 @@ abstract class RustLibApi extends BaseApi {
     required String password,
     required String checkcode,
   });
-
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_ReadingHistory;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_ReadingHistory;
-
-  CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_ReadingHistoryPtr;
 }
 
 class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
@@ -422,8 +413,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: SseCodec(
-          decodeSuccessData:
-              sse_decode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReadingHistory,
+          decodeSuccessData: sse_decode_opt_box_autoadd_reading_history,
           decodeErrorData: sse_decode_AnyhowException,
         ),
         constMeta: kCrateApiWenku8NovelHistoryByIdConstMeta,
@@ -716,36 +706,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     argNames: ["username", "password", "checkcode"],
   );
 
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_ReadingHistory =>
-      wire.rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReadingHistory;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_ReadingHistory =>
-      wire.rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReadingHistory;
-
   @protected
   AnyhowException dco_decode_AnyhowException(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return AnyhowException(raw as String);
-  }
-
-  @protected
-  ReadingHistory
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReadingHistory(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return ReadingHistoryImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  ReadingHistory
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReadingHistory(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return ReadingHistoryImpl.frbInternalDcoDecode(raw as List<dynamic>);
   }
 
   @protected
@@ -773,14 +737,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  ReadingHistory
-  dco_decode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReadingHistory(
-    dynamic raw,
-  ) {
+  ReadingHistory dco_decode_box_autoadd_reading_history(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
-    return dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReadingHistory(
-      raw,
-    );
+    return dco_decode_reading_history(raw);
   }
 
   @protected
@@ -813,6 +772,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   int dco_decode_i_32(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as int;
+  }
+
+  @protected
+  PlatformInt64 dco_decode_i_64(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dcoDecodeI64(raw);
   }
 
   @protected
@@ -908,16 +873,29 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  ReadingHistory?
-  dco_decode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReadingHistory(
-    dynamic raw,
-  ) {
+  ReadingHistory? dco_decode_opt_box_autoadd_reading_history(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
-    return raw == null
-        ? null
-        : dco_decode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReadingHistory(
-          raw,
-        );
+    return raw == null ? null : dco_decode_box_autoadd_reading_history(raw);
+  }
+
+  @protected
+  ReadingHistory dco_decode_reading_history(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 10)
+      throw Exception('unexpected arr length: expect 10 but see ${arr.length}');
+    return ReadingHistory(
+      novelId: dco_decode_String(arr[0]),
+      novelName: dco_decode_String(arr[1]),
+      volumeId: dco_decode_String(arr[2]),
+      volumeName: dco_decode_String(arr[3]),
+      chapterId: dco_decode_String(arr[4]),
+      chapterTitle: dco_decode_String(arr[5]),
+      lastReadAt: dco_decode_i_64(arr[6]),
+      progress: dco_decode_i_32(arr[7]),
+      cover: dco_decode_String(arr[8]),
+      author: dco_decode_String(arr[9]),
+    );
   }
 
   @protected
@@ -963,12 +941,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  BigInt dco_decode_usize(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return dcoDecodeU64(raw);
-  }
-
-  @protected
   Volume dco_decode_volume(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
@@ -986,30 +958,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var inner = sse_decode_String(deserializer);
     return AnyhowException(inner);
-  }
-
-  @protected
-  ReadingHistory
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReadingHistory(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return ReadingHistoryImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  ReadingHistory
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReadingHistory(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return ReadingHistoryImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
   }
 
   @protected
@@ -1034,14 +982,11 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  ReadingHistory
-  sse_decode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReadingHistory(
+  ReadingHistory sse_decode_box_autoadd_reading_history(
     SseDeserializer deserializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    return (sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReadingHistory(
-      deserializer,
-    ));
+    return (sse_decode_reading_history(deserializer));
   }
 
   @protected
@@ -1066,6 +1011,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   int sse_decode_i_32(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return deserializer.buffer.getInt32();
+  }
+
+  @protected
+  PlatformInt64 sse_decode_i_64(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getPlatformInt64();
   }
 
   @protected
@@ -1211,19 +1162,43 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  ReadingHistory?
-  sse_decode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReadingHistory(
+  ReadingHistory? sse_decode_opt_box_autoadd_reading_history(
     SseDeserializer deserializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
     if (sse_decode_bool(deserializer)) {
-      return (sse_decode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReadingHistory(
-        deserializer,
-      ));
+      return (sse_decode_box_autoadd_reading_history(deserializer));
     } else {
       return null;
     }
+  }
+
+  @protected
+  ReadingHistory sse_decode_reading_history(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_novelId = sse_decode_String(deserializer);
+    var var_novelName = sse_decode_String(deserializer);
+    var var_volumeId = sse_decode_String(deserializer);
+    var var_volumeName = sse_decode_String(deserializer);
+    var var_chapterId = sse_decode_String(deserializer);
+    var var_chapterTitle = sse_decode_String(deserializer);
+    var var_lastReadAt = sse_decode_i_64(deserializer);
+    var var_progress = sse_decode_i_32(deserializer);
+    var var_cover = sse_decode_String(deserializer);
+    var var_author = sse_decode_String(deserializer);
+    return ReadingHistory(
+      novelId: var_novelId,
+      novelName: var_novelName,
+      volumeId: var_volumeId,
+      volumeName: var_volumeName,
+      chapterId: var_chapterId,
+      chapterTitle: var_chapterTitle,
+      lastReadAt: var_lastReadAt,
+      progress: var_progress,
+      cover: var_cover,
+      author: var_author,
+    );
   }
 
   @protected
@@ -1285,12 +1260,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  BigInt sse_decode_usize(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return deserializer.buffer.getBigUint64();
-  }
-
-  @protected
   Volume sse_decode_volume(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_id = sse_decode_String(deserializer);
@@ -1306,32 +1275,6 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.message, serializer);
-  }
-
-  @protected
-  void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReadingHistory(
-    ReadingHistory self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as ReadingHistoryImpl).frbInternalSseEncode(move: true),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReadingHistory(
-    ReadingHistory self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as ReadingHistoryImpl).frbInternalSseEncode(move: null),
-      serializer,
-    );
   }
 
   @protected
@@ -1354,16 +1297,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  void
-  sse_encode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReadingHistory(
+  void sse_encode_box_autoadd_reading_history(
     ReadingHistory self,
     SseSerializer serializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReadingHistory(
-      self,
-      serializer,
-    );
+    sse_encode_reading_history(self, serializer);
   }
 
   @protected
@@ -1386,6 +1325,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   void sse_encode_i_32(int self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     serializer.buffer.putInt32(self);
+  }
+
+  @protected
+  void sse_encode_i_64(PlatformInt64 self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putPlatformInt64(self);
   }
 
   @protected
@@ -1497,8 +1442,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  void
-  sse_encode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReadingHistory(
+  void sse_encode_opt_box_autoadd_reading_history(
     ReadingHistory? self,
     SseSerializer serializer,
   ) {
@@ -1506,11 +1450,26 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
     sse_encode_bool(self != null, serializer);
     if (self != null) {
-      sse_encode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReadingHistory(
-        self,
-        serializer,
-      );
+      sse_encode_box_autoadd_reading_history(self, serializer);
     }
+  }
+
+  @protected
+  void sse_encode_reading_history(
+    ReadingHistory self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.novelId, serializer);
+    sse_encode_String(self.novelName, serializer);
+    sse_encode_String(self.volumeId, serializer);
+    sse_encode_String(self.volumeName, serializer);
+    sse_encode_String(self.chapterId, serializer);
+    sse_encode_String(self.chapterTitle, serializer);
+    sse_encode_i_64(self.lastReadAt, serializer);
+    sse_encode_i_32(self.progress, serializer);
+    sse_encode_String(self.cover, serializer);
+    sse_encode_String(self.author, serializer);
   }
 
   @protected
@@ -1550,36 +1509,10 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
-  void sse_encode_usize(BigInt self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    serializer.buffer.putBigUint64(self);
-  }
-
-  @protected
   void sse_encode_volume(Volume self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.id, serializer);
     sse_encode_String(self.title, serializer);
     sse_encode_list_chapter(self.chapters, serializer);
   }
-}
-
-@sealed
-class ReadingHistoryImpl extends RustOpaque implements ReadingHistory {
-  // Not to be used by end users
-  ReadingHistoryImpl.frbInternalDcoDecode(List<dynamic> wire)
-    : super.frbInternalDcoDecode(wire, _kStaticData);
-
-  // Not to be used by end users
-  ReadingHistoryImpl.frbInternalSseDecode(BigInt ptr, int externalSizeOnNative)
-    : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
-
-  static final _kStaticData = RustArcStaticData(
-    rustArcIncrementStrongCount:
-        RustLib.instance.api.rust_arc_increment_strong_count_ReadingHistory,
-    rustArcDecrementStrongCount:
-        RustLib.instance.api.rust_arc_decrement_strong_count_ReadingHistory,
-    rustArcDecrementStrongCountPtr:
-        RustLib.instance.api.rust_arc_decrement_strong_count_ReadingHistoryPtr,
-  );
 }

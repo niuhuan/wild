@@ -1,7 +1,5 @@
-use crate::database::entities::active::image_cache;
 use crate::database::entities::cookie::cookie_store::DatabaseCookieStore;
 use crate::wenku8::Wenku8Client;
-use chrono::Utc;
 use image::GenericImageView;
 use once_cell::sync::{Lazy, OnceCell};
 use reqwest::Client;

@@ -68,5 +68,57 @@ Future<void> updateHistory({
 Future<ReadingHistory?> novelHistoryById({required String novelId}) =>
     RustLib.instance.api.crateApiWenku8NovelHistoryById(novelId: novelId);
 
-// Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<ReadingHistory>>
-abstract class ReadingHistory implements RustOpaqueInterface {}
+class ReadingHistory {
+  final String novelId;
+  final String novelName;
+  final String volumeId;
+  final String volumeName;
+  final String chapterId;
+  final String chapterTitle;
+  final PlatformInt64 lastReadAt;
+  final int progress;
+  final String cover;
+  final String author;
+
+  const ReadingHistory({
+    required this.novelId,
+    required this.novelName,
+    required this.volumeId,
+    required this.volumeName,
+    required this.chapterId,
+    required this.chapterTitle,
+    required this.lastReadAt,
+    required this.progress,
+    required this.cover,
+    required this.author,
+  });
+
+  @override
+  int get hashCode =>
+      novelId.hashCode ^
+      novelName.hashCode ^
+      volumeId.hashCode ^
+      volumeName.hashCode ^
+      chapterId.hashCode ^
+      chapterTitle.hashCode ^
+      lastReadAt.hashCode ^
+      progress.hashCode ^
+      cover.hashCode ^
+      author.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ReadingHistory &&
+          runtimeType == other.runtimeType &&
+          novelId == other.novelId &&
+          novelName == other.novelName &&
+          volumeId == other.volumeId &&
+          volumeName == other.volumeName &&
+          chapterId == other.chapterId &&
+          chapterTitle == other.chapterTitle &&
+          lastReadAt == other.lastReadAt &&
+          progress == other.progress &&
+          cover == other.cover &&
+          author == other.author;
+}

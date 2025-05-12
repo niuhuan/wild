@@ -1,10 +1,8 @@
-use crate::database;
+use crate::database::entities::ReadingHistoryEntity;
 use crate::wenku8::{BookshelfItem, HomeBlock, NovelInfo, UserDetail, Volume};
 use crate::Result;
 use crate::CLIENT;
-use std::path::Path;
 use std::time::Duration;
-use crate::database::entities::{ReadingHistory, ReadingHistoryEntity};
 
 #[flutter_rust_bridge::frb]
 pub async fn wenku8_login(username: String, password: String, checkcode: String) -> Result<()> {
@@ -119,10 +117,37 @@ pub async fn update_history(
         progress,
         cover,
         author,
-    ).await?;
+    )
+    .await?;
     Ok(())
 }
 
+pub struct ReadingHistory {
+    pub novel_id: String,
+    pub novel_name: String,
+    pub volume_id: String,
+    pub volume_name: String,
+    pub chapter_id: String,
+    pub chapter_title: String,
+    pub last_read_at: i64,
+    pub progress: i32, // 阅读进度 0-1
+    pub cover: String,
+    pub author: String,
+}
+
 pub async fn novel_history_by_id(novel_id: &str) -> anyhow::Result<Option<ReadingHistory>> {
-    ReadingHistoryEntity::find_latest_by_novel_id(novel_id).await
+    Ok(ReadingHistoryEntity::find_latest_by_novel_id(novel_id)
+        .await?
+        .map(|history| ReadingHistory {
+            novel_id: history.novel_id,
+            novel_name: history.novel_name,
+            volume_id: history.volume_id,
+            volume_name: history.volume_name,
+            chapter_id: history.chapter_id,
+            chapter_title: history.chapter_title,
+            last_read_at: history.last_read_at,
+            progress: history.progress,
+            cover: history.cover,
+            author: history.author,
+        }))
 }
