@@ -9,6 +9,7 @@ import 'package:wild/pages/novel/paragraph_spacing_cubit.dart';
 import '../../src/rust/wenku8/models.dart';
 
 class ReaderCubit extends Cubit<ReaderState> {
+  final NovelInfo novelInfo;
   String initialAid;
   String initialCid;
   final List<Volume> initialVolumes;
@@ -17,6 +18,7 @@ class ReaderCubit extends Cubit<ReaderState> {
   final LineHeightCubit lineHeightCubit;
 
   ReaderCubit({
+    required this.novelInfo,
     required this.initialAid,
     required this.initialCid,
     required this.initialVolumes,
@@ -130,7 +132,7 @@ class ReaderCubit extends Cubit<ReaderState> {
     }
   }
 
-  void goToPreviousChapter() {
+  Future goToPreviousChapter() async {
     if (!_canGoPrevious()) return;
 
     final currentVolumeIndex = _findCurrentVolumeIndex();
@@ -140,12 +142,12 @@ class ReaderCubit extends Cubit<ReaderState> {
       // 同一卷的上一章
       final chapter =
           initialVolumes[currentVolumeIndex].chapters[currentChapterIndex - 1];
-      loadChapter(aid: chapter.aid, cid: chapter.cid);
+      await loadChapter(aid: chapter.aid, cid: chapter.cid);
     } else if (currentVolumeIndex > 0) {
       // 上一卷的最后一章
       final prevVolume = initialVolumes[currentVolumeIndex - 1];
       final chapter = prevVolume.chapters.last;
-      loadChapter(aid: chapter.aid, cid: chapter.cid);
+      await loadChapter(aid: chapter.aid, cid: chapter.cid);
     }
   }
 

@@ -266,6 +266,7 @@ class _VolumeItem extends StatelessWidget {
           ...volume.chapters.map((chapter) {
             return InkWell(
               onTap: () {
+                final novelInfo = (context.read<NovelInfoCubit>().state as NovelInfoLoaded).novelInfo;
                 final volumes = context.read<NovelInfoCubit>().volumes;
                 Navigator.pushNamed(
                   context,
@@ -275,6 +276,7 @@ class _VolumeItem extends StatelessWidget {
                     'chapterId': chapter.cid,
                     'title': chapter.title,
                     'volumes': volumes,
+                    'novelInfo': novelInfo,
                   },
                 );
               },

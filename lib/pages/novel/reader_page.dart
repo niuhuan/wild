@@ -14,6 +14,7 @@ class ReaderPage extends StatelessWidget {
   final String cid;
   final String initialTitle;
   final List<Volume> volumes;
+  final NovelInfo novelInfo;
 
   const ReaderPage({
     super.key,
@@ -21,6 +22,7 @@ class ReaderPage extends StatelessWidget {
     required this.cid,
     required this.initialTitle,
     required this.volumes,
+    required this.novelInfo,
   });
 
   @override
@@ -32,6 +34,7 @@ class ReaderPage extends StatelessWidget {
     return BlocProvider(
       create:
           (context) => ReaderCubit(
+            novelInfo: novelInfo,
             initialAid: aid,
             initialCid: cid,
             initialVolumes: volumes,
@@ -86,6 +89,7 @@ class _ReaderView extends StatefulWidget {
 
 class _ReaderViewState extends State<_ReaderView> {
   late PageController _pageController;
+  var preTime = 0;
 
   @override
   void initState() {
@@ -143,7 +147,14 @@ class _ReaderViewState extends State<_ReaderView> {
         final volume = widget.state.volumes[currentVolumeIndex];
         if (currentChapterIndex < volume.chapters.length - 1 ||
             currentVolumeIndex < widget.state.volumes.length - 1) {
-          context.read<ReaderCubit>().goToNextChapter();
+          var now = DateTime.now().millisecondsSinceEpoch;
+          if (now - preTime > 2000) {
+            preTime = now;
+            // todo: 提示用户“再次点击加载下一章”
+          } else {
+            preTime = 0;
+            context.read<ReaderCubit>().goToNextChapter();
+          }
         }
       }
     } else {
