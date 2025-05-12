@@ -245,7 +245,7 @@ class ReaderCubit extends Cubit<ReaderState> {
     var currentPage = StringBuffer();
     var pageFreeHeight = canvasHeight;
 
-    for (var paragraph in paragraphs) {
+    void putParagraph(String paragraph) {
       while (paragraph.isNotEmpty) {
         var textPainter = TextPainter(
           textDirection: TextDirection.ltr,
@@ -285,9 +285,42 @@ class ReaderCubit extends Cubit<ReaderState> {
       }
     }
 
-    if (currentPage.isNotEmpty) {
-      pages.add(ReaderPage(content: currentPage.toString(), isImage: false));
+    endWrite() {
+      if (currentPage.isNotEmpty) {
+        pages.add(ReaderPage(content: currentPage.toString(), isImage: false));
+        currentPage.clear();
+      }
     }
+
+    void putImage(String imageUrl) {
+      endWrite();
+      pages.add(ReaderPage(content: imageUrl, isImage: true));
+    }
+
+    for (var paragraph in paragraphs) {
+      RegExp regex = RegExp("\<\!\-\-image\-\-\>([^\<]+)\<\!\-\-image\-\-\>");
+      if (regex.hasMatch(paragraph)) {
+        while (regex.hasMatch(paragraph)) {
+          var match = regex.firstMatch(paragraph)!;
+          if (match.start > 0) {
+            var per = paragraph.substring(0, match.start).trim();
+            if (per.isNotEmpty) {
+              putParagraph(per);
+            }
+            putImage(match.group(1)!);
+            paragraph = paragraph.substring(match.end);
+          }
+        }
+        paragraph = paragraph.trim();
+        if (paragraph.isNotEmpty) {
+          putParagraph(paragraph);
+        }
+      } else {
+        putParagraph(paragraph);
+      }
+    }
+
+    endWrite();
 
     return pages;
   }
