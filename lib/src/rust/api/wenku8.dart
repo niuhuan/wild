@@ -68,6 +68,14 @@ Future<void> updateHistory({
 Future<ReadingHistory?> novelHistoryById({required String novelId}) =>
     RustLib.instance.api.crateApiWenku8NovelHistoryById(novelId: novelId);
 
+Future<List<ReadingHistory>> listReadingHistory({
+  required int offset,
+  required int limit,
+}) => RustLib.instance.api.crateApiWenku8ListReadingHistory(
+  offset: offset,
+  limit: limit,
+);
+
 class ReadingHistory {
   final String novelId;
   final String novelName;

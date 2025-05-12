@@ -3,6 +3,7 @@ use crate::wenku8::{BookshelfItem, HomeBlock, NovelInfo, UserDetail, Volume};
 use crate::Result;
 use crate::CLIENT;
 use std::time::Duration;
+use crate::database::entities::active::reading_history::Model;
 
 #[flutter_rust_bridge::frb]
 pub async fn wenku8_login(username: String, password: String, checkcode: String) -> Result<()> {
@@ -150,4 +151,20 @@ pub async fn novel_history_by_id(novel_id: &str) -> anyhow::Result<Option<Readin
             cover: history.cover,
             author: history.author,
         }))
+}
+
+pub async fn list_reading_history(offset: i32, limit: i32) -> crate::Result<Vec<ReadingHistory>> {
+    let histories = ReadingHistoryEntity::list_reading_history(offset, limit).await?;
+    Ok(histories.into_iter().map(|history| ReadingHistory {
+        novel_id: history.novel_id,
+        novel_name: history.novel_name,
+        volume_id: history.volume_id,
+        volume_name: history.volume_name,
+        chapter_id: history.chapter_id,
+        chapter_title: history.chapter_title,
+        last_read_at: history.last_read_at,
+        progress: history.progress,
+        cover: history.cover,
+        author: history.author,
+    }).collect())
 }

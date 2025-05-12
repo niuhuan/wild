@@ -68,6 +68,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
 
   @protected
+  List<ReadingHistory> dco_decode_list_reading_history(dynamic raw);
+
+  @protected
   List<Volume> dco_decode_list_volume(dynamic raw);
 
   @protected
@@ -145,6 +148,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
+
+  @protected
+  List<ReadingHistory> sse_decode_list_reading_history(
+    SseDeserializer deserializer,
+  );
 
   @protected
   List<Volume> sse_decode_list_volume(SseDeserializer deserializer);
@@ -238,6 +246,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   @protected
   void sse_encode_list_prim_u_8_strict(
     Uint8List self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_reading_history(
+    List<ReadingHistory> self,
     SseSerializer serializer,
   );
 

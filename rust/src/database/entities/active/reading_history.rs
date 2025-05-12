@@ -251,6 +251,17 @@ pub(super) mod migrations {
 }
 
 impl Entity {
+    pub async fn list_reading_history(offset: i32, limit: i32) -> crate::Result<Vec<Model>> {
+        let db = super::get_connect().await;
+        let records = Entity::find()
+            .order_by(Column::LastReadAt, Order::Desc)
+            .offset(offset as u64)
+            .limit(limit as u64)
+            .all(&*db)
+            .await?;
+        Ok(records)
+    }
+    
     /// 获取指定小说最新的阅读记录
     pub async fn find_latest_by_novel_id(novel_id: &str) -> crate::Result<Option<Model>> {
         let db = super::get_connect().await;
