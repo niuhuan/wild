@@ -685,13 +685,22 @@ class _ChapterListState extends State<_ChapterList> {
                 bottom: BorderSide(color: Theme.of(context).dividerColor),
               ),
             ),
-            child: const Row(
+            child: Row(
               children: [
-                Icon(Icons.menu_book),
-                SizedBox(width: 8),
-                Text(
+                const Icon(Icons.menu_book),
+                const SizedBox(width: 8),
+                const Text(
                   '目录',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const Spacer(),
+                TextButton.icon(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close),
+                  label: const Text('关闭'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: Theme.of(context).colorScheme.secondary,
+                  ),
                 ),
               ],
             ),
