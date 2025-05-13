@@ -1,61 +1,49 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:wild/src/rust/api/wenku8.dart' as w8;
+import 'package:wild/src/rust/wenku8/models.dart' as w8;
+import 'package:wild/widgets/cached_image.dart';
 
-import '../../src/rust/wenku8/models.dart';
-import '../../widgets/cached_image.dart';
-import 'recommend_page.dart';
+import 'recommend_cubit.dart';
 
-class IndexPage extends StatefulWidget {
-  const IndexPage({super.key});
-
-  @override
-  State<IndexPage> createState() => _IndexPageState();
-}
-
-class _IndexPageState extends State<IndexPage> with SingleTickerProviderStateMixin {
-  late final TabController _tabController;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 4, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
+class RecommendPage extends StatelessWidget {
+  const RecommendPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('轻小说文库'),
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(text: '推荐'),
-            Tab(text: '分类'),
-            Tab(text: '排行'),
-            Tab(text: '完结'),
-          ],
+    return BlocProvider(
+      create: (context) => RecommendCubit()..load(),
+      child: Scaffold(
+        body: BlocBuilder<RecommendCubit, RecommendState>(
+          builder: (context, state) {
+            if (state is RecommendLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (state is RecommendError) {
+              return Center(child: Text('加载失败: ${state.message}'));
+            }
+            if (state is RecommendLoaded) {
+              return RefreshIndicator(
+                onRefresh: () => context.read<RecommendCubit>().load(),
+                child: ListView.builder(
+                  itemCount: state.blocks.length,
+                  itemBuilder: (context, index) {
+                    final block = state.blocks[index];
+                    return _HomeBlockWidget(block: block);
+                  },
+                ),
+              );
+            }
+            return const SizedBox.shrink();
+          },
         ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: const [
-          RecommendPage(),
-          Center(child: Text('分类页面')), // TODO: 实现分类页面
-          Center(child: Text('排行页面')), // TODO: 实现排行页面
-          Center(child: Text('完结页面')), // TODO: 实现完结页面
-        ],
       ),
     );
   }
 }
 
 class _HomeBlockWidget extends StatelessWidget {
-  final HomeBlock block;
+  final w8.HomeBlock block;
 
   const _HomeBlockWidget({required this.block});
 
@@ -68,9 +56,9 @@ class _HomeBlockWidget extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
           child: Text(
             block.title,
-            style: Theme.of(
-              context,
-            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
           ),
         ),
         Padding(
@@ -97,7 +85,7 @@ class _HomeBlockWidget extends StatelessWidget {
 }
 
 class _NovelCoverCard extends StatelessWidget {
-  final NovelCover novel;
+  final w8.NovelCover novel;
 
   const _NovelCoverCard({required this.novel});
 
@@ -135,4 +123,4 @@ class _NovelCoverCard extends StatelessWidget {
       child: card,
     );
   }
-}
+} 
