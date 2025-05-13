@@ -3,6 +3,7 @@
 
 // ignore_for_file: unused_import, unused_element, unnecessary_import, duplicate_ignore, invalid_use_of_internal_member, annotate_overrides, non_constant_identifier_names, curly_braces_in_flow_control_structures, prefer_const_literals_to_create_immutables, unused_field
 
+
 // Static analysis wrongly picks the IO variant, thus ignore this
 // ignore_for_file: argument_type_not_assignable
 
@@ -16,293 +17,188 @@ import 'frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated_web.dart';
 import 'wenku8/models.dart';
 
-abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
-  RustLibApiImplPlatform({
-    required super.handler,
-    required super.wire,
-    required super.generalizedFrbRustBinding,
-    required super.portManager,
-  });
 
-  @protected
-  AnyhowException dco_decode_AnyhowException(dynamic raw);
 
-  @protected
-  String dco_decode_String(dynamic raw);
 
-  @protected
-  BookshelfItem dco_decode_bookshelf_item(dynamic raw);
+                abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
+                  RustLibApiImplPlatform({
+                    required super.handler,
+                    required super.wire,
+                    required super.generalizedFrbRustBinding,
+                    required super.portManager,
+                  });
 
-  @protected
-  bool dco_decode_bool(dynamic raw);
+                  
 
-  @protected
-  ReadingHistory dco_decode_box_autoadd_reading_history(dynamic raw);
+                  @protected AnyhowException dco_decode_AnyhowException(dynamic raw);
 
-  @protected
-  Chapter dco_decode_chapter(dynamic raw);
+@protected String dco_decode_String(dynamic raw);
 
-  @protected
-  HomeBlock dco_decode_home_block(dynamic raw);
+@protected BookshelfItem dco_decode_bookshelf_item(dynamic raw);
 
-  @protected
-  int dco_decode_i_32(dynamic raw);
+@protected bool dco_decode_bool(dynamic raw);
 
-  @protected
-  PlatformInt64 dco_decode_i_64(dynamic raw);
+@protected ReadingHistory dco_decode_box_autoadd_reading_history(dynamic raw);
 
-  @protected
-  List<String> dco_decode_list_String(dynamic raw);
+@protected Chapter dco_decode_chapter(dynamic raw);
 
-  @protected
-  List<BookshelfItem> dco_decode_list_bookshelf_item(dynamic raw);
+@protected HomeBlock dco_decode_home_block(dynamic raw);
 
-  @protected
-  List<Chapter> dco_decode_list_chapter(dynamic raw);
+@protected int dco_decode_i_32(dynamic raw);
 
-  @protected
-  List<HomeBlock> dco_decode_list_home_block(dynamic raw);
+@protected PlatformInt64 dco_decode_i_64(dynamic raw);
 
-  @protected
-  List<NovelCover> dco_decode_list_novel_cover(dynamic raw);
+@protected List<String> dco_decode_list_String(dynamic raw);
 
-  @protected
-  Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
+@protected List<BookshelfItem> dco_decode_list_bookshelf_item(dynamic raw);
 
-  @protected
-  List<ReadingHistory> dco_decode_list_reading_history(dynamic raw);
+@protected List<Chapter> dco_decode_list_chapter(dynamic raw);
 
-  @protected
-  List<Volume> dco_decode_list_volume(dynamic raw);
+@protected List<HomeBlock> dco_decode_list_home_block(dynamic raw);
 
-  @protected
-  Novel dco_decode_novel(dynamic raw);
+@protected List<NovelCover> dco_decode_list_novel_cover(dynamic raw);
 
-  @protected
-  NovelCover dco_decode_novel_cover(dynamic raw);
+@protected Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
 
-  @protected
-  NovelInfo dco_decode_novel_info(dynamic raw);
+@protected List<ReadingHistory> dco_decode_list_reading_history(dynamic raw);
 
-  @protected
-  ReadingHistory? dco_decode_opt_box_autoadd_reading_history(dynamic raw);
+@protected List<Volume> dco_decode_list_volume(dynamic raw);
 
-  @protected
-  ReadingHistory dco_decode_reading_history(dynamic raw);
+@protected Novel dco_decode_novel(dynamic raw);
 
-  @protected
-  int dco_decode_u_8(dynamic raw);
+@protected NovelCover dco_decode_novel_cover(dynamic raw);
 
-  @protected
-  void dco_decode_unit(dynamic raw);
+@protected NovelInfo dco_decode_novel_info(dynamic raw);
 
-  @protected
-  UserDetail dco_decode_user_detail(dynamic raw);
+@protected ReadingHistory? dco_decode_opt_box_autoadd_reading_history(dynamic raw);
 
-  @protected
-  Volume dco_decode_volume(dynamic raw);
+@protected ReadingHistory dco_decode_reading_history(dynamic raw);
 
-  @protected
-  AnyhowException sse_decode_AnyhowException(SseDeserializer deserializer);
+@protected int dco_decode_u_8(dynamic raw);
 
-  @protected
-  String sse_decode_String(SseDeserializer deserializer);
+@protected void dco_decode_unit(dynamic raw);
 
-  @protected
-  BookshelfItem sse_decode_bookshelf_item(SseDeserializer deserializer);
+@protected UserDetail dco_decode_user_detail(dynamic raw);
 
-  @protected
-  bool sse_decode_bool(SseDeserializer deserializer);
+@protected Volume dco_decode_volume(dynamic raw);
 
-  @protected
-  ReadingHistory sse_decode_box_autoadd_reading_history(
-    SseDeserializer deserializer,
-  );
+@protected AnyhowException sse_decode_AnyhowException(SseDeserializer deserializer);
 
-  @protected
-  Chapter sse_decode_chapter(SseDeserializer deserializer);
+@protected String sse_decode_String(SseDeserializer deserializer);
 
-  @protected
-  HomeBlock sse_decode_home_block(SseDeserializer deserializer);
+@protected BookshelfItem sse_decode_bookshelf_item(SseDeserializer deserializer);
 
-  @protected
-  int sse_decode_i_32(SseDeserializer deserializer);
+@protected bool sse_decode_bool(SseDeserializer deserializer);
 
-  @protected
-  PlatformInt64 sse_decode_i_64(SseDeserializer deserializer);
+@protected ReadingHistory sse_decode_box_autoadd_reading_history(SseDeserializer deserializer);
 
-  @protected
-  List<String> sse_decode_list_String(SseDeserializer deserializer);
+@protected Chapter sse_decode_chapter(SseDeserializer deserializer);
 
-  @protected
-  List<BookshelfItem> sse_decode_list_bookshelf_item(
-    SseDeserializer deserializer,
-  );
+@protected HomeBlock sse_decode_home_block(SseDeserializer deserializer);
 
-  @protected
-  List<Chapter> sse_decode_list_chapter(SseDeserializer deserializer);
+@protected int sse_decode_i_32(SseDeserializer deserializer);
 
-  @protected
-  List<HomeBlock> sse_decode_list_home_block(SseDeserializer deserializer);
+@protected PlatformInt64 sse_decode_i_64(SseDeserializer deserializer);
 
-  @protected
-  List<NovelCover> sse_decode_list_novel_cover(SseDeserializer deserializer);
+@protected List<String> sse_decode_list_String(SseDeserializer deserializer);
 
-  @protected
-  Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
+@protected List<BookshelfItem> sse_decode_list_bookshelf_item(SseDeserializer deserializer);
 
-  @protected
-  List<ReadingHistory> sse_decode_list_reading_history(
-    SseDeserializer deserializer,
-  );
+@protected List<Chapter> sse_decode_list_chapter(SseDeserializer deserializer);
 
-  @protected
-  List<Volume> sse_decode_list_volume(SseDeserializer deserializer);
+@protected List<HomeBlock> sse_decode_list_home_block(SseDeserializer deserializer);
 
-  @protected
-  Novel sse_decode_novel(SseDeserializer deserializer);
+@protected List<NovelCover> sse_decode_list_novel_cover(SseDeserializer deserializer);
 
-  @protected
-  NovelCover sse_decode_novel_cover(SseDeserializer deserializer);
+@protected Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
 
-  @protected
-  NovelInfo sse_decode_novel_info(SseDeserializer deserializer);
+@protected List<ReadingHistory> sse_decode_list_reading_history(SseDeserializer deserializer);
 
-  @protected
-  ReadingHistory? sse_decode_opt_box_autoadd_reading_history(
-    SseDeserializer deserializer,
-  );
+@protected List<Volume> sse_decode_list_volume(SseDeserializer deserializer);
 
-  @protected
-  ReadingHistory sse_decode_reading_history(SseDeserializer deserializer);
+@protected Novel sse_decode_novel(SseDeserializer deserializer);
 
-  @protected
-  int sse_decode_u_8(SseDeserializer deserializer);
+@protected NovelCover sse_decode_novel_cover(SseDeserializer deserializer);
 
-  @protected
-  void sse_decode_unit(SseDeserializer deserializer);
+@protected NovelInfo sse_decode_novel_info(SseDeserializer deserializer);
 
-  @protected
-  UserDetail sse_decode_user_detail(SseDeserializer deserializer);
+@protected ReadingHistory? sse_decode_opt_box_autoadd_reading_history(SseDeserializer deserializer);
 
-  @protected
-  Volume sse_decode_volume(SseDeserializer deserializer);
+@protected ReadingHistory sse_decode_reading_history(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_AnyhowException(
-    AnyhowException self,
-    SseSerializer serializer,
-  );
+@protected int sse_decode_u_8(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_String(String self, SseSerializer serializer);
+@protected void sse_decode_unit(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_bookshelf_item(BookshelfItem self, SseSerializer serializer);
+@protected UserDetail sse_decode_user_detail(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_bool(bool self, SseSerializer serializer);
+@protected Volume sse_decode_volume(SseDeserializer deserializer);
 
-  @protected
-  void sse_encode_box_autoadd_reading_history(
-    ReadingHistory self,
-    SseSerializer serializer,
-  );
+@protected void sse_encode_AnyhowException(AnyhowException self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_chapter(Chapter self, SseSerializer serializer);
+@protected void sse_encode_String(String self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_home_block(HomeBlock self, SseSerializer serializer);
+@protected void sse_encode_bookshelf_item(BookshelfItem self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_i_32(int self, SseSerializer serializer);
+@protected void sse_encode_bool(bool self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_i_64(PlatformInt64 self, SseSerializer serializer);
+@protected void sse_encode_box_autoadd_reading_history(ReadingHistory self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_list_String(List<String> self, SseSerializer serializer);
+@protected void sse_encode_chapter(Chapter self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_list_bookshelf_item(
-    List<BookshelfItem> self,
-    SseSerializer serializer,
-  );
+@protected void sse_encode_home_block(HomeBlock self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_list_chapter(List<Chapter> self, SseSerializer serializer);
+@protected void sse_encode_i_32(int self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_list_home_block(
-    List<HomeBlock> self,
-    SseSerializer serializer,
-  );
+@protected void sse_encode_i_64(PlatformInt64 self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_list_novel_cover(
-    List<NovelCover> self,
-    SseSerializer serializer,
-  );
+@protected void sse_encode_list_String(List<String> self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_list_prim_u_8_strict(
-    Uint8List self,
-    SseSerializer serializer,
-  );
+@protected void sse_encode_list_bookshelf_item(List<BookshelfItem> self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_list_reading_history(
-    List<ReadingHistory> self,
-    SseSerializer serializer,
-  );
+@protected void sse_encode_list_chapter(List<Chapter> self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_list_volume(List<Volume> self, SseSerializer serializer);
+@protected void sse_encode_list_home_block(List<HomeBlock> self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_novel(Novel self, SseSerializer serializer);
+@protected void sse_encode_list_novel_cover(List<NovelCover> self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_novel_cover(NovelCover self, SseSerializer serializer);
+@protected void sse_encode_list_prim_u_8_strict(Uint8List self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_novel_info(NovelInfo self, SseSerializer serializer);
+@protected void sse_encode_list_reading_history(List<ReadingHistory> self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_opt_box_autoadd_reading_history(
-    ReadingHistory? self,
-    SseSerializer serializer,
-  );
+@protected void sse_encode_list_volume(List<Volume> self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_reading_history(
-    ReadingHistory self,
-    SseSerializer serializer,
-  );
+@protected void sse_encode_novel(Novel self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_u_8(int self, SseSerializer serializer);
+@protected void sse_encode_novel_cover(NovelCover self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_unit(void self, SseSerializer serializer);
+@protected void sse_encode_novel_info(NovelInfo self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_user_detail(UserDetail self, SseSerializer serializer);
+@protected void sse_encode_opt_box_autoadd_reading_history(ReadingHistory? self, SseSerializer serializer);
 
-  @protected
-  void sse_encode_volume(Volume self, SseSerializer serializer);
-}
+@protected void sse_encode_reading_history(ReadingHistory self, SseSerializer serializer);
+
+@protected void sse_encode_u_8(int self, SseSerializer serializer);
+
+@protected void sse_encode_unit(void self, SseSerializer serializer);
+
+@protected void sse_encode_user_detail(UserDetail self, SseSerializer serializer);
+
+@protected void sse_encode_volume(Volume self, SseSerializer serializer);
+                }
+                
+
 
 // Section: wire_class
 
 class RustLibWire implements BaseWire {
-  RustLibWire.fromExternalLibrary(ExternalLibrary lib);
-}
+            RustLibWire.fromExternalLibrary(ExternalLibrary lib);
 
-@JS('wasm_bindgen')
-external RustLibWasmModule get wasmModule;
+            
+        }
+        @JS('wasm_bindgen') external RustLibWasmModule get wasmModule;
 
-@JS()
-@anonymous
-extension type RustLibWasmModule._(JSObject _) implements JSObject {}
+        @JS() @anonymous extension type RustLibWasmModule._(JSObject _) implements JSObject {
+            
+        }
+        

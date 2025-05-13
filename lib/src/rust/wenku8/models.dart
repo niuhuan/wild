@@ -10,7 +10,10 @@ class BookshelfItem {
   final Novel novel;
   final String lastRead;
 
-  const BookshelfItem({required this.novel, required this.lastRead});
+  const BookshelfItem({
+    required this.novel,
+    required this.lastRead,
+  });
 
   @override
   int get hashCode => novel.hashCode ^ lastRead.hashCode;
@@ -56,7 +59,10 @@ class HomeBlock {
   final String title;
   final List<NovelCover> list;
 
-  const HomeBlock({required this.title, required this.list});
+  const HomeBlock({
+    required this.title,
+    required this.list,
+  });
 
   @override
   int get hashCode => title.hashCode ^ list.hashCode;
@@ -292,7 +298,11 @@ class Volume {
   final String title;
   final List<Chapter> chapters;
 
-  const Volume({required this.id, required this.title, required this.chapters});
+  const Volume({
+    required this.id,
+    required this.title,
+    required this.chapters,
+  });
 
   @override
   int get hashCode => id.hashCode ^ title.hashCode ^ chapters.hashCode;

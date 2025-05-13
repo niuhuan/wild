@@ -37,8 +37,12 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
 
   /// Initialize flutter_rust_bridge in mock mode.
   /// No libraries for FFI are loaded.
-  static void initMock({required RustLibApi api}) {
-    instance.initMockImpl(api: api);
+  static void initMock({
+    required RustLibApi api,
+  }) {
+    instance.initMockImpl(
+      api: api,
+    );
   }
 
   /// Dispose flutter_rust_bridge
@@ -72,17 +76,15 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
-        stem: 'rust_lib_wild',
-        ioDirectory: 'rust/target/release/',
-        webPrefix: 'pkg/',
-      );
+    stem: 'rust_lib_wild',
+    ioDirectory: 'rust/target/release/',
+    webPrefix: 'pkg/',
+  );
 }
 
 abstract class RustLibApi extends BaseApi {
-  Future<String> crateApiWenku8ChapterContent({
-    required String aid,
-    required String cid,
-  });
+  Future<String> crateApiWenku8ChapterContent(
+      {required String aid, required String cid});
 
   Future<String> crateApiSystemDesktopRoot();
 
@@ -98,16 +100,13 @@ abstract class RustLibApi extends BaseApi {
 
   Future<void> crateApiSimpleInitApp();
 
-  Future<List<ReadingHistory>> crateApiWenku8ListReadingHistory({
-    required int offset,
-    required int limit,
-  });
+  Future<List<ReadingHistory>> crateApiWenku8ListReadingHistory(
+      {required int offset, required int limit});
 
   Future<String> crateApiDatabaseLoadProperty({required String key});
 
-  Future<ReadingHistory?> crateApiWenku8NovelHistoryById({
-    required String novelId,
-  });
+  Future<ReadingHistory?> crateApiWenku8NovelHistoryById(
+      {required String novelId});
 
   Future<NovelInfo> crateApiWenku8NovelInfo({required String aid});
 
@@ -115,32 +114,28 @@ abstract class RustLibApi extends BaseApi {
 
   Future<bool> crateApiWenku8PreLoginState();
 
-  Future<void> crateApiDatabaseSaveProperty({
-    required String key,
-    required String value,
-  });
+  Future<void> crateApiDatabaseSaveProperty(
+      {required String key, required String value});
 
-  Future<void> crateApiWenku8UpdateHistory({
-    required String novelId,
-    required String novelName,
-    required String volumeId,
-    required String volumeName,
-    required String chapterId,
-    required String chapterTitle,
-    required int progress,
-    required String cover,
-    required String author,
-  });
+  Future<void> crateApiWenku8UpdateHistory(
+      {required String novelId,
+      required String novelName,
+      required String volumeId,
+      required String volumeName,
+      required String chapterId,
+      required String chapterTitle,
+      required int progress,
+      required String cover,
+      required String author});
 
   Future<UserDetail> crateApiWenku8UserDetail();
 
   Future<List<BookshelfItem>> crateApiWenku8Wenku8GetBookshelf();
 
-  Future<void> crateApiWenku8Wenku8Login({
-    required String username,
-    required String password,
-    required String checkcode,
-  });
+  Future<void> crateApiWenku8Wenku8Login(
+      {required String username,
+      required String password,
+      required String checkcode});
 }
 
 class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
@@ -152,32 +147,24 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   });
 
   @override
-  Future<String> crateApiWenku8ChapterContent({
-    required String aid,
-    required String cid,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_String(aid, serializer);
-          sse_encode_String(cid, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 1,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_String,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateApiWenku8ChapterContentConstMeta,
-        argValues: [aid, cid],
-        apiImpl: this,
+  Future<String> crateApiWenku8ChapterContent(
+      {required String aid, required String cid}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(aid, serializer);
+        sse_encode_String(cid, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 1, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_String,
+        decodeErrorData: sse_decode_AnyhowException,
       ),
-    );
+      constMeta: kCrateApiWenku8ChapterContentConstMeta,
+      argValues: [aid, cid],
+      apiImpl: this,
+    ));
   }
 
   TaskConstMeta get kCrateApiWenku8ChapterContentConstMeta =>
@@ -188,218 +175,188 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @override
   Future<String> crateApiSystemDesktopRoot() {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 2,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_String,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateApiSystemDesktopRootConstMeta,
-        argValues: [],
-        apiImpl: this,
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 2, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_String,
+        decodeErrorData: sse_decode_AnyhowException,
       ),
-    );
+      constMeta: kCrateApiSystemDesktopRootConstMeta,
+      argValues: [],
+      apiImpl: this,
+    ));
   }
 
-  TaskConstMeta get kCrateApiSystemDesktopRootConstMeta =>
-      const TaskConstMeta(debugName: "desktop_root", argNames: []);
+  TaskConstMeta get kCrateApiSystemDesktopRootConstMeta => const TaskConstMeta(
+        debugName: "desktop_root",
+        argNames: [],
+      );
 
   @override
   Future<Uint8List> crateApiWenku8DownloadCheckcode() {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 3,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_list_prim_u_8_strict,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateApiWenku8DownloadCheckcodeConstMeta,
-        argValues: [],
-        apiImpl: this,
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 3, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_list_prim_u_8_strict,
+        decodeErrorData: sse_decode_AnyhowException,
       ),
-    );
+      constMeta: kCrateApiWenku8DownloadCheckcodeConstMeta,
+      argValues: [],
+      apiImpl: this,
+    ));
   }
 
   TaskConstMeta get kCrateApiWenku8DownloadCheckcodeConstMeta =>
-      const TaskConstMeta(debugName: "download_checkcode", argNames: []);
+      const TaskConstMeta(
+        debugName: "download_checkcode",
+        argNames: [],
+      );
 
   @override
   Future<Uint8List> crateApiWenku8DownloadImage({required String url}) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_String(url, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 4,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_list_prim_u_8_strict,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateApiWenku8DownloadImageConstMeta,
-        argValues: [url],
-        apiImpl: this,
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(url, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 4, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_list_prim_u_8_strict,
+        decodeErrorData: sse_decode_AnyhowException,
       ),
-    );
+      constMeta: kCrateApiWenku8DownloadImageConstMeta,
+      argValues: [url],
+      apiImpl: this,
+    ));
   }
 
   TaskConstMeta get kCrateApiWenku8DownloadImageConstMeta =>
-      const TaskConstMeta(debugName: "download_image", argNames: ["url"]);
+      const TaskConstMeta(
+        debugName: "download_image",
+        argNames: ["url"],
+      );
 
   @override
   String crateApiSimpleGreet({required String name}) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_String(name, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 5)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_String,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiSimpleGreetConstMeta,
-        argValues: [name],
-        apiImpl: this,
+    return handler.executeSync(SyncTask(
+      callFfi: () {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(name, serializer);
+        return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 5)!;
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_String,
+        decodeErrorData: null,
       ),
-    );
+      constMeta: kCrateApiSimpleGreetConstMeta,
+      argValues: [name],
+      apiImpl: this,
+    ));
   }
 
-  TaskConstMeta get kCrateApiSimpleGreetConstMeta =>
-      const TaskConstMeta(debugName: "greet", argNames: ["name"]);
+  TaskConstMeta get kCrateApiSimpleGreetConstMeta => const TaskConstMeta(
+        debugName: "greet",
+        argNames: ["name"],
+      );
 
   @override
   Future<List<HomeBlock>> crateApiWenku8Index() {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 6,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_list_home_block,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateApiWenku8IndexConstMeta,
-        argValues: [],
-        apiImpl: this,
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 6, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_list_home_block,
+        decodeErrorData: sse_decode_AnyhowException,
       ),
-    );
+      constMeta: kCrateApiWenku8IndexConstMeta,
+      argValues: [],
+      apiImpl: this,
+    ));
   }
 
-  TaskConstMeta get kCrateApiWenku8IndexConstMeta =>
-      const TaskConstMeta(debugName: "index", argNames: []);
+  TaskConstMeta get kCrateApiWenku8IndexConstMeta => const TaskConstMeta(
+        debugName: "index",
+        argNames: [],
+      );
 
   @override
   Future<void> crateApiSystemInit({required String root}) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_String(root, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 7,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateApiSystemInitConstMeta,
-        argValues: [root],
-        apiImpl: this,
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(root, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 7, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: sse_decode_AnyhowException,
       ),
-    );
+      constMeta: kCrateApiSystemInitConstMeta,
+      argValues: [root],
+      apiImpl: this,
+    ));
   }
 
-  TaskConstMeta get kCrateApiSystemInitConstMeta =>
-      const TaskConstMeta(debugName: "init", argNames: ["root"]);
+  TaskConstMeta get kCrateApiSystemInitConstMeta => const TaskConstMeta(
+        debugName: "init",
+        argNames: ["root"],
+      );
 
   @override
   Future<void> crateApiSimpleInitApp() {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 8,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApiSimpleInitAppConstMeta,
-        argValues: [],
-        apiImpl: this,
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 8, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: null,
       ),
-    );
+      constMeta: kCrateApiSimpleInitAppConstMeta,
+      argValues: [],
+      apiImpl: this,
+    ));
   }
 
-  TaskConstMeta get kCrateApiSimpleInitAppConstMeta =>
-      const TaskConstMeta(debugName: "init_app", argNames: []);
+  TaskConstMeta get kCrateApiSimpleInitAppConstMeta => const TaskConstMeta(
+        debugName: "init_app",
+        argNames: [],
+      );
 
   @override
-  Future<List<ReadingHistory>> crateApiWenku8ListReadingHistory({
-    required int offset,
-    required int limit,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_i_32(offset, serializer);
-          sse_encode_i_32(limit, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 9,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_list_reading_history,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateApiWenku8ListReadingHistoryConstMeta,
-        argValues: [offset, limit],
-        apiImpl: this,
+  Future<List<ReadingHistory>> crateApiWenku8ListReadingHistory(
+      {required int offset, required int limit}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_i_32(offset, serializer);
+        sse_encode_i_32(limit, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 9, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_list_reading_history,
+        decodeErrorData: sse_decode_AnyhowException,
       ),
-    );
+      constMeta: kCrateApiWenku8ListReadingHistoryConstMeta,
+      argValues: [offset, limit],
+      apiImpl: this,
+    ));
   }
 
   TaskConstMeta get kCrateApiWenku8ListReadingHistoryConstMeta =>
@@ -410,57 +367,47 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @override
   Future<String> crateApiDatabaseLoadProperty({required String key}) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_String(key, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 10,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_String,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateApiDatabaseLoadPropertyConstMeta,
-        argValues: [key],
-        apiImpl: this,
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(key, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 10, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_String,
+        decodeErrorData: sse_decode_AnyhowException,
       ),
-    );
+      constMeta: kCrateApiDatabaseLoadPropertyConstMeta,
+      argValues: [key],
+      apiImpl: this,
+    ));
   }
 
   TaskConstMeta get kCrateApiDatabaseLoadPropertyConstMeta =>
-      const TaskConstMeta(debugName: "load_property", argNames: ["key"]);
+      const TaskConstMeta(
+        debugName: "load_property",
+        argNames: ["key"],
+      );
 
   @override
-  Future<ReadingHistory?> crateApiWenku8NovelHistoryById({
-    required String novelId,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_String(novelId, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 11,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_opt_box_autoadd_reading_history,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateApiWenku8NovelHistoryByIdConstMeta,
-        argValues: [novelId],
-        apiImpl: this,
+  Future<ReadingHistory?> crateApiWenku8NovelHistoryById(
+      {required String novelId}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(novelId, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 11, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_opt_box_autoadd_reading_history,
+        decodeErrorData: sse_decode_AnyhowException,
       ),
-    );
+      constMeta: kCrateApiWenku8NovelHistoryByIdConstMeta,
+      argValues: [novelId],
+      apiImpl: this,
+    ));
   }
 
   TaskConstMeta get kCrateApiWenku8NovelHistoryByIdConstMeta =>
@@ -471,114 +418,95 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @override
   Future<NovelInfo> crateApiWenku8NovelInfo({required String aid}) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_String(aid, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 12,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_novel_info,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateApiWenku8NovelInfoConstMeta,
-        argValues: [aid],
-        apiImpl: this,
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(aid, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 12, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_novel_info,
+        decodeErrorData: sse_decode_AnyhowException,
       ),
-    );
+      constMeta: kCrateApiWenku8NovelInfoConstMeta,
+      argValues: [aid],
+      apiImpl: this,
+    ));
   }
 
-  TaskConstMeta get kCrateApiWenku8NovelInfoConstMeta =>
-      const TaskConstMeta(debugName: "novel_info", argNames: ["aid"]);
+  TaskConstMeta get kCrateApiWenku8NovelInfoConstMeta => const TaskConstMeta(
+        debugName: "novel_info",
+        argNames: ["aid"],
+      );
 
   @override
   Future<List<Volume>> crateApiWenku8NovelReader({required String aid}) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_String(aid, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 13,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_list_volume,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateApiWenku8NovelReaderConstMeta,
-        argValues: [aid],
-        apiImpl: this,
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(aid, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 13, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_list_volume,
+        decodeErrorData: sse_decode_AnyhowException,
       ),
-    );
+      constMeta: kCrateApiWenku8NovelReaderConstMeta,
+      argValues: [aid],
+      apiImpl: this,
+    ));
   }
 
-  TaskConstMeta get kCrateApiWenku8NovelReaderConstMeta =>
-      const TaskConstMeta(debugName: "novel_reader", argNames: ["aid"]);
+  TaskConstMeta get kCrateApiWenku8NovelReaderConstMeta => const TaskConstMeta(
+        debugName: "novel_reader",
+        argNames: ["aid"],
+      );
 
   @override
   Future<bool> crateApiWenku8PreLoginState() {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 14,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_bool,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateApiWenku8PreLoginStateConstMeta,
-        argValues: [],
-        apiImpl: this,
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 14, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_bool,
+        decodeErrorData: sse_decode_AnyhowException,
       ),
-    );
+      constMeta: kCrateApiWenku8PreLoginStateConstMeta,
+      argValues: [],
+      apiImpl: this,
+    ));
   }
 
   TaskConstMeta get kCrateApiWenku8PreLoginStateConstMeta =>
-      const TaskConstMeta(debugName: "pre_login_state", argNames: []);
+      const TaskConstMeta(
+        debugName: "pre_login_state",
+        argNames: [],
+      );
 
   @override
-  Future<void> crateApiDatabaseSaveProperty({
-    required String key,
-    required String value,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_String(key, serializer);
-          sse_encode_String(value, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 15,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateApiDatabaseSavePropertyConstMeta,
-        argValues: [key, value],
-        apiImpl: this,
+  Future<void> crateApiDatabaseSaveProperty(
+      {required String key, required String value}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(key, serializer);
+        sse_encode_String(value, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 15, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: sse_decode_AnyhowException,
       ),
-    );
+      constMeta: kCrateApiDatabaseSavePropertyConstMeta,
+      argValues: [key, value],
+      apiImpl: this,
+    ));
   }
 
   TaskConstMeta get kCrateApiDatabaseSavePropertyConstMeta =>
@@ -588,56 +516,49 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       );
 
   @override
-  Future<void> crateApiWenku8UpdateHistory({
-    required String novelId,
-    required String novelName,
-    required String volumeId,
-    required String volumeName,
-    required String chapterId,
-    required String chapterTitle,
-    required int progress,
-    required String cover,
-    required String author,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_String(novelId, serializer);
-          sse_encode_String(novelName, serializer);
-          sse_encode_String(volumeId, serializer);
-          sse_encode_String(volumeName, serializer);
-          sse_encode_String(chapterId, serializer);
-          sse_encode_String(chapterTitle, serializer);
-          sse_encode_i_32(progress, serializer);
-          sse_encode_String(cover, serializer);
-          sse_encode_String(author, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 16,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateApiWenku8UpdateHistoryConstMeta,
-        argValues: [
-          novelId,
-          novelName,
-          volumeId,
-          volumeName,
-          chapterId,
-          chapterTitle,
-          progress,
-          cover,
-          author,
-        ],
-        apiImpl: this,
+  Future<void> crateApiWenku8UpdateHistory(
+      {required String novelId,
+      required String novelName,
+      required String volumeId,
+      required String volumeName,
+      required String chapterId,
+      required String chapterTitle,
+      required int progress,
+      required String cover,
+      required String author}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(novelId, serializer);
+        sse_encode_String(novelName, serializer);
+        sse_encode_String(volumeId, serializer);
+        sse_encode_String(volumeName, serializer);
+        sse_encode_String(chapterId, serializer);
+        sse_encode_String(chapterTitle, serializer);
+        sse_encode_i_32(progress, serializer);
+        sse_encode_String(cover, serializer);
+        sse_encode_String(author, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 16, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: sse_decode_AnyhowException,
       ),
-    );
+      constMeta: kCrateApiWenku8UpdateHistoryConstMeta,
+      argValues: [
+        novelId,
+        novelName,
+        volumeId,
+        volumeName,
+        chapterId,
+        chapterTitle,
+        progress,
+        cover,
+        author
+      ],
+      apiImpl: this,
+    ));
   }
 
   TaskConstMeta get kCrateApiWenku8UpdateHistoryConstMeta =>
@@ -652,99 +573,85 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           "chapterTitle",
           "progress",
           "cover",
-          "author",
+          "author"
         ],
       );
 
   @override
   Future<UserDetail> crateApiWenku8UserDetail() {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 17,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_user_detail,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateApiWenku8UserDetailConstMeta,
-        argValues: [],
-        apiImpl: this,
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 17, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_user_detail,
+        decodeErrorData: sse_decode_AnyhowException,
       ),
-    );
+      constMeta: kCrateApiWenku8UserDetailConstMeta,
+      argValues: [],
+      apiImpl: this,
+    ));
   }
 
-  TaskConstMeta get kCrateApiWenku8UserDetailConstMeta =>
-      const TaskConstMeta(debugName: "user_detail", argNames: []);
+  TaskConstMeta get kCrateApiWenku8UserDetailConstMeta => const TaskConstMeta(
+        debugName: "user_detail",
+        argNames: [],
+      );
 
   @override
   Future<List<BookshelfItem>> crateApiWenku8Wenku8GetBookshelf() {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 18,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_list_bookshelf_item,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateApiWenku8Wenku8GetBookshelfConstMeta,
-        argValues: [],
-        apiImpl: this,
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 18, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_list_bookshelf_item,
+        decodeErrorData: sse_decode_AnyhowException,
       ),
-    );
+      constMeta: kCrateApiWenku8Wenku8GetBookshelfConstMeta,
+      argValues: [],
+      apiImpl: this,
+    ));
   }
 
   TaskConstMeta get kCrateApiWenku8Wenku8GetBookshelfConstMeta =>
-      const TaskConstMeta(debugName: "wenku8_get_bookshelf", argNames: []);
+      const TaskConstMeta(
+        debugName: "wenku8_get_bookshelf",
+        argNames: [],
+      );
 
   @override
-  Future<void> crateApiWenku8Wenku8Login({
-    required String username,
-    required String password,
-    required String checkcode,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_String(username, serializer);
-          sse_encode_String(password, serializer);
-          sse_encode_String(checkcode, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 19,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateApiWenku8Wenku8LoginConstMeta,
-        argValues: [username, password, checkcode],
-        apiImpl: this,
+  Future<void> crateApiWenku8Wenku8Login(
+      {required String username,
+      required String password,
+      required String checkcode}) {
+    return handler.executeNormal(NormalTask(
+      callFfi: (port_) {
+        final serializer = SseSerializer(generalizedFrbRustBinding);
+        sse_encode_String(username, serializer);
+        sse_encode_String(password, serializer);
+        sse_encode_String(checkcode, serializer);
+        pdeCallFfi(generalizedFrbRustBinding, serializer,
+            funcId: 19, port: port_);
+      },
+      codec: SseCodec(
+        decodeSuccessData: sse_decode_unit,
+        decodeErrorData: sse_decode_AnyhowException,
       ),
-    );
+      constMeta: kCrateApiWenku8Wenku8LoginConstMeta,
+      argValues: [username, password, checkcode],
+      apiImpl: this,
+    ));
   }
 
   TaskConstMeta get kCrateApiWenku8Wenku8LoginConstMeta => const TaskConstMeta(
-    debugName: "wenku8_login",
-    argNames: ["username", "password", "checkcode"],
-  );
+        debugName: "wenku8_login",
+        argNames: ["username", "password", "checkcode"],
+      );
 
   @protected
   AnyhowException dco_decode_AnyhowException(dynamic raw) {
@@ -1029,8 +936,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   ReadingHistory sse_decode_box_autoadd_reading_history(
-    SseDeserializer deserializer,
-  ) {
+      SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_reading_history(deserializer));
   }
@@ -1079,8 +985,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   List<BookshelfItem> sse_decode_list_bookshelf_item(
-    SseDeserializer deserializer,
-  ) {
+      SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
     var len_ = sse_decode_i_32(deserializer);
@@ -1136,8 +1041,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   List<ReadingHistory> sse_decode_list_reading_history(
-    SseDeserializer deserializer,
-  ) {
+      SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
     var len_ = sse_decode_i_32(deserializer);
@@ -1170,13 +1074,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_lastChapter = sse_decode_String(deserializer);
     var var_tags = sse_decode_list_String(deserializer);
     return Novel(
-      id: var_id,
-      title: var_title,
-      author: var_author,
-      coverUrl: var_coverUrl,
-      lastChapter: var_lastChapter,
-      tags: var_tags,
-    );
+        id: var_id,
+        title: var_title,
+        author: var_author,
+        coverUrl: var_coverUrl,
+        lastChapter: var_lastChapter,
+        tags: var_tags);
   }
 
   @protected
@@ -1187,11 +1090,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_detailUrl = sse_decode_String(deserializer);
     var var_aid = sse_decode_String(deserializer);
     return NovelCover(
-      title: var_title,
-      img: var_img,
-      detailUrl: var_detailUrl,
-      aid: var_aid,
-    );
+        title: var_title, img: var_img, detailUrl: var_detailUrl, aid: var_aid);
   }
 
   @protected
@@ -1208,23 +1107,21 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_trending = sse_decode_String(deserializer);
     var var_isAnimated = sse_decode_bool(deserializer);
     return NovelInfo(
-      title: var_title,
-      author: var_author,
-      status: var_status,
-      finUpdate: var_finUpdate,
-      imgUrl: var_imgUrl,
-      introduce: var_introduce,
-      tags: var_tags,
-      heat: var_heat,
-      trending: var_trending,
-      isAnimated: var_isAnimated,
-    );
+        title: var_title,
+        author: var_author,
+        status: var_status,
+        finUpdate: var_finUpdate,
+        imgUrl: var_imgUrl,
+        introduce: var_introduce,
+        tags: var_tags,
+        heat: var_heat,
+        trending: var_trending,
+        isAnimated: var_isAnimated);
   }
 
   @protected
   ReadingHistory? sse_decode_opt_box_autoadd_reading_history(
-    SseDeserializer deserializer,
-  ) {
+      SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
     if (sse_decode_bool(deserializer)) {
@@ -1248,17 +1145,16 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_cover = sse_decode_String(deserializer);
     var var_author = sse_decode_String(deserializer);
     return ReadingHistory(
-      novelId: var_novelId,
-      novelName: var_novelName,
-      volumeId: var_volumeId,
-      volumeName: var_volumeName,
-      chapterId: var_chapterId,
-      chapterTitle: var_chapterTitle,
-      lastReadAt: var_lastReadAt,
-      progress: var_progress,
-      cover: var_cover,
-      author: var_author,
-    );
+        novelId: var_novelId,
+        novelName: var_novelName,
+        volumeId: var_volumeId,
+        volumeName: var_volumeName,
+        chapterId: var_chapterId,
+        chapterTitle: var_chapterTitle,
+        lastReadAt: var_lastReadAt,
+        progress: var_progress,
+        cover: var_cover,
+        author: var_author);
   }
 
   @protected
@@ -1296,27 +1192,26 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_personalizedSignature = sse_decode_String(deserializer);
     var var_personalizedDescription = sse_decode_String(deserializer);
     return UserDetail(
-      username: var_username,
-      userId: var_userId,
-      nickname: var_nickname,
-      level: var_level,
-      title: var_title,
-      sex: var_sex,
-      email: var_email,
-      qq: var_qq,
-      msn: var_msn,
-      web: var_web,
-      registerDate: var_registerDate,
-      contributePoint: var_contributePoint,
-      experienceValue: var_experienceValue,
-      holdingPoints: var_holdingPoints,
-      quantityOfFriends: var_quantityOfFriends,
-      quantityOfMail: var_quantityOfMail,
-      quantityOfCollection: var_quantityOfCollection,
-      quantityOfRecommendDaily: var_quantityOfRecommendDaily,
-      personalizedSignature: var_personalizedSignature,
-      personalizedDescription: var_personalizedDescription,
-    );
+        username: var_username,
+        userId: var_userId,
+        nickname: var_nickname,
+        level: var_level,
+        title: var_title,
+        sex: var_sex,
+        email: var_email,
+        qq: var_qq,
+        msn: var_msn,
+        web: var_web,
+        registerDate: var_registerDate,
+        contributePoint: var_contributePoint,
+        experienceValue: var_experienceValue,
+        holdingPoints: var_holdingPoints,
+        quantityOfFriends: var_quantityOfFriends,
+        quantityOfMail: var_quantityOfMail,
+        quantityOfCollection: var_quantityOfCollection,
+        quantityOfRecommendDaily: var_quantityOfRecommendDaily,
+        personalizedSignature: var_personalizedSignature,
+        personalizedDescription: var_personalizedDescription);
   }
 
   @protected
@@ -1330,9 +1225,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void sse_encode_AnyhowException(
-    AnyhowException self,
-    SseSerializer serializer,
-  ) {
+      AnyhowException self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.message, serializer);
   }
@@ -1358,9 +1251,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void sse_encode_box_autoadd_reading_history(
-    ReadingHistory self,
-    SseSerializer serializer,
-  ) {
+      ReadingHistory self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_reading_history(self, serializer);
   }
@@ -1404,9 +1295,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void sse_encode_list_bookshelf_item(
-    List<BookshelfItem> self,
-    SseSerializer serializer,
-  ) {
+      List<BookshelfItem> self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.length, serializer);
     for (final item in self) {
@@ -1425,9 +1314,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void sse_encode_list_home_block(
-    List<HomeBlock> self,
-    SseSerializer serializer,
-  ) {
+      List<HomeBlock> self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.length, serializer);
     for (final item in self) {
@@ -1437,9 +1324,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void sse_encode_list_novel_cover(
-    List<NovelCover> self,
-    SseSerializer serializer,
-  ) {
+      List<NovelCover> self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.length, serializer);
     for (final item in self) {
@@ -1449,9 +1334,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void sse_encode_list_prim_u_8_strict(
-    Uint8List self,
-    SseSerializer serializer,
-  ) {
+      Uint8List self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.length, serializer);
     serializer.buffer.putUint8List(self);
@@ -1459,9 +1342,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void sse_encode_list_reading_history(
-    List<ReadingHistory> self,
-    SseSerializer serializer,
-  ) {
+      List<ReadingHistory> self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_32(self.length, serializer);
     for (final item in self) {
@@ -1515,9 +1396,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void sse_encode_opt_box_autoadd_reading_history(
-    ReadingHistory? self,
-    SseSerializer serializer,
-  ) {
+      ReadingHistory? self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
     sse_encode_bool(self != null, serializer);
@@ -1528,9 +1407,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
 
   @protected
   void sse_encode_reading_history(
-    ReadingHistory self,
-    SseSerializer serializer,
-  ) {
+      ReadingHistory self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.novelId, serializer);
     sse_encode_String(self.novelName, serializer);

@@ -7,15 +7,12 @@ import '../frb_generated.dart';
 import '../wenku8/models.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-Future<void> wenku8Login({
-  required String username,
-  required String password,
-  required String checkcode,
-}) => RustLib.instance.api.crateApiWenku8Wenku8Login(
-  username: username,
-  password: password,
-  checkcode: checkcode,
-);
+Future<void> wenku8Login(
+        {required String username,
+        required String password,
+        required String checkcode}) =>
+    RustLib.instance.api.crateApiWenku8Wenku8Login(
+        username: username, password: password, checkcode: checkcode);
 
 Future<List<BookshelfItem>> wenku8GetBookshelf() =>
     RustLib.instance.api.crateApiWenku8Wenku8GetBookshelf();
@@ -43,38 +40,34 @@ Future<NovelInfo> novelInfo({required String aid}) =>
 Future<List<Volume>> novelReader({required String aid}) =>
     RustLib.instance.api.crateApiWenku8NovelReader(aid: aid);
 
-Future<void> updateHistory({
-  required String novelId,
-  required String novelName,
-  required String volumeId,
-  required String volumeName,
-  required String chapterId,
-  required String chapterTitle,
-  required int progress,
-  required String cover,
-  required String author,
-}) => RustLib.instance.api.crateApiWenku8UpdateHistory(
-  novelId: novelId,
-  novelName: novelName,
-  volumeId: volumeId,
-  volumeName: volumeName,
-  chapterId: chapterId,
-  chapterTitle: chapterTitle,
-  progress: progress,
-  cover: cover,
-  author: author,
-);
+Future<void> updateHistory(
+        {required String novelId,
+        required String novelName,
+        required String volumeId,
+        required String volumeName,
+        required String chapterId,
+        required String chapterTitle,
+        required int progress,
+        required String cover,
+        required String author}) =>
+    RustLib.instance.api.crateApiWenku8UpdateHistory(
+        novelId: novelId,
+        novelName: novelName,
+        volumeId: volumeId,
+        volumeName: volumeName,
+        chapterId: chapterId,
+        chapterTitle: chapterTitle,
+        progress: progress,
+        cover: cover,
+        author: author);
 
 Future<ReadingHistory?> novelHistoryById({required String novelId}) =>
     RustLib.instance.api.crateApiWenku8NovelHistoryById(novelId: novelId);
 
-Future<List<ReadingHistory>> listReadingHistory({
-  required int offset,
-  required int limit,
-}) => RustLib.instance.api.crateApiWenku8ListReadingHistory(
-  offset: offset,
-  limit: limit,
-);
+Future<List<ReadingHistory>> listReadingHistory(
+        {required int offset, required int limit}) =>
+    RustLib.instance.api
+        .crateApiWenku8ListReadingHistory(offset: offset, limit: limit);
 
 class ReadingHistory {
   final String novelId;
