@@ -106,3 +106,9 @@ pub struct NovelDetail {
     pub is_animated: bool,
     pub volumes: Vec<Volume>,
 }
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub struct TagGroup {
+    pub title: String,
+    pub tags: Vec<String>,
+}

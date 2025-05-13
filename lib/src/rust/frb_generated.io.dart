@@ -71,6 +71,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<ReadingHistory> dco_decode_list_reading_history(dynamic raw);
 
   @protected
+  List<TagGroup> dco_decode_list_tag_group(dynamic raw);
+
+  @protected
   List<Volume> dco_decode_list_volume(dynamic raw);
 
   @protected
@@ -87,6 +90,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   ReadingHistory dco_decode_reading_history(dynamic raw);
+
+  @protected
+  TagGroup dco_decode_tag_group(dynamic raw);
 
   @protected
   int dco_decode_u_8(dynamic raw);
@@ -114,7 +120,8 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   ReadingHistory sse_decode_box_autoadd_reading_history(
-      SseDeserializer deserializer);
+    SseDeserializer deserializer,
+  );
 
   @protected
   Chapter sse_decode_chapter(SseDeserializer deserializer);
@@ -133,7 +140,8 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<BookshelfItem> sse_decode_list_bookshelf_item(
-      SseDeserializer deserializer);
+    SseDeserializer deserializer,
+  );
 
   @protected
   List<Chapter> sse_decode_list_chapter(SseDeserializer deserializer);
@@ -149,7 +157,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<ReadingHistory> sse_decode_list_reading_history(
-      SseDeserializer deserializer);
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<TagGroup> sse_decode_list_tag_group(SseDeserializer deserializer);
 
   @protected
   List<Volume> sse_decode_list_volume(SseDeserializer deserializer);
@@ -165,10 +177,14 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   ReadingHistory? sse_decode_opt_box_autoadd_reading_history(
-      SseDeserializer deserializer);
+    SseDeserializer deserializer,
+  );
 
   @protected
   ReadingHistory sse_decode_reading_history(SseDeserializer deserializer);
+
+  @protected
+  TagGroup sse_decode_tag_group(SseDeserializer deserializer);
 
   @protected
   int sse_decode_u_8(SseDeserializer deserializer);
@@ -184,7 +200,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_AnyhowException(
-      AnyhowException self, SseSerializer serializer);
+    AnyhowException self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_String(String self, SseSerializer serializer);
@@ -197,7 +215,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_box_autoadd_reading_history(
-      ReadingHistory self, SseSerializer serializer);
+    ReadingHistory self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_chapter(Chapter self, SseSerializer serializer);
@@ -216,26 +236,39 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_list_bookshelf_item(
-      List<BookshelfItem> self, SseSerializer serializer);
+    List<BookshelfItem> self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_list_chapter(List<Chapter> self, SseSerializer serializer);
 
   @protected
   void sse_encode_list_home_block(
-      List<HomeBlock> self, SseSerializer serializer);
+    List<HomeBlock> self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_list_novel_cover(
-      List<NovelCover> self, SseSerializer serializer);
+    List<NovelCover> self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_list_prim_u_8_strict(
-      Uint8List self, SseSerializer serializer);
+    Uint8List self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_list_reading_history(
-      List<ReadingHistory> self, SseSerializer serializer);
+    List<ReadingHistory> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_tag_group(List<TagGroup> self, SseSerializer serializer);
 
   @protected
   void sse_encode_list_volume(List<Volume> self, SseSerializer serializer);
@@ -251,11 +284,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_opt_box_autoadd_reading_history(
-      ReadingHistory? self, SseSerializer serializer);
+    ReadingHistory? self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_reading_history(
-      ReadingHistory self, SseSerializer serializer);
+    ReadingHistory self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_tag_group(TagGroup self, SseSerializer serializer);
 
   @protected
   void sse_encode_u_8(int self, SseSerializer serializer);
@@ -278,9 +318,9 @@ class RustLibWire implements BaseWire {
 
   /// Holds the symbol lookup function.
   final ffi.Pointer<T> Function<T extends ffi.NativeType>(String symbolName)
-      _lookup;
+  _lookup;
 
   /// The symbols are looked up in [dynamicLibrary].
   RustLibWire(ffi.DynamicLibrary dynamicLibrary)
-      : _lookup = dynamicLibrary.lookup;
+    : _lookup = dynamicLibrary.lookup;
 }

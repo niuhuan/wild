@@ -446,6 +446,59 @@ impl Wenku8Client {
         Ok(())
     }
 
+    pub async fn tags(&self) -> Result<Vec<TagGroup>> {
+        let resp = self
+            .client
+            .get(format!("{API_HOST}/modules/article/tags.php?charset=gbk"))
+            .header("User-Agent", USER_AGENT)
+            .send()
+            .await?;
+
+        if !resp.status().is_success() {
+            return Err(anyhow!("Failed to get tags: HTTP {}", resp.status()));
+        }
+
+        let text = resp.bytes().await?;
+        let text = decode_gbk(text)?;
+        Self::parse_tags(text.as_str())
+    }
+
+    pub(crate) fn parse_tags(text: &str) -> Result<Vec<TagGroup>> {
+        let mut tag_groups = Vec::new();
+        let html = Html::parse_document(text);
+
+        let ul_selector = Selector::parse("ul.ultops").unwrap();
+        let li_selector = Selector::parse("li").unwrap();
+        let a_selector = Selector::parse("a").unwrap();
+
+        let ul_elements = html.select(&ul_selector);
+        let mut group_name = "".to_string();
+        let mut tags = Vec::<String>::new();
+        for ul in ul_elements {
+            let li = ul.select(&li_selector);
+            for li in li {
+                if li.inner_html().ends_with("Tags：") {
+                    if !group_name.is_empty() {
+                        tag_groups.push(TagGroup {
+                            title: group_name.clone(),
+                            tags: tags.clone(),
+                        });
+                    }
+                    group_name = li.inner_html().replace("Tags：", "");
+                    tags.clear();
+                } else {
+                    let a = li.select(&a_selector);
+                    for a in a {
+                        let tag = a.text().collect::<String>();
+                        tags.push(tag.clone());
+                    }
+                }
+            }
+        }
+
+        Ok(tag_groups)
+    }
+
     pub async fn get_bookshelf(&self) -> Result<Vec<BookshelfItem>> {
         let resp = self
             .client

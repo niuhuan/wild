@@ -37,7 +37,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.9.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1005110315;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 909161099;
 
 // Section: executor
 
@@ -579,6 +579,41 @@ fn wire__crate__api__database__save_property_impl(
         },
     )
 }
+fn wire__crate__api__wenku8__tags_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "tags",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || async move {
+                        let output_ok = crate::api::wenku8::tags().await?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
 fn wire__crate__api__wenku8__update_history_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -917,6 +952,18 @@ impl SseDecode for Vec<crate::api::wenku8::ReadingHistory> {
     }
 }
 
+impl SseDecode for Vec<crate::wenku8::models::TagGroup> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = vec![];
+        for idx_ in 0..len_ {
+            ans_.push(<crate::wenku8::models::TagGroup>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
 impl SseDecode for Vec<crate::wenku8::models::Volume> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -1034,6 +1081,18 @@ impl SseDecode for crate::api::wenku8::ReadingHistory {
     }
 }
 
+impl SseDecode for crate::wenku8::models::TagGroup {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_title = <String>::sse_decode(deserializer);
+        let mut var_tags = <Vec<String>>::sse_decode(deserializer);
+        return crate::wenku8::models::TagGroup {
+            title: var_title,
+            tags: var_tags,
+        };
+    }
+}
+
 impl SseDecode for u8 {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -1131,12 +1190,13 @@ fn pde_ffi_dispatcher_primary_impl(
         13 => wire__crate__api__wenku8__novel_reader_impl(port, ptr, rust_vec_len, data_len),
         14 => wire__crate__api__wenku8__pre_login_state_impl(port, ptr, rust_vec_len, data_len),
         15 => wire__crate__api__database__save_property_impl(port, ptr, rust_vec_len, data_len),
-        16 => wire__crate__api__wenku8__update_history_impl(port, ptr, rust_vec_len, data_len),
-        17 => wire__crate__api__wenku8__user_detail_impl(port, ptr, rust_vec_len, data_len),
-        18 => {
+        16 => wire__crate__api__wenku8__tags_impl(port, ptr, rust_vec_len, data_len),
+        17 => wire__crate__api__wenku8__update_history_impl(port, ptr, rust_vec_len, data_len),
+        18 => wire__crate__api__wenku8__user_detail_impl(port, ptr, rust_vec_len, data_len),
+        19 => {
             wire__crate__api__wenku8__wenku8_get_bookshelf_impl(port, ptr, rust_vec_len, data_len)
         }
-        19 => wire__crate__api__wenku8__wenku8_login_impl(port, ptr, rust_vec_len, data_len),
+        20 => wire__crate__api__wenku8__wenku8_login_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -1321,6 +1381,27 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::wenku8::ReadingHistory>
     for crate::api::wenku8::ReadingHistory
 {
     fn into_into_dart(self) -> crate::api::wenku8::ReadingHistory {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::wenku8::models::TagGroup {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.title.into_into_dart().into_dart(),
+            self.tags.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::wenku8::models::TagGroup
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::wenku8::models::TagGroup>
+    for crate::wenku8::models::TagGroup
+{
+    fn into_into_dart(self) -> crate::wenku8::models::TagGroup {
         self
     }
 }
@@ -1516,6 +1597,16 @@ impl SseEncode for Vec<crate::api::wenku8::ReadingHistory> {
     }
 }
 
+impl SseEncode for Vec<crate::wenku8::models::TagGroup> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::wenku8::models::TagGroup>::sse_encode(item, serializer);
+        }
+    }
+}
+
 impl SseEncode for Vec<crate::wenku8::models::Volume> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -1587,6 +1678,14 @@ impl SseEncode for crate::api::wenku8::ReadingHistory {
         <i32>::sse_encode(self.progress, serializer);
         <String>::sse_encode(self.cover, serializer);
         <String>::sse_encode(self.author, serializer);
+    }
+}
+
+impl SseEncode for crate::wenku8::models::TagGroup {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.title, serializer);
+        <Vec<String>>::sse_encode(self.tags, serializer);
     }
 }
 

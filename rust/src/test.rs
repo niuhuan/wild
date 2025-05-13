@@ -66,6 +66,14 @@ fn test_parse_reader() -> anyhow::Result<()> {
     Ok(())
 }
 
+#[test]
+fn test_parse_tags() -> anyhow::Result<()> {
+    let text = std::fs::read_to_string("target/tags.txt")?;
+    let tags = Wenku8Client::parse_tags(text.as_str())?;
+    println!("{}", serde_json::to_string_pretty(&tags)?);
+    Ok(())
+}
+
 #[tokio::test(flavor = "multi_thread")]
 async fn test_c_content() -> anyhow::Result<()> {
     init_context().await?;

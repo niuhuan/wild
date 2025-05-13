@@ -10,10 +10,7 @@ class BookshelfItem {
   final Novel novel;
   final String lastRead;
 
-  const BookshelfItem({
-    required this.novel,
-    required this.lastRead,
-  });
+  const BookshelfItem({required this.novel, required this.lastRead});
 
   @override
   int get hashCode => novel.hashCode ^ lastRead.hashCode;
@@ -59,10 +56,7 @@ class HomeBlock {
   final String title;
   final List<NovelCover> list;
 
-  const HomeBlock({
-    required this.title,
-    required this.list,
-  });
+  const HomeBlock({required this.title, required this.list});
 
   @override
   int get hashCode => title.hashCode ^ list.hashCode;
@@ -198,6 +192,24 @@ class NovelInfo {
           isAnimated == other.isAnimated;
 }
 
+class TagGroup {
+  final String title;
+  final List<String> tags;
+
+  const TagGroup({required this.title, required this.tags});
+
+  @override
+  int get hashCode => title.hashCode ^ tags.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is TagGroup &&
+          runtimeType == other.runtimeType &&
+          title == other.title &&
+          tags == other.tags;
+}
+
 class UserDetail {
   final String username;
   final String userId;
@@ -298,11 +310,7 @@ class Volume {
   final String title;
   final List<Chapter> chapters;
 
-  const Volume({
-    required this.id,
-    required this.title,
-    required this.chapters,
-  });
+  const Volume({required this.id, required this.title, required this.chapters});
 
   @override
   int get hashCode => id.hashCode ^ title.hashCode ^ chapters.hashCode;

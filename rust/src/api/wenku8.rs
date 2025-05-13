@@ -1,5 +1,5 @@
 use crate::database::entities::ReadingHistoryEntity;
-use crate::wenku8::{BookshelfItem, HomeBlock, NovelInfo, UserDetail, Volume};
+use crate::wenku8::{BookshelfItem, HomeBlock, NovelInfo, TagGroup, UserDetail, Volume};
 use crate::Result;
 use crate::CLIENT;
 use std::time::Duration;
@@ -167,4 +167,14 @@ pub async fn list_reading_history(offset: i32, limit: i32) -> crate::Result<Vec<
         cover: history.cover,
         author: history.author,
     }).collect())
+}
+
+pub async fn tags() -> crate::Result<Vec<TagGroup>> {
+    let key = "TAGS".to_string();
+    crate::cache_first(
+        key,
+        Duration::from_secs(60 * 60),
+        Box::pin(async move { CLIENT.tags().await }),
+    )
+    .await
 }
