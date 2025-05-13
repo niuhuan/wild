@@ -69,6 +69,13 @@ pub struct NovelCover {
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
+pub struct PageStats<T> {
+    pub current_page: i32,
+    pub max_page: i32,
+    pub records: Vec<T>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct SimpleNovelCover {
     pub title: String,
     pub aid: String,

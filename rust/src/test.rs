@@ -74,10 +74,26 @@ fn test_parse_tags() -> anyhow::Result<()> {
     Ok(())
 }
 
+#[test]
+fn test_parse_tag_page() -> anyhow::Result<()> {
+    let text = std::fs::read_to_string("target/tag_page.txt")?;
+    let tags = Wenku8Client::parse_tag_page(text.as_str())?;
+    println!("{}", serde_json::to_string_pretty(&tags)?);
+    Ok(())
+}
+
 #[tokio::test(flavor = "multi_thread")]
 async fn test_c_content() -> anyhow::Result<()> {
     init_context().await?;
     let response = CLIENT.c_content("3103", "128331").await?;
     println!("response : {}", response);
+    Ok(())
+}
+
+#[tokio::test(flavor = "multi_thread")]
+async fn test_tag_page() -> anyhow::Result<()> {
+    init_context().await?;
+    let response = CLIENT.tag_page("治愈", "1", 1).await?;
+    println!("{}", serde_json::to_string_pretty(&response)?);
     Ok(())
 }

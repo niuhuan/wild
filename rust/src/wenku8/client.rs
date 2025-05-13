@@ -6,6 +6,7 @@ use rand::Rng;
 use reqwest::Client;
 use scraper::Node::Element;
 use scraper::{ElementRef, Html, Selector};
+use std::slice::SliceIndex;
 
 const API_HOST: &str = "https://www.wenku8.net";
 const APP_HOST: &str = "http://app.wenku8.com";
@@ -499,6 +500,106 @@ impl Wenku8Client {
         Ok(tag_groups)
     }
 
+    ///
+    /// v  "0"=按更新查看 , "1"=按热门查看 , "2"=只看已完结 , "3"=只看动画化
+    ///
+    pub async fn tag_page(
+        &self,
+        tag: &str,
+        v: &str,
+        page_number: i32,
+    ) -> Result<PageStats<NovelCover>> {
+        let url = format!(
+            "{}/modules/article/tags.php?t={}&v={}&page={}&charset=gbk",
+            API_HOST, gbk_url_encode(tag), v, page_number,
+        );
+        let response = self
+            .client
+            .get(url)
+            .header("User-Agent", USER_AGENT)
+            .send()
+            .await?;
+        if !response.status().is_success() {
+            return Err(anyhow!("Failed to get tag page: {}", response.status()));
+        }
+
+        let text = response.bytes().await?;
+        let text = decode_gbk(text)?;
+        Self::parse_tag_page(text.as_str())
+    }
+
+    pub(crate) fn parse_tag_page(text: &str) -> Result<PageStats<NovelCover>> {
+        let mut novels = Vec::new();
+
+        let html = Html::parse_document(text);
+
+        let gird_selector = Selector::parse("table.grid tr td>div").unwrap();
+        let img_selector = Selector::parse("div>a>img").unwrap();
+        let page_stats_selector = Selector::parse("em#pagestats").unwrap();
+        let mut current_page = 0;
+        let mut max_page = 0;
+
+        for block in html.select(&gird_selector) {
+            for img in block.select(&img_selector) {
+                let parent = img
+                    .parent()
+                    .ok_or_else(|| anyhow!("Failed to find block title"))?;
+                if let Element(e) = &parent.value() {
+                    if e.name.local.to_string().eq("a") {
+                        let parent = ElementRef::wrap(parent).unwrap();
+                        let title = parent
+                            .value()
+                            .attr("title")
+                            .ok_or_else(|| anyhow!("Failed to find title"))?
+                            .to_string();
+                        let mut img = img
+                            .value()
+                            .attr("src")
+                            .ok_or_else(|| anyhow!("Failed to find img"))?
+                            .to_string();
+                        let detail_url = parent
+                            .value()
+                            .attr("href")
+                            .ok_or_else(|| anyhow!("Failed to find detail_url"))?
+                            .to_string();
+                        let aid = detail_url
+                            .split('/')
+                            .last()
+                            .ok_or_else(|| anyhow!("Failed to find aid"))?
+                            .replace(".htm", "");
+                        novels.push(NovelCover {
+                            title: title.clone(),
+                            img: img.clone(),
+                            detail_url: detail_url.clone(),
+                            aid: aid.clone(),
+                        });
+                    }
+                }
+            }
+        }
+
+        for page_stats in html.select(&page_stats_selector) {
+            let text = page_stats.text().collect::<String>();
+            let split = text.split("/").collect::<Vec<&str>>();
+            if let Some(&a) = split.get(0) {
+                if let Ok(num) = a.trim().parse::<i32>() {
+                    current_page = num;
+                }
+            }
+            if let Some(&a) = split.get(1) {
+                if let Ok(num) = a.trim().parse::<i32>() {
+                    max_page = num;
+                }
+            }
+        }
+
+        Ok(PageStats {
+            current_page,
+            max_page,
+            records: novels,
+        })
+    }
+
     pub async fn get_bookshelf(&self) -> Result<Vec<BookshelfItem>> {
         let resp = self
             .client
@@ -677,4 +778,22 @@ fn decode_gbk(bytes: bytes::Bytes) -> Result<String> {
     } else {
         Ok(cow.into_owned())
     }
+}
+
+fn gbk_url_encode(text: &str) -> String {
+    let gbk_bytes = GBK
+        .encode(text)
+        .0
+        .into_iter()
+        .map(|b| *b)
+        .collect::<Vec<u8>>();
+    let mut encoded = String::new();
+    for byte in gbk_bytes {
+        if byte.is_ascii_alphanumeric() || byte == b'_' {
+            encoded.push(byte as char);
+        } else {
+            encoded.push_str(&format!("%{:02X}", byte));
+        }
+    }
+    encoded
 }

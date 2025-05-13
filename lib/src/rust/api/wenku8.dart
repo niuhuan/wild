@@ -4,6 +4,7 @@
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
 import '../frb_generated.dart';
+import '../lib.dart';
 import '../wenku8/models.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
@@ -77,6 +78,16 @@ Future<List<ReadingHistory>> listReadingHistory({
 );
 
 Future<List<TagGroup>> tags() => RustLib.instance.api.crateApiWenku8Tags();
+
+Future<PageStats> tagPage({
+  required String tag,
+  required String v,
+  required int pageNumber,
+}) => RustLib.instance.api.crateApiWenku8TagPage(
+  tag: tag,
+  v: v,
+  pageNumber: pageNumber,
+);
 
 class ReadingHistory {
   final String novelId;
