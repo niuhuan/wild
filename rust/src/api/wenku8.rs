@@ -225,3 +225,18 @@ pub async fn toplist(sort: String, page: i32) -> anyhow::Result<PageStatsNovelCo
         records: data.records,
     })
 }
+
+pub async fn articlelist(fullflag: i32, page: i32) -> anyhow::Result<PageStatsNovelCover> {
+    let key = format!("ARTICLELIST${}${}", fullflag, page);
+    let data = crate::cache_first(
+        key,
+        Duration::from_secs(60 * 60),
+        Box::pin(async move { CLIENT.articlelist(fullflag, page).await }),
+    )
+    .await?;
+    Ok(PageStatsNovelCover {
+        current_page: data.current_page,
+        max_page: data.max_page,
+        records: data.records,
+    })
+}

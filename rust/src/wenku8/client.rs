@@ -485,7 +485,9 @@ impl Wenku8Client {
                             tags: tags.clone(),
                         });
                     }
-                    group_name = li.inner_html().replace("Tags：", "")
+                    group_name = li
+                        .inner_html()
+                        .replace("Tags：", "")
                         .replace("系", "")
                         .replace("属性", "")
                         .replace("类", "");
@@ -514,7 +516,10 @@ impl Wenku8Client {
     ) -> Result<PageStats<NovelCover>> {
         let url = format!(
             "{}/modules/article/tags.php?t={}&v={}&page={}&charset=gbk",
-            API_HOST, gbk_url_encode(tag), v, page_number,
+            API_HOST,
+            gbk_url_encode(tag),
+            v,
+            page_number,
         );
         let response = self
             .client
@@ -772,11 +777,10 @@ impl Wenku8Client {
         let text = response.text().await?;
         Ok(text)
     }
-    
+
     pub async fn toplist(&self, sort: &str, page: i32) -> Result<PageStats<NovelCover>> {
-        let url = format!(
-            "{API_HOST}/modules/article/toplist.php?sort={sort}&page={page}&charset=gbk"
-        );
+        let url =
+            format!("{API_HOST}/modules/article/toplist.php?sort={sort}&page={page}&charset=gbk");
         let response = self
             .client
             .get(url)
@@ -796,6 +800,29 @@ impl Wenku8Client {
         Self::parse_tag_page(text)
     }
 
+    // https://www.wenku8.net/modules/article/articlelist.php?fullflag=1&page=1&charset=gbk
+    pub async fn articlelist(&self, fullflag: i32, page: i32) -> Result<PageStats<NovelCover>> {
+        let url = format!(
+            "{API_HOST}/modules/article/articlelist.php?fullflag={fullflag}&page={page}&charset=gbk"
+        );
+        let response = self
+            .client
+            .get(url)
+            .header("User-Agent", USER_AGENT)
+            .send()
+            .await?;
+        if !response.status().is_success() {
+            return Err(anyhow!("Failed to get article list: {}", response.status()));
+        }
+
+        let text = response.bytes().await?;
+        let text = decode_gbk(text)?;
+        Self::parse_articlelist(text.as_str())
+    }
+
+    pub(crate) fn parse_articlelist(text: &str) -> Result<PageStats<NovelCover>> {
+        Self::parse_tag_page(text)
+    }
 }
 
 fn decode_gbk(bytes: bytes::Bytes) -> Result<String> {

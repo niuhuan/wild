@@ -95,6 +95,14 @@ Future<PageStatsNovelCover> toplist({
   required int page,
 }) => RustLib.instance.api.crateApiWenku8Toplist(sort: sort, page: page);
 
+Future<PageStatsNovelCover> articlelist({
+  required int fullflag,
+  required int page,
+}) => RustLib.instance.api.crateApiWenku8Articlelist(
+  fullflag: fullflag,
+  page: page,
+);
+
 class PageStatsNovelCover {
   final int currentPage;
   final int maxPage;

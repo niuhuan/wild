@@ -90,6 +90,14 @@ fn test_parse_toplist() -> anyhow::Result<()> {
     Ok(())
 }
 
+#[test]
+fn test_parse_articlelist() -> anyhow::Result<()> {
+    let text = std::fs::read_to_string("target/articlelist.txt")?;
+    let tags = Wenku8Client::parse_articlelist(text.as_str())?;
+    println!("{}", serde_json::to_string_pretty(&tags)?);
+    Ok(())
+}
+
 #[tokio::test(flavor = "multi_thread")]
 async fn test_c_content() -> anyhow::Result<()> {
     init_context().await?;
@@ -105,3 +113,4 @@ async fn test_tag_page() -> anyhow::Result<()> {
     println!("{}", serde_json::to_string_pretty(&response)?);
     Ok(())
 }
+
