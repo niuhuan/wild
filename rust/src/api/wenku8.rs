@@ -246,6 +246,13 @@ pub async fn add_bookshelf(aid: String) -> anyhow::Result<()> {
     CLIENT.add_bookshelf(&aid).await
 }
 
+pub async fn remove_bookshelf(aid: String) -> anyhow::Result<()> {
+   // CLIENT.remove_bookshelf(&aid).await
+    Err(
+        anyhow::anyhow!("remove bookshelf is not supported yet"),
+    )
+}
+
 pub async fn bookcase_list() -> anyhow::Result<Vec<Bookcase>> {
     CLIENT.bookcase_list().await
 }

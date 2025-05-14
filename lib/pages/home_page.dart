@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wild/pages/home/more_page.dart';
 import 'package:wild/pages/home/index_page.dart';
 import 'package:wild/pages/home/history_cubit.dart';
+import 'package:wild/pages/home/bookshelf_cubit.dart';
 
 import 'home/bookshelf_page.dart';
 import 'home/history_page.dart';
@@ -17,16 +18,19 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
   late final HistoryCubit _historyCubit;
+  late final BookshelfCubit _bookshelfCubit;
 
   @override
   void initState() {
     super.initState();
     _historyCubit = HistoryCubit()..load();
+    _bookshelfCubit = BookshelfCubit()..loadBookshelf();
   }
 
   @override
   void dispose() {
     _historyCubit.close();
+    _bookshelfCubit.close();
     super.dispose();
   }
 
@@ -44,8 +48,11 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider.value(
-      value: _historyCubit,
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider.value(value: _historyCubit),
+        BlocProvider.value(value: _bookshelfCubit),
+      ],
       child: Scaffold(
         body: IndexedStack(
           index: _currentIndex,

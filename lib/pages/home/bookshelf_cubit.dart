@@ -8,35 +8,40 @@ enum BookshelfStatus { initial, loading, loaded, error }
 class BookshelfState extends Equatable {
   final BookshelfStatus status;
   final List<Bookcase> bookcases;
+  final Map<String, List<BookcaseItem>> booksMap;
   final String? currentCaseId;
-  final List<BookcaseItem>? currentBooks;
   final String? errorMessage;
 
   const BookshelfState({
     this.status = BookshelfStatus.initial,
     this.bookcases = const [],
+    this.booksMap = const {},
     this.currentCaseId,
-    this.currentBooks,
     this.errorMessage,
   });
 
   @override
-  List<Object?> get props => [status, bookcases, currentCaseId, currentBooks, errorMessage];
+  List<Object?> get props => [status, bookcases, booksMap, currentCaseId, errorMessage];
 
   BookshelfState copyWith({
     BookshelfStatus? status,
     List<Bookcase>? bookcases,
+    Map<String, List<BookcaseItem>>? booksMap,
     String? currentCaseId,
-    List<BookcaseItem>? currentBooks,
     String? errorMessage,
   }) {
     return BookshelfState(
       status: status ?? this.status,
       bookcases: bookcases ?? this.bookcases,
+      booksMap: booksMap ?? this.booksMap,
       currentCaseId: currentCaseId,
-      currentBooks: currentBooks,
       errorMessage: errorMessage,
     );
+  }
+
+  List<BookcaseItem>? getCurrentBooks() {
+    if (currentCaseId == null) return null;
+    return booksMap[currentCaseId];
   }
 }
 
@@ -46,10 +51,24 @@ class BookshelfCubit extends Cubit<BookshelfState> {
   Future<void> loadBookshelf() async {
     try {
       emit(state.copyWith(status: BookshelfStatus.loading));
+      
       final bookcases = await bookcaseList();
+      
+      final booksMap = <String, List<BookcaseItem>>{};
+      for (final bookcase in bookcases) {
+        try {
+          final books = await bookInCase(caseId: bookcase.id);
+          booksMap[bookcase.id] = books;
+        } catch (e) {
+          print('Failed to load bookcase ${bookcase.id}: $e');
+        }
+      }
+
       emit(state.copyWith(
         status: BookshelfStatus.loaded,
         bookcases: bookcases,
+        booksMap: booksMap,
+        currentCaseId: bookcases.isNotEmpty ? bookcases.first.id : null,
       ));
     } catch (e) {
       emit(state.copyWith(
@@ -59,17 +78,9 @@ class BookshelfCubit extends Cubit<BookshelfState> {
     }
   }
 
-  Future<void> loadBookcaseContent(String caseId) async {
-    try {
-      final books = await bookInCase(caseId: caseId);
-      emit(state.copyWith(
-        currentCaseId: caseId,
-        currentBooks: books,
-      ));
-    } catch (e) {
-      emit(state.copyWith(
-        errorMessage: e.toString(),
-      ));
+  void selectBookcase(String caseId) {
+    if (state.booksMap.containsKey(caseId)) {
+      emit(state.copyWith(currentCaseId: caseId));
     }
   }
 } 
