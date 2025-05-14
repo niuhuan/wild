@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../cubits/category_cubit.dart';
-import '../../src/rust/wenku8/models.dart';
-import '../../widgets/cached_image.dart';
+import 'package:wild/cubits/category_cubit.dart';
+import 'package:wild/widgets/novel_card.dart';
 
 class CategoryPage extends StatefulWidget {
   const CategoryPage({super.key});
@@ -12,7 +11,7 @@ class CategoryPage extends StatefulWidget {
 }
 
 class _CategoryPageState extends State<CategoryPage> {
-  final ScrollController _scrollController = ScrollController();
+  final _scrollController = ScrollController();
   bool _isSidebarExpanded = true;
 
   @override
@@ -147,7 +146,16 @@ class _CategoryPageState extends State<CategoryPage> {
                               );
                             }
                             final novel = state.novels[index];
-                            return _NovelCard(novel: novel);
+                            return NovelCard.fromNovel(
+                              novel: novel,
+                              onTap: () {
+                                Navigator.pushNamed(
+                                  context,
+                                  '/novel/info',
+                                  arguments: novel.id,
+                                );
+                              },
+                            );
                           },
                         ),
                       ),
@@ -158,62 +166,6 @@ class _CategoryPageState extends State<CategoryPage> {
 
         return const Center(child: CircularProgressIndicator());
       },
-    );
-  }
-}
-
-class _NovelCard extends StatelessWidget {
-  final Novel novel;
-
-  const _NovelCard({required this.novel});
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () {
-          // TODO: 导航到小说详情页
-        },
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: CachedImage(
-                url: novel.coverUrl,
-                fit: BoxFit.cover,
-                width: double.infinity,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    novel.title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    novel.author,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.secondary,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 } 
