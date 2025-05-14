@@ -9,7 +9,15 @@ class BookshelfPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<BookshelfCubit, BookshelfState>(
+    return BlocConsumer<BookshelfCubit, BookshelfState>(
+      listener: (context, state) {
+        // 当状态变为 error 时显示错误提示
+        if (state.status == BookshelfStatus.error) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('操作失败: ${state.errorMessage}')),
+          );
+        }
+      },
       builder: (context, state) {
         if (state.status == BookshelfStatus.loading) {
           return const Scaffold(
@@ -59,19 +67,22 @@ class BookshelfPage extends StatelessWidget {
           ),
           body: state.getCurrentBooks()?.isEmpty ?? true
               ? const Center(child: Text('书架为空'))
-              : GridView.builder(
-                  padding: const EdgeInsets.all(8),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    childAspectRatio: 0.7,
-                    crossAxisSpacing: 8,
-                    mainAxisSpacing: 8,
+              : RefreshIndicator(
+                  onRefresh: () => context.read<BookshelfCubit>().loadBookcases(),
+                  child: GridView.builder(
+                    padding: const EdgeInsets.all(8),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      childAspectRatio: 0.7,
+                      crossAxisSpacing: 8,
+                      mainAxisSpacing: 8,
+                    ),
+                    itemCount: state.getCurrentBooks()?.length ?? 0,
+                    itemBuilder: (context, index) {
+                      final item = state.getCurrentBooks()![index];
+                      return _BookCard(item: item);
+                    },
                   ),
-                  itemCount: state.getCurrentBooks()?.length ?? 0,
-                  itemBuilder: (context, index) {
-                    final item = state.getCurrentBooks()![index];
-                    return _BookCard(item: item);
-                  },
                 ),
         );
       },

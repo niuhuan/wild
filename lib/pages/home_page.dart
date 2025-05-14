@@ -18,19 +18,16 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
   late final HistoryCubit _historyCubit;
-  late final BookshelfCubit _bookshelfCubit;
 
   @override
   void initState() {
     super.initState();
     _historyCubit = HistoryCubit()..load();
-    _bookshelfCubit = BookshelfCubit()..loadBookshelf();
   }
 
   @override
   void dispose() {
     _historyCubit.close();
-    _bookshelfCubit.close();
     super.dispose();
   }
 
@@ -48,11 +45,8 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider.value(value: _historyCubit),
-        BlocProvider.value(value: _bookshelfCubit),
-      ],
+    return BlocProvider.value(
+      value: _historyCubit,
       child: Scaffold(
         body: IndexedStack(
           index: _currentIndex,

@@ -4,6 +4,7 @@ import 'package:wild/src/rust/api/wenku8.dart';
 import 'package:wild/src/rust/frb_generated.dart';
 import 'package:wild/widgets/cached_image.dart';
 import 'package:flutter_html/flutter_html.dart';
+import 'package:wild/pages/home/bookshelf_cubit.dart';
 
 import '../../src/rust/wenku8/models.dart';
 import 'novel_info_cubit.dart';
@@ -15,10 +16,44 @@ class NovelInfoPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 获取全局的 BookshelfCubit
+    final bookshelfCubit = context.read<BookshelfCubit>();
+    
     return BlocProvider(
       create: (context) => NovelInfoCubit(novelId)..load(),
       child: Scaffold(
-        appBar: AppBar(title: const Text('小说详情')),
+        appBar: AppBar(
+          title: const Text('小说详情'),
+          actions: [
+            BlocBuilder<BookshelfCubit, BookshelfState>(
+              builder: (context, state) {
+                if (state.status == BookshelfStatus.loading) {
+                  return const Center(
+                    child: SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  );
+                }
+                final isInBookshelf = state.isBookInBookshelf(novelId);
+                return IconButton(
+                  icon: Icon(
+                    isInBookshelf ? Icons.bookmark : Icons.bookmark_border,
+                    color: isInBookshelf ? Theme.of(context).colorScheme.primary : null,
+                  ),
+                  onPressed: () {
+                    if (isInBookshelf) {
+                      bookshelfCubit.removeFromBookshelf(novelId);
+                    } else {
+                      bookshelfCubit.addToBookshelf(novelId);
+                    }
+                  },
+                );
+              },
+            ),
+          ],
+        ),
         body: BlocBuilder<NovelInfoCubit, NovelInfoState>(
           builder: (context, state) {
             if (state is NovelInfoLoading) {

@@ -12,6 +12,13 @@ import 'package:wild/pages/novel/paragraph_spacing_cubit.dart';
 import 'package:wild/pages/novel/theme_cubit.dart';
 import 'package:wild/src/rust/frb_generated.dart';
 import 'package:wild/src/rust/wenku8/models.dart';
+import 'package:wild/pages/home/bookshelf_cubit.dart';
+import 'package:wild/pages/home/history_cubit.dart';
+import 'package:wild/pages/category/category_page.dart';
+import 'package:wild/pages/toplist/toplist_page.dart';
+import 'package:wild/pages/articlelist/articlelist_page.dart';
+import 'package:wild/pages/recommend/recommend_page.dart';
+import 'package:wild/pages/home/more_page.dart';
 
 final lightTheme = ThemeData(
   colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
@@ -38,10 +45,11 @@ class MyApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (context) => AuthCubit()),
-        BlocProvider(create: (context) => FontSizeCubit()),
-        BlocProvider(create: (context) => ParagraphSpacingCubit()),
-        BlocProvider(create: (context) => LineHeightCubit()),
+        BlocProvider(create: (context) => BookshelfCubit()..loadBookcases()),
         BlocProvider(create: (context) => ThemeCubit()),
+        BlocProvider(create: (context) => FontSizeCubit()),
+        BlocProvider(create: (context) => LineHeightCubit()),
+        BlocProvider(create: (context) => ParagraphSpacingCubit()),
       ],
       child: YourApp(),
     );
@@ -98,6 +106,11 @@ class YourApp extends StatelessWidget {
                 ),
               );
             },
+            '/category': (context) => const CategoryPage(),
+            '/toplist': (context) => const ToplistPage(),
+            '/articlelist': (context) => const ArticlelistPage(),
+            '/recommend': (context) => const RecommendPage(),
+            '/more': (context) => const MorePage(),
           },
         );
       },
