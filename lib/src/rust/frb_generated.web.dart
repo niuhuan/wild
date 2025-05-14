@@ -31,6 +31,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   String dco_decode_String(dynamic raw);
 
   @protected
+  Bookcase dco_decode_bookcase(dynamic raw);
+
+  @protected
+  BookcaseItem dco_decode_bookcase_item(dynamic raw);
+
+  @protected
   BookshelfItem dco_decode_bookshelf_item(dynamic raw);
 
   @protected
@@ -53,6 +59,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<String> dco_decode_list_String(dynamic raw);
+
+  @protected
+  List<Bookcase> dco_decode_list_bookcase(dynamic raw);
+
+  @protected
+  List<BookcaseItem> dco_decode_list_bookcase_item(dynamic raw);
 
   @protected
   List<BookshelfItem> dco_decode_list_bookshelf_item(dynamic raw);
@@ -118,6 +130,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   String sse_decode_String(SseDeserializer deserializer);
 
   @protected
+  Bookcase sse_decode_bookcase(SseDeserializer deserializer);
+
+  @protected
+  BookcaseItem sse_decode_bookcase_item(SseDeserializer deserializer);
+
+  @protected
   BookshelfItem sse_decode_bookshelf_item(SseDeserializer deserializer);
 
   @protected
@@ -142,6 +160,14 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   List<String> sse_decode_list_String(SseDeserializer deserializer);
+
+  @protected
+  List<Bookcase> sse_decode_list_bookcase(SseDeserializer deserializer);
+
+  @protected
+  List<BookcaseItem> sse_decode_list_bookcase_item(
+    SseDeserializer deserializer,
+  );
 
   @protected
   List<BookshelfItem> sse_decode_list_bookshelf_item(
@@ -218,6 +244,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_String(String self, SseSerializer serializer);
 
   @protected
+  void sse_encode_bookcase(Bookcase self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_bookcase_item(BookcaseItem self, SseSerializer serializer);
+
+  @protected
   void sse_encode_bookshelf_item(BookshelfItem self, SseSerializer serializer);
 
   @protected
@@ -243,6 +275,15 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_list_String(List<String> self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_bookcase(List<Bookcase> self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_bookcase_item(
+    List<BookcaseItem> self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_list_bookshelf_item(

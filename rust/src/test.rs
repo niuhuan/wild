@@ -98,6 +98,22 @@ fn test_parse_articlelist() -> anyhow::Result<()> {
     Ok(())
 }
 
+#[test]
+fn test_parse_bookcase_list() -> anyhow::Result<()> {
+    let text = std::fs::read_to_string("target/bookcase_list.txt")?;
+    let tags = Wenku8Client::parse_bookcase_list(text.as_str())?;
+    println!("{}", serde_json::to_string_pretty(&tags)?);
+    Ok(())
+}
+
+#[test]
+fn test_parse_book_in_case() -> anyhow::Result<()> {
+    let text = std::fs::read_to_string("target/book_in_case.txt")?;
+    let tags = Wenku8Client::parse_book_in_case(text.as_str())?;
+    println!("{}", serde_json::to_string_pretty(&tags)?);
+    Ok(())
+}
+
 #[tokio::test(flavor = "multi_thread")]
 async fn test_c_content() -> anyhow::Result<()> {
     init_context().await?;

@@ -6,6 +6,63 @@
 import '../frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
+class Bookcase {
+  final String id;
+  final String title;
+
+  const Bookcase({required this.id, required this.title});
+
+  @override
+  int get hashCode => id.hashCode ^ title.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Bookcase &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          title == other.title;
+}
+
+class BookcaseItem {
+  final String aid;
+  final String bid;
+  final String title;
+  final String author;
+  final String cid;
+  final String chapterName;
+
+  const BookcaseItem({
+    required this.aid,
+    required this.bid,
+    required this.title,
+    required this.author,
+    required this.cid,
+    required this.chapterName,
+  });
+
+  @override
+  int get hashCode =>
+      aid.hashCode ^
+      bid.hashCode ^
+      title.hashCode ^
+      author.hashCode ^
+      cid.hashCode ^
+      chapterName.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BookcaseItem &&
+          runtimeType == other.runtimeType &&
+          aid == other.aid &&
+          bid == other.bid &&
+          title == other.title &&
+          author == other.author &&
+          cid == other.cid &&
+          chapterName == other.chapterName;
+}
+
 class BookshelfItem {
   final Novel novel;
   final String lastRead;

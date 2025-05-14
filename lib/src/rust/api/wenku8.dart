@@ -103,6 +103,15 @@ Future<PageStatsNovelCover> articlelist({
   page: page,
 );
 
+Future<void> addBookshelf({required String aid}) =>
+    RustLib.instance.api.crateApiWenku8AddBookshelf(aid: aid);
+
+Future<List<Bookcase>> bookcaseList() =>
+    RustLib.instance.api.crateApiWenku8BookcaseList();
+
+Future<List<BookcaseItem>> bookInCase({required String caseId}) =>
+    RustLib.instance.api.crateApiWenku8BookInCase(caseId: caseId);
+
 class PageStatsNovelCover {
   final int currentPage;
   final int maxPage;

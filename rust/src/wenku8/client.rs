@@ -1,12 +1,12 @@
 use super::models::*;
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Context, Result};
 use base64::Engine;
 use encoding_rs::GBK;
 use rand::Rng;
 use reqwest::Client;
-use scraper::Node::Element;
-use scraper::{ElementRef, Html, Selector};
+use scraper::{ ElementRef, Html, Selector};
 use std::slice::SliceIndex;
+use scraper::Node::Element;
 
 const API_HOST: &str = "https://www.wenku8.net";
 const APP_HOST: &str = "http://app.wenku8.com";
@@ -536,17 +536,9 @@ impl Wenku8Client {
         Self::parse_tag_page(text.as_str())
     }
 
-    pub(crate) fn parse_tag_page(text: &str) -> Result<PageStats<NovelCover>> {
-        let mut novels = Vec::new();
-
-        let html = Html::parse_document(text);
-
+    pub(crate) fn parse_books(novels: &mut Vec<NovelCover>, html: &Html) -> Result<()> {
         let gird_selector = Selector::parse("table.grid tr td>div").unwrap();
         let img_selector = Selector::parse("div>a>img").unwrap();
-        let page_stats_selector = Selector::parse("em#pagestats").unwrap();
-        let mut current_page = 0;
-        let mut max_page = 0;
-
         for block in html.select(&gird_selector) {
             for img in block.select(&img_selector) {
                 let parent = img
@@ -585,7 +577,13 @@ impl Wenku8Client {
                 }
             }
         }
+        Ok(())
+    }
 
+    pub(crate) fn parse_page_stats(html: &Html) -> Result<(i32, i32)> {
+        let page_stats_selector = Selector::parse("em#pagestats").unwrap();
+        let mut current_page = 0;
+        let mut max_page = 0;
         for page_stats in html.select(&page_stats_selector) {
             let text = page_stats.text().collect::<String>();
             let split = text.split("/").collect::<Vec<&str>>();
@@ -600,7 +598,14 @@ impl Wenku8Client {
                 }
             }
         }
+        Ok((current_page, max_page))
+    }
 
+    pub(crate) fn parse_tag_page(text: &str) -> Result<PageStats<NovelCover>> {
+        let mut novels = Vec::new();
+        let html = Html::parse_document(text);
+        Self::parse_books(&mut novels, &html)?;
+        let (current_page, max_page) = Self::parse_page_stats(&html)?;
         Ok(PageStats {
             current_page,
             max_page,
@@ -800,7 +805,6 @@ impl Wenku8Client {
         Self::parse_tag_page(text)
     }
 
-    // https://www.wenku8.net/modules/article/articlelist.php?fullflag=1&page=1&charset=gbk
     pub async fn articlelist(&self, fullflag: i32, page: i32) -> Result<PageStats<NovelCover>> {
         let url = format!(
             "{API_HOST}/modules/article/articlelist.php?fullflag={fullflag}&page={page}&charset=gbk"
@@ -822,6 +826,178 @@ impl Wenku8Client {
 
     pub(crate) fn parse_articlelist(text: &str) -> Result<PageStats<NovelCover>> {
         Self::parse_tag_page(text)
+    }
+
+    pub async fn add_bookshelf(&self, aid: &str) -> Result<()> {
+        let url = format!("{API_HOST}/modules/article/addbookcase.php?bid={aid}&charset=gbk");
+        let response = self
+            .client
+            .get(url)
+            .header("User-Agent", USER_AGENT)
+            .send()
+            .await?;
+        if !response.status().is_success() {
+            return Err(anyhow!("Failed to add bookshelf: {}", response.status()));
+        }
+
+        let text = response.bytes().await?;
+        let text = decode_gbk(text)?;
+        if text.contains("处理成功") {
+            Ok(())
+        } else {
+            Err(anyhow!("Failed to add bookshelf: {}", text))
+        }
+    }
+
+    pub async fn bookcase_list(&self) -> Result<Vec<Bookcase>> {
+        let url = format!("{API_HOST}/modules/article/bookcase.php?charset=gbk");
+        let response = self
+            .client
+            .get(url)
+            .header("User-Agent", USER_AGENT)
+            .send()
+            .await?;
+        if !response.status().is_success() {
+            return Err(anyhow!(
+                "Failed to get bookcase list: {}",
+                response.status()
+            ));
+        }
+
+        let text = response.bytes().await?;
+        let text = decode_gbk(text)?;
+        Self::parse_bookcase_list(text.as_str())
+    }
+
+    pub(crate) fn parse_bookcase_list(text: &str) -> Result<Vec<Bookcase>> {
+        let mut bookcase_list = Vec::new();
+
+        let option_selector = Selector::parse("select[name=classlist] option").unwrap();
+        let html = Html::parse_document(text);
+
+        for option in html.select(&option_selector) {
+            let value = option.value().attr("value").unwrap_or("");
+            let text = option.text().collect::<String>();
+            bookcase_list.push(Bookcase {
+                id: value.to_string(),
+                title: text.to_string(),
+            });
+        }
+
+        Ok(bookcase_list)
+    }
+
+    pub async fn book_in_case(&self, case_id: &str) -> Result<Vec<BookcaseItem>> {
+        let url = format!("{API_HOST}/modules/article/bookcase.php?classid={case_id}&charset=gbk");
+        let response = self
+            .client
+            .get(url)
+            .header("User-Agent", USER_AGENT)
+            .send()
+            .await?;
+        if !response.status().is_success() {
+            return Err(anyhow!("Failed to get book in case: {}", response.status()));
+        }
+
+        let text = response.bytes().await?;
+        let text = decode_gbk(text)?;
+        Self::parse_book_in_case(text.as_str())
+    }
+
+    pub(crate) fn parse_book_in_case(text: &str) -> Result<Vec<BookcaseItem>> {
+        let mut novels = Vec::new();
+
+        let checkbox_selector = Selector::parse("td.odd>input[type=checkbox]").unwrap();
+        let a_selector = Selector::parse("a").unwrap();
+
+        let html = Html::parse_document(text);
+        for checkbox in html.select(&checkbox_selector) {
+            let parent = checkbox.parent().unwrap();
+            if let Element(e) = &parent.value() {
+                if e.name.local.to_string().eq("td") {
+                    let mut aid = "".to_string();
+                    let mut bid = "".to_string();
+                    let mut title = "".to_string();
+                    let mut author = "".to_string();
+                    let mut cid = "".to_string();
+                    let mut chapter_name = "".to_string();
+
+                    let parent =
+                        ElementRef::wrap(parent).with_context(|| "Failed to wrap parent")?;
+                    println!("parent: {}", parent.html());
+
+                    let next = parent.next_sibling().with_context(|| {
+                        "Failed to find next sibling element"
+                    })?;
+                    
+                    let next = next.next_sibling().with_context(|| "Failed to wrap next sibling")?;
+
+                    let next =
+                        ElementRef::wrap(next).with_context(|| "Failed to wrap next sibling")?;
+
+                    let a = next
+                        .select(&a_selector)
+                        .next()
+                        .ok_or_else(|| anyhow!("Failed to find a"))?;
+                    let href = a.value().attr("href").unwrap_or("");
+                    let href = url::Url::parse(href)?;
+                    // https://www.wenku8.net/modules/article/readbookcase.php?aid=2070&bid=11249875
+                    let pairs = href.query_pairs();
+                    let pairs_map = pairs
+                        .into_owned()
+                        .collect::<std::collections::HashMap<_, _>>();
+                    if let Some(aid_value) = pairs_map.get("aid") {
+                        aid = aid_value.to_string();
+                    }
+                    if let Some(bid_value) = pairs_map.get("bid") {
+                        bid = bid_value.to_string();
+                    }
+                    title = a.text().collect::<String>();
+                    let next = next
+                        .next_sibling()
+                        .ok_or_else(|| anyhow!("Failed to find next sibling"))?;
+                    let next = next.next_sibling().with_context(|| "Failed to wrap next sibling")?;
+                    let next =
+                        ElementRef::wrap(next).with_context(|| "Failed to wrap next sibling")?;
+                    let a = next
+                        .select(&a_selector)
+                        .next()
+                        .ok_or_else(|| anyhow!("Failed to find a"))?;
+                    author = a.text().collect::<String>();
+                    let next = next
+                        .next_sibling()
+                        .ok_or_else(|| anyhow!("Failed to find next sibling"))?;
+
+                    let next = next.next_sibling().with_context(|| "Failed to wrap next sibling")?;
+                    let next =
+                        ElementRef::wrap(next).with_context(|| "Failed to wrap next sibling")?;
+                    let a = next
+                        .select(&a_selector)
+                        .next()
+                        .ok_or_else(|| anyhow!("Failed to find a"))?;
+                    let href = a.value().attr("href").unwrap_or("");
+                    let href = url::Url::parse(href)?;
+                    let pairs = href.query_pairs();
+                    let pairs_map = pairs
+                        .into_owned()
+                        .collect::<std::collections::HashMap<_, _>>();
+                    if let Some(cid_value) = pairs_map.get("cid") {
+                        cid = cid_value.to_string();
+                    }
+                    chapter_name = a.text().collect::<String>();
+                    novels.push(BookcaseItem {
+                        aid,
+                        bid,
+                        title,
+                        author,
+                        cid,
+                        chapter_name,
+                    });
+                }
+            }
+        }
+
+        Ok(novels)
     }
 }
 

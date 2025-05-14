@@ -1,7 +1,8 @@
 use crate::database::entities::active::reading_history::Model;
 use crate::database::entities::ReadingHistoryEntity;
 use crate::wenku8::{
-    BookshelfItem, HomeBlock, NovelCover, NovelInfo, PageStats, TagGroup, UserDetail, Volume,
+    Bookcase, BookcaseItem, BookshelfItem, HomeBlock, NovelCover, NovelInfo, PageStats, TagGroup,
+    UserDetail, Volume,
 };
 use crate::Result;
 use crate::CLIENT;
@@ -239,4 +240,16 @@ pub async fn articlelist(fullflag: i32, page: i32) -> anyhow::Result<PageStatsNo
         max_page: data.max_page,
         records: data.records,
     })
+}
+
+pub async fn add_bookshelf(aid: String) -> anyhow::Result<()> {
+    CLIENT.add_bookshelf(&aid).await
+}
+
+pub async fn bookcase_list() -> anyhow::Result<Vec<Bookcase>> {
+    CLIENT.bookcase_list().await
+}
+
+pub async fn book_in_case(case_id: String) -> anyhow::Result<Vec<BookcaseItem>> {
+    CLIENT.book_in_case(&case_id).await
 }

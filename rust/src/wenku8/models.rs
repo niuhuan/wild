@@ -119,3 +119,19 @@ pub struct TagGroup {
     pub title: String,
     pub tags: Vec<String>,
 }
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub struct Bookcase {
+    pub id: String,
+    pub title: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub struct BookcaseItem {
+    pub aid: String,
+    pub bid: String,
+    pub title: String,
+    pub author: String,
+    pub cid: String,
+    pub chapter_name: String,
+}
