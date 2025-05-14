@@ -3,26 +3,41 @@ import 'package:equatable/equatable.dart';
 import 'package:wild/src/rust/api/wenku8.dart';
 import 'package:wild/src/rust/wenku8/models.dart';
 
-enum BookshelfStatus {
-  initial,
-  loading,
-  loaded,
-  error,
-}
+enum BookshelfStatus { initial, loading, loaded, error }
 
 class BookshelfState extends Equatable {
   final BookshelfStatus status;
-  final List<BookshelfItem> items;
+  final List<Bookcase> bookcases;
+  final String? currentCaseId;
+  final List<BookcaseItem>? currentBooks;
   final String? errorMessage;
 
   const BookshelfState({
     this.status = BookshelfStatus.initial,
-    this.items = const [],
+    this.bookcases = const [],
+    this.currentCaseId,
+    this.currentBooks,
     this.errorMessage,
   });
 
   @override
-  List<Object?> get props => [status, items, errorMessage];
+  List<Object?> get props => [status, bookcases, currentCaseId, currentBooks, errorMessage];
+
+  BookshelfState copyWith({
+    BookshelfStatus? status,
+    List<Bookcase>? bookcases,
+    String? currentCaseId,
+    List<BookcaseItem>? currentBooks,
+    String? errorMessage,
+  }) {
+    return BookshelfState(
+      status: status ?? this.status,
+      bookcases: bookcases ?? this.bookcases,
+      currentCaseId: currentCaseId,
+      currentBooks: currentBooks,
+      errorMessage: errorMessage,
+    );
+  }
 }
 
 class BookshelfCubit extends Cubit<BookshelfState> {
@@ -30,15 +45,29 @@ class BookshelfCubit extends Cubit<BookshelfState> {
 
   Future<void> loadBookshelf() async {
     try {
-      emit(BookshelfState(status: BookshelfStatus.loading));
-      final items = await wenku8GetBookshelf();
-      emit(BookshelfState(
+      emit(state.copyWith(status: BookshelfStatus.loading));
+      final bookcases = await bookcaseList();
+      emit(state.copyWith(
         status: BookshelfStatus.loaded,
-        items: items,
+        bookcases: bookcases,
       ));
     } catch (e) {
-      emit(BookshelfState(
+      emit(state.copyWith(
         status: BookshelfStatus.error,
+        errorMessage: e.toString(),
+      ));
+    }
+  }
+
+  Future<void> loadBookcaseContent(String caseId) async {
+    try {
+      final books = await bookInCase(caseId: caseId);
+      emit(state.copyWith(
+        currentCaseId: caseId,
+        currentBooks: books,
+      ));
+    } catch (e) {
+      emit(state.copyWith(
         errorMessage: e.toString(),
       ));
     }

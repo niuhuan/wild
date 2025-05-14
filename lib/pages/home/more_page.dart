@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:wild/pages/auth_cubit.dart';
 import 'package:wild/pages/home/account_page.dart';
 
 class MorePage extends StatelessWidget {
@@ -37,6 +39,34 @@ class MorePage extends StatelessWidget {
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
               // TODO: Navigate to about page
+            },
+          ),
+          const Divider(),
+          ListTile(
+            leading: const Icon(Icons.logout),
+            title: const Text('退出登录'),
+            onTap: () {
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('退出登录'),
+                  content: const Text('确定要退出登录吗？'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('取消'),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        context.read<AuthCubit>().logout();
+                        Navigator.of(context).pushReplacementNamed('/login');
+                      },
+                      child: const Text('确定'),
+                    ),
+                  ],
+                ),
+              );
             },
           ),
         ],
