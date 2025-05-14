@@ -485,7 +485,10 @@ impl Wenku8Client {
                             tags: tags.clone(),
                         });
                     }
-                    group_name = li.inner_html().replace("Tags：", "").replace("系属性", "");
+                    group_name = li.inner_html().replace("Tags：", "")
+                        .replace("系", "")
+                        .replace("属性", "")
+                        .replace("类", "");
                     tags.clear();
                 } else {
                     let a = li.select(&a_selector);

@@ -151,6 +151,7 @@ class _CategoryPageState extends State<CategoryPage> {
   String _viewMode = "0"; // 默认按更新查看
   PageStatsNovelCover? _currentPage;
   bool _isLoading = false;
+  bool _isSidebarExpanded = true;
 
   @override
   void initState() {
@@ -206,19 +207,19 @@ class _CategoryPageState extends State<CategoryPage> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // View mode selector
+        // Top bar with view mode and category selector
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Row(
             children: [
-              const Text('查看方式：'),
+              // View mode selector
               Expanded(
                 child: SegmentedButton<String>(
                   segments: const [
                     ButtonSegment(value: "0", label: Text('更新')),
                     ButtonSegment(value: "1", label: Text('热门')),
                     ButtonSegment(value: "2", label: Text('完结')),
-                    ButtonSegment(value: "3", label: Text('动画化')),
+                    ButtonSegment(value: "3", label: Text('动画')),
                   ],
                   selected: {_viewMode},
                   onSelectionChanged: (Set<String> selection) {
@@ -231,105 +232,135 @@ class _CategoryPageState extends State<CategoryPage> {
                   },
                 ),
               ),
-            ],
-          ),
-        ),
-        // Tag groups and novel list
-        Expanded(
-          child: Row(
-            children: [
-              // Tag groups sidebar
+              // Category selector
               if (_tagGroups != null)
-                Container(
-                  width: 120,
-                  decoration: BoxDecoration(
-                    border: Border(
-                      right: BorderSide(
-                        color: Theme.of(context).dividerColor,
+                Padding(
+                  padding: const EdgeInsets.only(left: 8),
+                  child: PopupMenuButton<String>(
+                    tooltip: '分类',
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Theme.of(context).dividerColor),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            _selectedTag ?? '分类',
+                            style: TextStyle(
+                              color: _selectedTag != null
+                                  ? Theme.of(context).colorScheme.primary
+                                  : null,
+                              fontWeight: _selectedTag != null
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                            ),
+                          ),
+                            const SizedBox(width: 4),
+                            const Icon(Icons.arrow_drop_down),
+                        ],
                       ),
                     ),
-                  ),
-                  child: ListView.builder(
-                    itemCount: _tagGroups!.length,
-                    itemBuilder: (context, index) {
-                      final group = _tagGroups![index];
-                      return ExpansionTile(
-                        title: Text(
-                          group.title,
-                          style: const TextStyle(fontSize: 14),
-                        ),
-                        children: group.tags.map((tag) {
-                          return ListTile(
-                            title: Text(
-                              tag,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: _selectedTag == tag
-                                    ? Theme.of(context).colorScheme.primary
-                                    : null,
+                    itemBuilder: (context) {
+                      final items = <PopupMenuEntry<String>>[];
+                      for (final group in _tagGroups!) {
+                        items.add(
+                          PopupMenuItem<String>(
+                            enabled: false,
+                            child: Text(
+                              group.title,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                            selected: _selectedTag == tag,
-                            onTap: () {
-                              setState(() {
-                                _selectedTag = tag;
-                              });
-                              _loadTagPage(tag, refresh: true);
-                            },
+                          ),
+                        );
+                        for (final tag in group.tags) {
+                          items.add(
+                            PopupMenuItem<String>(
+                              value: tag,
+                              child: Padding(
+                                padding: const EdgeInsets.only(left: 16),
+                                child: Text(
+                                  tag,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: _selectedTag == tag
+                                        ? Theme.of(context).colorScheme.primary
+                                        : null,
+                                    fontWeight: _selectedTag == tag
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
+                                  ),
+                                ),
+                              ),
+                            ),
                           );
-                        }).toList(),
-                      );
+                        }
+                        if (group != _tagGroups!.last) {
+                          items.add(const PopupMenuDivider());
+                        }
+                      }
+                      return items;
+                    },
+                    onSelected: (tag) {
+                      setState(() {
+                        _selectedTag = tag;
+                      });
+                      _loadTagPage(tag, refresh: true);
                     },
                   ),
                 ),
-              // Novel grid
-              Expanded(
-                child: _selectedTag == null
-                    ? const Center(child: Text('请选择分类'))
-                    : _currentPage == null
-                        ? const Center(child: CircularProgressIndicator())
-                        : NotificationListener<ScrollNotification>(
-                            onNotification: (notification) {
-                              if (notification is ScrollEndNotification &&
-                                  notification.metrics.pixels >=
-                                      notification.metrics.maxScrollExtent - 200 &&
-                                  !_isLoading &&
-                                  _currentPage!.currentPage <
-                                      _currentPage!.maxPage) {
-                                _loadTagPage(_selectedTag!);
-                              }
-                              return true;
-                            },
-                            child: GridView.builder(
-                              padding: const EdgeInsets.all(8),
-                              gridDelegate:
-                                  const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 3,
-                                childAspectRatio: 207 / 307,
-                                crossAxisSpacing: 8,
-                                mainAxisSpacing: 8,
-                              ),
-                              itemCount: _currentPage!.records.length +
-                                  (_currentPage!.currentPage < _currentPage!.maxPage
-                                      ? 1
-                                      : 0),
-                              itemBuilder: (context, index) {
-                                if (index >= _currentPage!.records.length) {
-                                  return const Center(
-                                    child: Padding(
-                                      padding: EdgeInsets.all(16.0),
-                                      child: CircularProgressIndicator(),
-                                    ),
-                                  );
-                                }
-                                final novel = _currentPage!.records[index] as NovelCover;
-                                return _NovelCoverCard(novel: novel);
-                              },
-                            ),
-                          ),
-              ),
             ],
           ),
+        ),
+        // Novel grid
+        Expanded(
+          child: _selectedTag == null
+              ? const Center(child: Text('请选择分类'))
+              : _currentPage == null
+                  ? const Center(child: CircularProgressIndicator())
+                  : NotificationListener<ScrollNotification>(
+                      onNotification: (notification) {
+                        if (notification is ScrollEndNotification &&
+                            notification.metrics.pixels >=
+                                notification.metrics.maxScrollExtent - 200 &&
+                            !_isLoading &&
+                            _currentPage!.currentPage < _currentPage!.maxPage) {
+                          _loadTagPage(_selectedTag!);
+                        }
+                        return true;
+                      },
+                      child: GridView.builder(
+                        padding: const EdgeInsets.all(8),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          childAspectRatio: 207 / 307,
+                          crossAxisSpacing: 8,
+                          mainAxisSpacing: 8,
+                        ),
+                        itemCount: _currentPage!.records.length +
+                            (_currentPage!.currentPage < _currentPage!.maxPage
+                                ? 1
+                                : 0),
+                        itemBuilder: (context, index) {
+                          if (index >= _currentPage!.records.length) {
+                            return const Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(16.0),
+                                child: CircularProgressIndicator(),
+                              ),
+                            );
+                          }
+                          final novel = _currentPage!.records[index] as NovelCover;
+                          return _NovelCoverCard(novel: novel);
+                        },
+                      ),
+                    ),
         ),
       ],
     );
