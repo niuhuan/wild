@@ -11,46 +11,43 @@ class HistoryPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => HistoryCubit()..load(),
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('阅读历史'),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.delete_outline),
-              onPressed: () {
-                // TODO: 实现清空历史功能
-              },
-            ),
-          ],
-        ),
-        body: BlocBuilder<HistoryCubit, HistoryState>(
-          builder: (context, state) {
-            if (state is HistoryLoading) {
-              return const Center(child: CircularProgressIndicator());
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('阅读历史'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.delete_outline),
+            onPressed: () {
+              // TODO: 实现清空历史功能
+            },
+          ),
+        ],
+      ),
+      body: BlocBuilder<HistoryCubit, HistoryState>(
+        builder: (context, state) {
+          if (state is HistoryLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (state is HistoryError) {
+            return Center(child: Text('加载失败: ${state.message}'));
+          }
+          if (state is HistoryLoaded) {
+            if (state.histories.isEmpty) {
+              return const Center(child: Text('暂无阅读历史'));
             }
-            if (state is HistoryError) {
-              return Center(child: Text('加载失败: ${state.message}'));
-            }
-            if (state is HistoryLoaded) {
-              if (state.histories.isEmpty) {
-                return const Center(child: Text('暂无阅读历史'));
-              }
-              return RefreshIndicator(
-                onRefresh: () => context.read<HistoryCubit>().load(),
-                child: ListView.builder(
-                  itemCount: state.histories.length,
-                  itemBuilder: (context, index) {
-                    final history = state.histories[index];
-                    return _HistoryItem(history: history);
-                  },
-                ),
-              );
-            }
-            return const SizedBox.shrink();
-          },
-        ),
+            return RefreshIndicator(
+              onRefresh: () => context.read<HistoryCubit>().load(),
+              child: ListView.builder(
+                itemCount: state.histories.length,
+                itemBuilder: (context, index) {
+                  final history = state.histories[index];
+                  return _HistoryItem(history: history);
+                },
+              ),
+            );
+          }
+          return const SizedBox.shrink();
+        },
       ),
     );
   }
