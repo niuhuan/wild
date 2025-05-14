@@ -39,48 +39,59 @@ class _ArticlelistPageState extends State<ArticlelistPage> {
   Widget build(BuildContext context) {
     return BlocBuilder<ArticlelistCubit, ArticlelistState>(
       builder: (context, state) {
-        if (state is ArticlelistInitial) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
         if (state is ArticlelistError) {
-          return Center(child: Text(state.message));
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(state.message),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () => context.read<ArticlelistCubit>().loadNovels(refresh: true),
+                  child: const Text('重试'),
+                ),
+              ],
+            ),
+          );
         }
 
         if (state is ArticlelistLoaded) {
           return RefreshIndicator(
-            onRefresh: () async {
-              await context.read<ArticlelistCubit>().loadNovels(refresh: true);
-            },
-            child: GridView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.all(8),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                childAspectRatio: 0.7,
-                crossAxisSpacing: 8,
-                mainAxisSpacing: 8,
-              ),
-              itemCount: state.novels.length + (state.hasMore ? 1 : 0),
-              itemBuilder: (context, index) {
-                if (index == state.novels.length) {
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
-                }
-                final novel = state.novels[index];
-                return NovelCard.fromNovel(
-                  novel: novel,
-                  onTap: () {
-                    Navigator.pushNamed(
-                      context,
-                      '/novel/info',
-                      arguments: novel.id,
-                    );
-                  },
-                );
-              },
-            ),
+            onRefresh: () => context.read<ArticlelistCubit>().loadNovels(refresh: true),
+            child: state.novels.isEmpty
+                ? const Center(child: CircularProgressIndicator())
+                : GridView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.all(8),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      childAspectRatio: 0.7,
+                      crossAxisSpacing: 8,
+                      mainAxisSpacing: 8,
+                    ),
+                    itemCount: state.novels.length + (state.hasMore ? 1 : 0),
+                    itemBuilder: (context, index) {
+                      if (index == state.novels.length) {
+                        return const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(16.0),
+                            child: CircularProgressIndicator(),
+                          ),
+                        );
+                      }
+                      final novel = state.novels[index];
+                      return NovelCard.fromNovel(
+                        novel: novel,
+                        onTap: () {
+                          Navigator.pushNamed(
+                            context,
+                            '/novel/info',
+                            arguments: novel.id,
+                          );
+                        },
+                      );
+                    },
+                  ),
           );
         }
 

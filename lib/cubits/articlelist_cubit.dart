@@ -58,7 +58,7 @@ class ArticlelistCubit extends Cubit<ArticlelistState> {
 
   Future<void> loadNovels({bool refresh = false}) async {
     if (state is! ArticlelistLoaded) {
-      emit(ArticlelistLoading());
+      emit(ArticlelistLoaded(novels: []));
     } else if (refresh) {
       emit((state as ArticlelistLoaded).copyWith(
         novels: [],

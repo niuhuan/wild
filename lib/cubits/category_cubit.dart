@@ -107,7 +107,6 @@ class CategoryCubit extends Cubit<CategoryState> {
     if (!currentState.hasMore && !refresh) return;
 
     try {
-      emit(CategoryLoading());
       final page = refresh ? 1 : currentState.currentPage;
       final selectedTag = currentState.selectedTag;
       

@@ -38,12 +38,20 @@ class _CategoryPageState extends State<CategoryPage> {
   Widget build(BuildContext context) {
     return BlocBuilder<CategoryCubit, CategoryState>(
       builder: (context, state) {
-        if (state is CategoryInitial) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
         if (state is CategoryError) {
-          return Center(child: Text(state.message));
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(state.message),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () => context.read<CategoryCubit>().loadTags(),
+                  child: const Text('重试'),
+                ),
+              ],
+            ),
+          );
         }
 
         if (state is CategoryLoaded) {
@@ -74,45 +82,47 @@ class _CategoryPageState extends State<CategoryPage> {
                             : null,
                       ),
                       Expanded(
-                        child: ListView.builder(
-                          itemCount: state.tagGroups.length,
-                          itemBuilder: (context, groupIndex) {
-                            final group = state.tagGroups[groupIndex];
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                if (_isSidebarExpanded)
-                                  Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Text(
-                                      group.title,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleSmall,
-                                    ),
-                                  ),
-                                ...group.tags.map((tag) {
-                                  final isSelected =
-                                      state.selectedTag == tag;
-                                  return ListTile(
-                                    selected: isSelected,
-                                    title: _isSidebarExpanded
-                                        ? Text(tag)
-                                        : null,
-                                    leading: _isSidebarExpanded
-                                        ? null
-                                        : Text(tag[0]),
-                                    onTap: () {
-                                      context
-                                          .read<CategoryCubit>()
-                                          .selectTag(tag);
-                                    },
+                        child: state.tagGroups.isEmpty
+                            ? const Center(child: CircularProgressIndicator())
+                            : ListView.builder(
+                                itemCount: state.tagGroups.length,
+                                itemBuilder: (context, groupIndex) {
+                                  final group = state.tagGroups[groupIndex];
+                                  return Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      if (_isSidebarExpanded)
+                                        Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Text(
+                                            group.title,
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .titleSmall,
+                                          ),
+                                        ),
+                                      ...group.tags.map((tag) {
+                                        final isSelected =
+                                            state.selectedTag == tag;
+                                        return ListTile(
+                                          selected: isSelected,
+                                          title: _isSidebarExpanded
+                                              ? Text(tag)
+                                              : null,
+                                          leading: _isSidebarExpanded
+                                              ? null
+                                              : Text(tag[0]),
+                                          onTap: () {
+                                            context
+                                                .read<CategoryCubit>()
+                                                .selectTag(tag);
+                                          },
+                                        );
+                                      }).toList(),
+                                    ],
                                   );
-                                }).toList(),
-                              ],
-                            );
-                          },
-                        ),
+                                },
+                              ),
                       ),
                     ],
                   ),
@@ -120,13 +130,15 @@ class _CategoryPageState extends State<CategoryPage> {
               ),
               Expanded(
                 child: state.novels.isEmpty
-                    ? const Center(child: Text('请选择一个标签'))
+                    ? Center(
+                        child: state.selectedTag == null
+                            ? const Text('请选择一个标签')
+                            : const CircularProgressIndicator(),
+                      )
                     : RefreshIndicator(
-                        onRefresh: () async {
-                          await context
-                              .read<CategoryCubit>()
-                              .loadNovels(refresh: true);
-                        },
+                        onRefresh: () => context
+                            .read<CategoryCubit>()
+                            .loadNovels(refresh: true),
                         child: GridView.builder(
                           controller: _scrollController,
                           padding: const EdgeInsets.all(8),
@@ -142,7 +154,10 @@ class _CategoryPageState extends State<CategoryPage> {
                           itemBuilder: (context, index) {
                             if (index == state.novels.length) {
                               return const Center(
-                                child: CircularProgressIndicator(),
+                                child: Padding(
+                                  padding: EdgeInsets.all(16.0),
+                                  child: CircularProgressIndicator(),
+                                ),
                               );
                             }
                             final novel = state.novels[index];

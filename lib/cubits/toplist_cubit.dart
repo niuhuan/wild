@@ -77,7 +77,7 @@ class ToplistCubit extends Cubit<ToplistState> {
 
   Future<void> loadNovels({bool refresh = false}) async {
     if (state is! ToplistLoaded) {
-      emit(ToplistLoading());
+      emit(ToplistLoaded(novels: []));
     } else if (refresh) {
       emit((state as ToplistLoaded).copyWith(
         novels: [],
