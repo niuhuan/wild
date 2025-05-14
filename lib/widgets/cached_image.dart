@@ -33,9 +33,9 @@ class CachedImageProvider extends ImageProvider<CachedImageProvider> {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     if (other.runtimeType != runtimeType) return false;
-    final CachedImageProvider typedOther = other;
+    final CachedImageProvider typedOther = other as CachedImageProvider;
     return url == typedOther.url && scale == typedOther.scale;
   }
 
