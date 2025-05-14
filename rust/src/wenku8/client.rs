@@ -999,6 +999,28 @@ impl Wenku8Client {
 
         Ok(novels)
     }
+    
+    pub async fn delete_bookcase(&self, delid: &str) -> Result<()> {
+        let url = format!("{API_HOST}/modules/article/bookcase.php?delid={delid}&charset=gbk");
+        let response = self
+            .client
+            .get(url)
+            .header("User-Agent", USER_AGENT)
+            .send()
+            .await?;
+        if !response.status().is_success() {
+            return Err(anyhow!("Failed to delete bookcase: {}", response.status()));
+        }
+
+        let code = response.status();
+        let text = response.bytes().await?;
+        let text = decode_gbk(text)?;
+        if code.is_success() {
+            Ok(())
+        } else {
+            Err(anyhow!("Failed to delete bookcase: {}", text))
+        }
+    }
 }
 
 fn decode_gbk(bytes: bytes::Bytes) -> Result<String> {

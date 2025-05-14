@@ -106,8 +106,8 @@ Future<PageStatsNovelCover> articlelist({
 Future<void> addBookshelf({required String aid}) =>
     RustLib.instance.api.crateApiWenku8AddBookshelf(aid: aid);
 
-Future<void> removeBookshelf({required String aid}) =>
-    RustLib.instance.api.crateApiWenku8RemoveBookshelf(aid: aid);
+Future<void> deleteBookcase({required String bid}) =>
+    RustLib.instance.api.crateApiWenku8DeleteBookcase(bid: bid);
 
 Future<List<Bookcase>> bookcaseList() =>
     RustLib.instance.api.crateApiWenku8BookcaseList();
