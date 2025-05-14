@@ -4,9 +4,10 @@
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
 import '../frb_generated.dart';
-import '../lib.dart';
 import '../wenku8/models.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
+
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `fmt`
 
 Future<void> wenku8Login({
   required String username,
@@ -79,7 +80,7 @@ Future<List<ReadingHistory>> listReadingHistory({
 
 Future<List<TagGroup>> tags() => RustLib.instance.api.crateApiWenku8Tags();
 
-Future<PageStats> tagPage({
+Future<PageStatsNovelCover> tagPage({
   required String tag,
   required String v,
   required int pageNumber,
@@ -88,6 +89,34 @@ Future<PageStats> tagPage({
   v: v,
   pageNumber: pageNumber,
 );
+
+class PageStatsNovelCover {
+  final int currentPage;
+  final int maxPage;
+  final List<NovelCover> records;
+
+  const PageStatsNovelCover({
+    required this.currentPage,
+    required this.maxPage,
+    required this.records,
+  });
+
+  static Future<PageStatsNovelCover> default_() =>
+      RustLib.instance.api.crateApiWenku8PageStatsNovelCoverDefault();
+
+  @override
+  int get hashCode =>
+      currentPage.hashCode ^ maxPage.hashCode ^ records.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PageStatsNovelCover &&
+          runtimeType == other.runtimeType &&
+          currentPage == other.currentPage &&
+          maxPage == other.maxPage &&
+          records == other.records;
+}
 
 class ReadingHistory {
   final String novelId;

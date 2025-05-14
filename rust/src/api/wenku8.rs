@@ -1,9 +1,12 @@
+use crate::database::entities::active::reading_history::Model;
 use crate::database::entities::ReadingHistoryEntity;
-use crate::wenku8::{BookshelfItem, HomeBlock, NovelCover, NovelInfo, PageStats, TagGroup, UserDetail, Volume};
+use crate::wenku8::{
+    BookshelfItem, HomeBlock, NovelCover, NovelInfo, PageStats, TagGroup, UserDetail, Volume,
+};
 use crate::Result;
 use crate::CLIENT;
 use std::time::Duration;
-use crate::database::entities::active::reading_history::Model;
+use serde::{Deserialize, Serialize};
 
 #[flutter_rust_bridge::frb]
 pub async fn wenku8_login(username: String, password: String, checkcode: String) -> Result<()> {
@@ -155,18 +158,21 @@ pub async fn novel_history_by_id(novel_id: &str) -> anyhow::Result<Option<Readin
 
 pub async fn list_reading_history(offset: i32, limit: i32) -> crate::Result<Vec<ReadingHistory>> {
     let histories = ReadingHistoryEntity::list_reading_history(offset, limit).await?;
-    Ok(histories.into_iter().map(|history| ReadingHistory {
-        novel_id: history.novel_id,
-        novel_name: history.novel_name,
-        volume_id: history.volume_id,
-        volume_name: history.volume_name,
-        chapter_id: history.chapter_id,
-        chapter_title: history.chapter_title,
-        last_read_at: history.last_read_at,
-        progress: history.progress,
-        cover: history.cover,
-        author: history.author,
-    }).collect())
+    Ok(histories
+        .into_iter()
+        .map(|history| ReadingHistory {
+            novel_id: history.novel_id,
+            novel_name: history.novel_name,
+            volume_id: history.volume_id,
+            volume_name: history.volume_name,
+            chapter_id: history.chapter_id,
+            chapter_title: history.chapter_title,
+            last_read_at: history.last_read_at,
+            progress: history.progress,
+            cover: history.cover,
+            author: history.author,
+        })
+        .collect())
 }
 
 pub async fn tags() -> crate::Result<Vec<TagGroup>> {
@@ -179,16 +185,28 @@ pub async fn tags() -> crate::Result<Vec<TagGroup>> {
     .await
 }
 
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub struct PageStatsNovelCover {
+    pub current_page: i32,
+    pub max_page: i32,
+    pub records: Vec<NovelCover>,
+}
+
 pub async fn tag_page(
     tag: String,
     v: String,
     page_number: i32,
-) -> anyhow::Result<PageStats<NovelCover>> {
+) -> anyhow::Result<PageStatsNovelCover> {
     let key = format!("TAG_PAGE${}${}${}", tag, v, page_number);
-    crate::cache_first(
+    let data = crate::cache_first(
         key,
         Duration::from_secs(60 * 60),
         Box::pin(async move { CLIENT.tag_page(&tag, &v, page_number).await }),
     )
-    .await
+    .await?;
+    Ok(PageStatsNovelCover {
+        current_page: data.current_page,
+        max_page: data.max_page,
+        records: data.records,
+    })
 }
