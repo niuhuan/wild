@@ -49,7 +49,7 @@ class _IndexPageState extends State<IndexPage> with SingleTickerProviderStateMix
           RecommendPage(),
           CategoryPage(),
           ToplistPage(),
-          Center(child: Text('完结页面')), // TODO: 实现完结页面
+          ArticlelistPage(),
         ],
       ),
     );
@@ -569,5 +569,92 @@ class _ToplistPageState extends State<ToplistPage> {
         ),
       ],
     );
+  }
+}
+
+class ArticlelistPage extends StatefulWidget {
+  const ArticlelistPage({super.key});
+
+  @override
+  State<ArticlelistPage> createState() => _ArticlelistPageState();
+}
+
+class _ArticlelistPageState extends State<ArticlelistPage> {
+  PageStatsNovelCover? _currentPage;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadArticlelist(refresh: true);
+  }
+
+  Future<void> _loadArticlelist({bool refresh = false}) async {
+    if (_isLoading) return;
+    setState(() {
+      _isLoading = true;
+      if (refresh) {
+        _currentPage = null;
+      }
+    });
+
+    try {
+      final page = await articlelist(
+        fullflag: 1,
+        page: refresh ? 1 : (_currentPage?.currentPage ?? 0) + 1,
+      );
+      setState(() {
+        _currentPage = page;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('加载完结小说失败: $e')),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _currentPage == null
+        ? const Center(child: CircularProgressIndicator())
+        : NotificationListener<ScrollNotification>(
+            onNotification: (notification) {
+              if (notification is ScrollEndNotification &&
+                  notification.metrics.pixels >=
+                      notification.metrics.maxScrollExtent - 200 &&
+                  !_isLoading &&
+                  _currentPage!.currentPage < _currentPage!.maxPage) {
+                _loadArticlelist();
+              }
+              return true;
+            },
+            child: GridView.builder(
+              padding: const EdgeInsets.all(8),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                childAspectRatio: 207 / 307,
+                crossAxisSpacing: 8,
+                mainAxisSpacing: 8,
+              ),
+              itemCount: _currentPage!.records.length +
+                  (_currentPage!.currentPage < _currentPage!.maxPage ? 1 : 0),
+              itemBuilder: (context, index) {
+                if (index >= _currentPage!.records.length) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(16.0),
+                      child: CircularProgressIndicator(),
+                    ),
+                  );
+                }
+                final novel = _currentPage!.records[index] as NovelCover;
+                return _NovelCoverCard(novel: novel);
+              },
+            ),
+          );
   }
 }
