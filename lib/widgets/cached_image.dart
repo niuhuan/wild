@@ -1,6 +1,6 @@
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:wild/src/rust/api/wenku8.dart';
+import 'dart:io';
 
 class CachedImage extends StatelessWidget {
   final String url;
@@ -20,7 +20,7 @@ class CachedImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget image = FutureBuilder<List<int>>(
+    Widget image = FutureBuilder<String>(
       future: downloadImage(url: url),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -35,11 +35,17 @@ class CachedImage extends StatelessWidget {
             child: const Icon(Icons.broken_image),
           );
         }
-        return Image.memory(
-          Uint8List.fromList(snapshot.data!),
+        return Image.file(
+          File(snapshot.data!),
           fit: fit,
           width: width,
           height: height,
+          errorBuilder: (context, error, stackTrace) {
+            return Container(
+              color: Colors.grey.withAlpha(80),
+              child: const Icon(Icons.broken_image),
+            );
+          },
         );
       },
     );

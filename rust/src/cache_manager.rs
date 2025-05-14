@@ -32,7 +32,7 @@ pub async fn cleanup_image_cache() -> crate::Result<()> {
     Ok(())
 }
 
-pub async fn get_cached_image(img_url: String) -> crate::Result<Vec<u8>> {
+pub async fn get_cached_image(img_url: String) -> crate::Result<String> {
     let image_cache_dir = get_image_cache_dir();
     let url_md5 = md5::compute(img_url.as_bytes()).0;
     let url_md5 = hex::encode(url_md5);
@@ -46,7 +46,7 @@ pub async fn get_cached_image(img_url: String) -> crate::Result<Vec<u8>> {
     if let Some(_cache) = image_cache::Entity::find_by_url(img_url.as_str()).await? {
         // 如果缓存记录存在，尝试读取文件
         if Path::new(&file_path).exists() {
-            return Ok(async_fs::read(file_path).await?);
+            return Ok(file_path);
         }
     }
 
@@ -73,7 +73,7 @@ pub async fn get_cached_image(img_url: String) -> crate::Result<Vec<u8>> {
     };
     image_cache::Entity::save_image_cache(cache).await?;
 
-    Ok(buff)
+    Ok(file_path)
 }
 
 pub(crate) async fn get_chapter_content(aid: &str, cid: &str) -> anyhow::Result<String> {

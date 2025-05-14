@@ -41,7 +41,7 @@ pub async fn index() -> anyhow::Result<Vec<HomeBlock>> {
     .await
 }
 
-pub async fn download_image(url: String) -> anyhow::Result<Vec<u8>> {
+pub async fn download_image(url: String) -> anyhow::Result<String> {
     crate::get_cached_image(url).await
 }
 

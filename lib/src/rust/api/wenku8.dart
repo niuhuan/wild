@@ -33,7 +33,7 @@ Future<UserDetail> userDetail() =>
 
 Future<List<HomeBlock>> index() => RustLib.instance.api.crateApiWenku8Index();
 
-Future<Uint8List> downloadImage({required String url}) =>
+Future<String> downloadImage({required String url}) =>
     RustLib.instance.api.crateApiWenku8DownloadImage(url: url);
 
 Future<String> chapterContent({required String aid, required String cid}) =>

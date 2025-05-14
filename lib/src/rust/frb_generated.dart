@@ -93,7 +93,7 @@ abstract class RustLibApi extends BaseApi {
 
   Future<Uint8List> crateApiWenku8DownloadCheckcode();
 
-  Future<Uint8List> crateApiWenku8DownloadImage({required String url});
+  Future<String> crateApiWenku8DownloadImage({required String url});
 
   String crateApiSimpleGreet({required String name});
 
@@ -295,7 +295,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "download_checkcode", argNames: []);
 
   @override
-  Future<Uint8List> crateApiWenku8DownloadImage({required String url}) {
+  Future<String> crateApiWenku8DownloadImage({required String url}) {
     return handler.executeNormal(
       NormalTask(
         callFfi: (port_) {
@@ -309,7 +309,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_list_prim_u_8_strict,
+          decodeSuccessData: sse_decode_String,
           decodeErrorData: sse_decode_AnyhowException,
         ),
         constMeta: kCrateApiWenku8DownloadImageConstMeta,
