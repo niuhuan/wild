@@ -5,8 +5,8 @@ use crate::wenku8::{
 };
 use crate::Result;
 use crate::CLIENT;
-use std::time::Duration;
 use serde::{Deserialize, Serialize};
+use std::time::Duration;
 
 #[flutter_rust_bridge::frb]
 pub async fn wenku8_login(username: String, password: String, checkcode: String) -> Result<()> {
@@ -202,6 +202,21 @@ pub async fn tag_page(
         key,
         Duration::from_secs(60 * 60),
         Box::pin(async move { CLIENT.tag_page(&tag, &v, page_number).await }),
+    )
+    .await?;
+    Ok(PageStatsNovelCover {
+        current_page: data.current_page,
+        max_page: data.max_page,
+        records: data.records,
+    })
+}
+
+pub async fn toplist(sort: String, page: i32) -> anyhow::Result<PageStatsNovelCover> {
+    let key = format!("TOPLIST${}${}", sort, page);
+    let data = crate::cache_first(
+        key,
+        Duration::from_secs(60 * 60),
+        Box::pin(async move { CLIENT.toplist(&sort, page).await }),
     )
     .await?;
     Ok(PageStatsNovelCover {

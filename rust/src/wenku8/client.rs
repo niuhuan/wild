@@ -772,6 +772,30 @@ impl Wenku8Client {
         let text = response.text().await?;
         Ok(text)
     }
+    
+    pub async fn toplist(&self, sort: &str, page: i32) -> Result<PageStats<NovelCover>> {
+        let url = format!(
+            "{API_HOST}/modules/article/toplist.php?sort={sort}&page={page}&charset=gbk"
+        );
+        let response = self
+            .client
+            .get(url)
+            .header("User-Agent", USER_AGENT)
+            .send()
+            .await?;
+        if !response.status().is_success() {
+            return Err(anyhow!("Failed to get toplist: {}", response.status()));
+        }
+
+        let text = response.bytes().await?;
+        let text = decode_gbk(text)?;
+        Self::parse_toplist(text.as_str())
+    }
+
+    pub(crate) fn parse_toplist(text: &str) -> Result<PageStats<NovelCover>> {
+        Self::parse_tag_page(text)
+    }
+
 }
 
 fn decode_gbk(bytes: bytes::Bytes) -> Result<String> {

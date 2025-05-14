@@ -68,7 +68,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.9.0';
 
   @override
-  int get rustContentHash => 138101693;
+  int get rustContentHash => -1379966598;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -129,6 +129,11 @@ abstract class RustLibApi extends BaseApi {
   });
 
   Future<List<TagGroup>> crateApiWenku8Tags();
+
+  Future<PageStatsNovelCover> crateApiWenku8Toplist({
+    required String sort,
+    required int page,
+  });
 
   Future<void> crateApiWenku8UpdateHistory({
     required String novelId,
@@ -691,6 +696,38 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "tags", argNames: []);
 
   @override
+  Future<PageStatsNovelCover> crateApiWenku8Toplist({
+    required String sort,
+    required int page,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(sort, serializer);
+          sse_encode_i_32(page, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 19,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_page_stats_novel_cover,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiWenku8ToplistConstMeta,
+        argValues: [sort, page],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiWenku8ToplistConstMeta =>
+      const TaskConstMeta(debugName: "toplist", argNames: ["sort", "page"]);
+
+  @override
   Future<void> crateApiWenku8UpdateHistory({
     required String novelId,
     required String novelName,
@@ -718,7 +755,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 19,
+            funcId: 20,
             port: port_,
           );
         },
@@ -768,7 +805,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 20,
+            funcId: 21,
             port: port_,
           );
         },
@@ -795,7 +832,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 21,
+            funcId: 22,
             port: port_,
           );
         },
@@ -829,7 +866,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 22,
+            funcId: 23,
             port: port_,
           );
         },

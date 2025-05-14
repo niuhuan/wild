@@ -90,6 +90,11 @@ Future<PageStatsNovelCover> tagPage({
   pageNumber: pageNumber,
 );
 
+Future<PageStatsNovelCover> toplist({
+  required String sort,
+  required int page,
+}) => RustLib.instance.api.crateApiWenku8Toplist(sort: sort, page: page);
+
 class PageStatsNovelCover {
   final int currentPage;
   final int maxPage;
