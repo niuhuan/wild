@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../src/rust/api/database.dart';
 import '../../src/rust/api/wenku8.dart';
 import '../../src/rust/wenku8/models.dart';
 import '../../widgets/cached_image.dart';
@@ -151,12 +152,45 @@ class _CategoryPageState extends State<CategoryPage> {
   String _viewMode = "0"; // 默认按更新查看
   PageStatsNovelCover? _currentPage;
   bool _isLoading = false;
-  bool _isSidebarExpanded = true;
+  static const _keyTag = 'category_page_selected_tag';
+  static const _keyViewMode = 'category_page_view_mode';
 
   @override
   void initState() {
     super.initState();
+    _loadSavedState();
     _loadTags();
+  }
+
+  Future<void> _loadSavedState() async {
+    try {
+      final savedTag = await loadProperty(key: _keyTag);
+      final savedViewMode = await loadProperty(key: _keyViewMode);
+      setState(() {
+        if (savedTag.isNotEmpty) {
+          _selectedTag = savedTag;
+        }
+        if (savedViewMode.isNotEmpty) {
+          _viewMode = savedViewMode;
+        }
+      });
+      if (_selectedTag != null) {
+        _loadTagPage(_selectedTag!, refresh: true);
+      }
+    } catch (e) {
+      // 如果加载失败，使用默认值
+    }
+  }
+
+  Future<void> _saveState() async {
+    try {
+      if (_selectedTag != null) {
+        await saveProperty(key: _keyTag, value: _selectedTag!);
+      }
+      await saveProperty(key: _keyViewMode, value: _viewMode);
+    } catch (e) {
+      // 如果保存失败，继续使用当前状态
+    }
   }
 
   Future<void> _loadTags() async {
@@ -230,6 +264,7 @@ class _CategoryPageState extends State<CategoryPage> {
                         _loadTagPage(_selectedTag!, refresh: true);
                       }
                     });
+                    _saveState();
                   },
                 ),
               ),
@@ -259,8 +294,8 @@ class _CategoryPageState extends State<CategoryPage> {
                                   : FontWeight.normal,
                             ),
                           ),
-                            const SizedBox(width: 4),
-                            const Icon(Icons.arrow_drop_down),
+                          const SizedBox(width: 4),
+                          const Icon(Icons.arrow_drop_down),
                         ],
                       ),
                     ),
@@ -312,6 +347,7 @@ class _CategoryPageState extends State<CategoryPage> {
                         _selectedTag = tag;
                       });
                       _loadTagPage(tag, refresh: true);
+                      _saveState();
                     },
                   ),
                 ),
