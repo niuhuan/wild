@@ -224,7 +224,15 @@ class _CategoryPageState extends State<CategoryPage> {
         pageNumber: refresh ? 1 : (_currentPage?.currentPage ?? 0) + 1,
       );
       setState(() {
-        _currentPage = page;
+        if (refresh) {
+          _currentPage = page;
+        } else {
+          _currentPage = PageStatsNovelCover(
+            currentPage: page.currentPage,
+            maxPage: page.maxPage,
+            records: [..._currentPage!.records, ...page.records],
+          );
+        }
         _isLoading = false;
       });
     } catch (e) {
@@ -479,7 +487,15 @@ class _ToplistPageState extends State<ToplistPage> {
         page: refresh ? 1 : (_currentPage?.currentPage ?? 0) + 1,
       );
       setState(() {
-        _currentPage = page;
+        if (refresh) {
+          _currentPage = page;
+        } else {
+          _currentPage = PageStatsNovelCover(
+            currentPage: page.currentPage,
+            maxPage: page.maxPage,
+            records: [..._currentPage!.records, ...page.records],
+          );
+        }
         _isLoading = false;
       });
     } catch (e) {
@@ -604,7 +620,15 @@ class _ArticlelistPageState extends State<ArticlelistPage> {
         page: refresh ? 1 : (_currentPage?.currentPage ?? 0) + 1,
       );
       setState(() {
-        _currentPage = page;
+        if (refresh) {
+          _currentPage = page;
+        } else {
+          _currentPage = PageStatsNovelCover(
+            currentPage: page.currentPage,
+            maxPage: page.maxPage,
+            records: [..._currentPage!.records, ...page.records],
+          );
+        }
         _isLoading = false;
       });
     } catch (e) {
