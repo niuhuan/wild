@@ -215,6 +215,7 @@ class _CategoryPageState extends State<CategoryPage> {
               // View mode selector
               Expanded(
                 child: SegmentedButton<String>(
+                  showSelectedIcon: false,
                   segments: const [
                     ButtonSegment(value: "0", label: Text('更新')),
                     ButtonSegment(value: "1", label: Text('热门')),
