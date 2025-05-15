@@ -118,7 +118,6 @@ jobs:
         with:
           cmdline-tools-version: '9477386'
           packages: |
-            platform-tools
             platforms;android-34
             build-tools;34.0.0
             ndk;25.2.9519653
