@@ -40,7 +40,7 @@ class MorePage extends StatelessWidget {
             title: const Text('关于'),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
-              // TODO: Navigate to about page
+              Navigator.pushNamed(context, '/about');
             },
           ),
         ],

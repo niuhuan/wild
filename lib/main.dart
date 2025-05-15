@@ -20,6 +20,8 @@ import 'package:wild/pages/articlelist/articlelist_page.dart';
 import 'package:wild/pages/recommend/recommend_page.dart';
 import 'package:wild/pages/home/more_page.dart';
 import 'package:wild/pages/search_page.dart';
+import 'package:wild/pages/home/about_page.dart';
+import 'package:wild/utils/app_info.dart';
 
 final lightTheme = ThemeData(
   colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
@@ -34,6 +36,8 @@ final darkTheme = ThemeData(
 );
 
 Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await AppInfo.init();
   await RustLib.init();
   runApp(const MyApp());
 }
@@ -128,6 +132,7 @@ class YourApp extends StatelessWidget {
               }
               return const SearchPage();
             },
+            '/about': (context) => const AboutPage(),
           },
         );
       },
