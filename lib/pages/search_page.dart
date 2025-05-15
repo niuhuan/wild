@@ -15,11 +15,29 @@ class _SearchPageState extends State<SearchPage> {
   String _searchType = 'articlename';
   PageStatsNovelCover? _searchResults;
   bool _isLoading = false;
+  List<SearchHistory>? _searchHistories;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSearchHistories();
+  }
 
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadSearchHistories() async {
+    try {
+      final histories = await searchHistories();
+      setState(() {
+        _searchHistories = histories;
+      });
+    } catch (e) {
+      // 忽略加载历史记录失败
+    }
   }
 
   Future<void> _search({bool refresh = false}) async {
@@ -52,6 +70,9 @@ class _SearchPageState extends State<SearchPage> {
         }
         _isLoading = false;
       });
+
+      // 刷新搜索历史
+      _loadSearchHistories();
     } catch (e) {
       setState(() => _isLoading = false);
       if (mounted) {
@@ -78,10 +99,9 @@ class _SearchPageState extends State<SearchPage> {
             onSelectionChanged: (Set<String> selection) {
               setState(() {
                 _searchType = selection.first;
+                _searchController.clear();
+                _searchResults = null;
               });
-              if (_searchController.text.isNotEmpty) {
-                _search(refresh: true);
-              }
             },
           ),
           const SizedBox(width: 8),
@@ -105,8 +125,48 @@ class _SearchPageState extends State<SearchPage> {
               onSubmitted: (_) => _search(refresh: true),
             ),
           ),
+          // 搜索结果或搜索历史
+          if (_searchController.text.isEmpty && _searchHistories != null && _searchHistories!.isNotEmpty)
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: _searchHistories!.length,
+                itemBuilder: (context, index) {
+                  final history = _searchHistories![index];
+                  return ListTile(
+                    leading: Icon(
+                      history.searchType == 'articlename'
+                          ? Icons.book
+                          : Icons.person,
+                      color: history.searchType == 'articlename'
+                          ? Colors.blue
+                          : Colors.green,
+                    ),
+                    title: Text(
+                      history.searchKey,
+                      style: TextStyle(
+                        color: history.searchType == 'articlename'
+                            ? Colors.blue
+                            : Colors.green,
+                      ),
+                    ),
+                    subtitle: Text(
+                      history.searchType == 'articlename' ? '书名搜索' : '作者搜索',
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                    onTap: () {
+                      _searchController.text = history.searchKey;
+                      setState(() {
+                        _searchType = history.searchType;
+                      });
+                      _search(refresh: true);
+                    },
+                  );
+                },
+              ),
+            )
           // 搜索结果
-          if (_searchResults != null)
+          else if (_searchResults != null)
             Expanded(
               child: NotificationListener<ScrollNotification>(
                 onNotification: (notification) {
