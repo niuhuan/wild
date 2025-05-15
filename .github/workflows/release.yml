@@ -1,0 +1,193 @@
+name: Release
+
+on:
+  workflow_dispatch:
+
+jobs:
+
+  check-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get-version.outputs.version }}
+      tag_exists: ${{ steps.check-tag.outputs.exists }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Dart
+        uses: dart-lang/setup-dart@v1
+
+      - name: Get version
+        id: get-version
+        run: |
+          VERSION=$(dart pub get && dart pub deps | grep -o 'wild [0-9.]*' | cut -d' ' -f2)
+          VERSION=${VERSION%+*}
+          VERSION="v$VERSION"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Check if tag exists
+        id: check-tag
+        run: |
+          if git rev-parse "refs/tags/${{ steps.get-version.outputs.version }}" >/dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+
+  create-release:
+    needs: check-version
+    if: ${{ needs.check-version.outputs.tag_exists == 'false' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ needs.check-version.outputs.version }}
+          name: Release ${{ needs.check-version.outputs.version }}
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  check-assets:
+    needs: check-version
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Check Release Assets
+        id: check-assets
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: release } = await github.rest.repos.getReleaseByTag({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag: '${{ needs.check-version.outputs.version }}'
+            });
+            
+            const version = '${{ needs.check-version.outputs.version }}';
+            const assets = release.assets.map(asset => asset.name);
+            const platforms = [
+              { name: 'android-arm64', file: `wild-${version}-android-arm64.apk` },
+              { name: 'windows-x64', file: `wild-${version}-windows-x64.zip` },
+              { name: 'linux', file: `wild-${version}-linux-x86_64.AppImage` },
+              { name: 'macos', file: `wild-${version}-macos.dmg` },
+              { name: 'ios', file: `wild-${version}-ios-nosign.ipa` }
+            ];
+            
+            const matrix = platforms.filter(p => !assets.includes(p.file));
+            return matrix.map(p => p.name);
+
+      - name: Set Matrix
+        id: set-matrix
+        run: |
+          echo "matrix={\"include\":[$(echo '${{ steps.check-assets.outputs.result }}' | jq -r 'map({"platform": .}) | join(",")')]}" >> $GITHUB_OUTPUT
+
+
+  build:
+    needs: [check-assets, check-version]
+    if: ${{ fromJson(needs.check-assets.outputs.matrix).include != null }}
+    strategy:
+      matrix: ${{ fromJson(needs.check-assets.outputs.matrix) }}
+    runs-on: ${{ matrix.platform == 'windows-x64' && 'windows-latest' || matrix.platform == 'macos' && 'macos-latest' || matrix.platform == 'ios' && 'macos-latest' || 'ubuntu-latest' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.platform == 'android-arm64' && 'aarch64-linux-android' || '' }}
+
+      - name: Setup Java
+        if: matrix.platform == 'android-arm64'
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android
+        if: matrix.platform == 'android-arm64'
+        uses: android-actions/setup-android@v3
+        with:
+          cmdline-tools-version: '9477386'
+          ndk-version: '25.2.9519653'
+          cmake-version: '3.22.1'
+          build-tools-version: '34.0.0'
+          platform-version: '34'
+
+      - name: Install Linux Dependencies
+        if: matrix.platform == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libfuse2
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.29.0'
+          channel: 'stable'
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build Android
+        if: matrix.platform == 'android-arm64'
+        run: |
+          echo "${{ secrets.ANDROID_JKS_BASE64 }}" | base64 -d > android/app/wild.jks
+          flutter build apk --release --target-platform android-arm64
+          echo "${{ secrets.ANDROID_JKS_PASSWORD }}" | $ANDROID_HOME/build-tools/34.0.0/apksigner sign --ks android/app/wild.jks build/app/outputs/flutter-apk/app-release.apk
+          mv build/app/outputs/flutter-apk/app-release.apk wild-${{ needs.check-version.outputs.version }}-android-arm64.apk
+
+      - name: Build Windows
+        if: matrix.platform == 'windows-x64'
+        run: |
+          flutter build windows --release
+          cd build/windows/x64/runner/Release
+          7z a -tzip ../../../../../wild-${{ needs.check-version.outputs.version }}-windows-x64.zip *
+
+      - name: Build Linux
+        if: matrix.platform == 'linux'
+        run: |
+          flutter build linux --release
+          mkdir -p linux/appimage
+          mv build/linux/x64/release/bundle/wild linux/appimage/AppRun
+          wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x appimagetool-x86_64.AppImage
+          ./appimagetool-x86_64.AppImage linux/appimage wild-${{ needs.check-version.outputs.version }}-linux-x86_64.AppImage
+
+      - name: Build macOS
+        if: matrix.platform == 'macos'
+        run: |
+          flutter build macos --release
+          mkdir -p macos_bundle
+          ln -sf /Applications macos_bundle/
+          mv macos/Build/Products/Release/wild.app macos_bundle/
+          hdiutil create -volname wild -srcfolder macos_bundle -ov -format UDBZ wild-${{ needs.check-version.outputs.version }}-macos.dmg
+          rm -rf macos_bundle
+
+      - name: Build iOS
+        if: matrix.platform == 'ios'
+        run: |
+          flutter build ios --release --no-codesign
+          mkdir -p Payload
+          mv build/ios/iphoneos/Runner.app Payload/
+          zip -r wild-${{ needs.check-version.outputs.version }}-ios-nosign.ipa Payload
+          rm -rf Payload
+
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            ${{ matrix.platform == 'android-arm64' && format('wild-{0}-android-arm64.apk', needs.check-version.outputs.version) || '' }}
+            ${{ matrix.platform == 'windows-x64' && format('wild-{0}-windows-x64.zip', needs.check-version.outputs.version) || '' }}
+            ${{ matrix.platform == 'linux' && format('wild-{0}-linux-x86_64.AppImage', needs.check-version.outputs.version) || '' }}
+            ${{ matrix.platform == 'macos' && format('wild-{0}-macos.dmg', needs.check-version.outputs.version) || '' }}
+            ${{ matrix.platform == 'ios' && format('wild-{0}-ios-nosign.ipa', needs.check-version.outputs.version) || '' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
