@@ -4,9 +4,9 @@ use base64::Engine;
 use encoding_rs::GBK;
 use rand::Rng;
 use reqwest::Client;
-use scraper::{ ElementRef, Html, Selector};
-use std::slice::SliceIndex;
 use scraper::Node::Element;
+use scraper::{ElementRef, Html, Selector};
+use std::slice::SliceIndex;
 
 const API_HOST: &str = "https://www.wenku8.net";
 const APP_HOST: &str = "http://app.wenku8.com";
@@ -926,11 +926,13 @@ impl Wenku8Client {
                         ElementRef::wrap(parent).with_context(|| "Failed to wrap parent")?;
                     println!("parent: {}", parent.html());
 
-                    let next = parent.next_sibling().with_context(|| {
-                        "Failed to find next sibling element"
-                    })?;
-                    
-                    let next = next.next_sibling().with_context(|| "Failed to wrap next sibling")?;
+                    let next = parent
+                        .next_sibling()
+                        .with_context(|| "Failed to find next sibling element")?;
+
+                    let next = next
+                        .next_sibling()
+                        .with_context(|| "Failed to wrap next sibling")?;
 
                     let next =
                         ElementRef::wrap(next).with_context(|| "Failed to wrap next sibling")?;
@@ -956,7 +958,9 @@ impl Wenku8Client {
                     let next = next
                         .next_sibling()
                         .ok_or_else(|| anyhow!("Failed to find next sibling"))?;
-                    let next = next.next_sibling().with_context(|| "Failed to wrap next sibling")?;
+                    let next = next
+                        .next_sibling()
+                        .with_context(|| "Failed to wrap next sibling")?;
                     let next =
                         ElementRef::wrap(next).with_context(|| "Failed to wrap next sibling")?;
                     let a = next
@@ -968,7 +972,9 @@ impl Wenku8Client {
                         .next_sibling()
                         .ok_or_else(|| anyhow!("Failed to find next sibling"))?;
 
-                    let next = next.next_sibling().with_context(|| "Failed to wrap next sibling")?;
+                    let next = next
+                        .next_sibling()
+                        .with_context(|| "Failed to wrap next sibling")?;
                     let next =
                         ElementRef::wrap(next).with_context(|| "Failed to wrap next sibling")?;
                     let a = next
@@ -999,7 +1005,7 @@ impl Wenku8Client {
 
         Ok(novels)
     }
-    
+
     pub async fn delete_bookcase(&self, delid: &str) -> Result<()> {
         let url = format!("{API_HOST}/modules/article/bookcase.php?delid={delid}&charset=gbk");
         let response = self
@@ -1020,6 +1026,38 @@ impl Wenku8Client {
         } else {
             Err(anyhow!("Failed to delete bookcase: {}", text))
         }
+    }
+
+    pub async fn move_bookcase(
+        &self,
+        ids: Vec<String>,
+        old_classid: String,
+        new_classid: String,
+    ) -> Result<()> {
+        let url = format!("{API_HOST}/modules/article/bookcase.php");
+        let mut params = vec![];
+        for id in ids {
+            params.push(("checkid[]", id));
+        }
+        params.push(("classlist", old_classid.clone()));
+        params.push(("checkall", "checkall".to_string()));
+        params.push(("newclassid", new_classid));
+        params.push(("classid", old_classid));
+
+        let response = self
+            .client
+            .post(url)
+            .header("User-Agent", USER_AGENT)
+            .form(&params)
+            .send()
+            .await?;
+        let status = response.status();
+        let text = response.bytes().await?;
+        let text = decode_gbk(text)?;
+        if !status.is_success() {
+            return Err(anyhow!("Failed to move bookcase: {}", status));
+        }
+        Ok(())
     }
 }
 

@@ -247,7 +247,7 @@ pub async fn add_bookshelf(aid: String) -> anyhow::Result<()> {
 }
 
 pub async fn delete_bookcase(bid: String) -> anyhow::Result<()> {
-   CLIENT.delete_bookcase(&bid).await
+    CLIENT.delete_bookcase(&bid).await
 }
 
 pub async fn bookcase_list() -> anyhow::Result<Vec<Bookcase>> {
@@ -256,4 +256,14 @@ pub async fn bookcase_list() -> anyhow::Result<Vec<Bookcase>> {
 
 pub async fn book_in_case(case_id: String) -> anyhow::Result<Vec<BookcaseItem>> {
     CLIENT.book_in_case(&case_id).await
+}
+
+pub async fn move_bookcase(
+    bid_list: Vec<String>,
+    from_bookcase_id: String,
+    to_bookcase_id: String,
+) -> anyhow::Result<()> {
+    CLIENT
+        .move_bookcase(bid_list, from_bookcase_id, to_bookcase_id)
+        .await
 }

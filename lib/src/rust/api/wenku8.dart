@@ -115,6 +115,16 @@ Future<List<Bookcase>> bookcaseList() =>
 Future<List<BookcaseItem>> bookInCase({required String caseId}) =>
     RustLib.instance.api.crateApiWenku8BookInCase(caseId: caseId);
 
+Future<void> moveBookcase({
+  required List<String> bidList,
+  required String fromBookcaseId,
+  required String toBookcaseId,
+}) => RustLib.instance.api.crateApiWenku8MoveBookcase(
+  bidList: bidList,
+  fromBookcaseId: fromBookcaseId,
+  toBookcaseId: toBookcaseId,
+);
+
 class PageStatsNovelCover {
   final int currentPage;
   final int maxPage;
