@@ -19,8 +19,7 @@ jobs:
       - name: Get version
         id: get-version
         run: |
-          VERSION=$(dart pub get && dart pub deps | grep -o 'wild [0-9.]*' | cut -d' ' -f2)
-          VERSION=${VERSION%+*}
+          VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | sed 's/+.*$//')
           VERSION="v$VERSION"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
