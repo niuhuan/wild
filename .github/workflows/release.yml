@@ -13,9 +13,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Dart
-        uses: dart-lang/setup-dart@v1
-
       - name: Get version
         id: get-version
         run: |
@@ -81,13 +78,13 @@ jobs:
             ];
             
             const matrix = platforms.filter(p => !assets.includes(p.file));
-            return JSON.stringify(matrix);
+            return JSON.stringify(matrix.map(p => p.name));
 
       - name: Set Matrix
         id: set-matrix
         run: |
           if [ -n '${{ steps.check-assets.outputs.result }}' ]; then
-            echo "matrix={\"platform\":$(echo '${{ steps.check-assets.outputs.result }}' | jq -r 'map(.name)')}" >> $GITHUB_OUTPUT
+            echo "matrix={\"platform\":${{ steps.check-assets.outputs.result }}}" >> $GITHUB_OUTPUT
           else
             echo "matrix={\"platform\":[]}" >> $GITHUB_OUTPUT
           fi
