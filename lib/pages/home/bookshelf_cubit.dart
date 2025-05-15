@@ -11,6 +11,8 @@ class BookshelfState {
   final String? currentCaseId;
   final Map<String, List<BookcaseItem>> bookcaseContents;
   final String? errorMessage;
+  final Set<String> selectedBids; // 选中的书籍 bid 集合
+  final bool isSelecting; // 是否处于多选模式
 
   BookshelfState({
     required this.status,
@@ -18,6 +20,8 @@ class BookshelfState {
     this.currentCaseId,
     required this.bookcaseContents,
     this.errorMessage,
+    this.selectedBids = const {},
+    this.isSelecting = false,
   });
 
   BookshelfState copyWith({
@@ -26,6 +30,8 @@ class BookshelfState {
     String? currentCaseId,
     Map<String, List<BookcaseItem>>? bookcaseContents,
     String? errorMessage,
+    Set<String>? selectedBids,
+    bool? isSelecting,
   }) {
     return BookshelfState(
       status: status ?? this.status,
@@ -33,6 +39,8 @@ class BookshelfState {
       currentCaseId: currentCaseId ?? this.currentCaseId,
       bookcaseContents: bookcaseContents ?? this.bookcaseContents,
       errorMessage: errorMessage,
+      selectedBids: selectedBids ?? this.selectedBids,
+      isSelecting: isSelecting ?? this.isSelecting,
     );
   }
 
@@ -69,6 +77,8 @@ class BookshelfState {
     }
     return null;
   }
+
+  bool isBookSelected(String bid) => selectedBids.contains(bid);
 }
 
 class BookshelfCubit extends Cubit<BookshelfState> {
@@ -112,6 +122,57 @@ class BookshelfCubit extends Cubit<BookshelfState> {
 
   void selectBookcase(String caseId) {
     emit(state.copyWith(currentCaseId: caseId));
+  }
+
+  void toggleSelectMode() {
+    emit(state.copyWith(
+      isSelecting: !state.isSelecting,
+      selectedBids: state.isSelecting ? {} : state.selectedBids,
+    ));
+  }
+
+  void toggleBookSelection(String bid) {
+    final newSelectedBids = Set<String>.from(state.selectedBids);
+    if (newSelectedBids.contains(bid)) {
+      newSelectedBids.remove(bid);
+    } else {
+      newSelectedBids.add(bid);
+    }
+    emit(state.copyWith(selectedBids: newSelectedBids));
+  }
+
+  Future<void> moveSelectedBooks(String toBookcaseId) async {
+    if (state.selectedBids.isEmpty || state.currentCaseId == null) return;
+
+    try {
+      await moveBookcase(
+        bidList: state.selectedBids.toList(),
+        fromBookcaseId: state.currentCaseId!,
+        toBookcaseId: toBookcaseId,
+      );
+
+      // 刷新源书架
+      final fromBooks = await bookInCase(caseId: state.currentCaseId!);
+      final newContents = Map<String, List<BookcaseItem>>.from(state.bookcaseContents);
+      newContents[state.currentCaseId!] = fromBooks;
+
+      // 如果目标不是删除（-1），则刷新目标书架
+      if (toBookcaseId != '-1') {
+        final toBooks = await bookInCase(caseId: toBookcaseId);
+        newContents[toBookcaseId] = toBooks;
+      }
+
+      emit(state.copyWith(
+        bookcaseContents: newContents,
+        selectedBids: {},
+        isSelecting: false,
+      ));
+    } catch (e) {
+      emit(state.copyWith(
+        status: BookshelfStatus.error,
+        errorMessage: e.toString(),
+      ));
+    }
   }
 
   Future<void> addToBookshelf(String aid) async {

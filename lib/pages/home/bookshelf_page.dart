@@ -40,6 +40,31 @@ class BookshelfPage extends StatelessWidget {
         return Scaffold(
           appBar: AppBar(
             title: const Text('我的书架'),
+            actions: [
+              if (state.isSelecting) ...[
+                IconButton(
+                  icon: const Icon(Icons.delete_outline),
+                  onPressed: state.selectedBids.isEmpty
+                      ? null
+                      : () => _showDeleteConfirmDialog(context),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.move_to_inbox),
+                  onPressed: state.selectedBids.isEmpty
+                      ? null
+                      : () => _showMoveDialog(context),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => context.read<BookshelfCubit>().toggleSelectMode(),
+                ),
+              ] else ...[
+                IconButton(
+                  icon: const Icon(Icons.select_all),
+                  onPressed: () => context.read<BookshelfCubit>().toggleSelectMode(),
+                ),
+              ],
+            ],
             bottom: PreferredSize(
               preferredSize: const Size.fromHeight(48),
               child: SingleChildScrollView(
@@ -88,6 +113,64 @@ class BookshelfPage extends StatelessWidget {
       },
     );
   }
+
+  void _showDeleteConfirmDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('确认删除'),
+        content: const Text('确定要删除选中的书籍吗？'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              context.read<BookshelfCubit>().moveSelectedBooks('-1');
+            },
+            child: const Text('删除'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showMoveDialog(BuildContext context) {
+    final state = context.read<BookshelfCubit>().state;
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('移动到书架'),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: state.bookcases.length,
+            itemBuilder: (context, index) {
+              final bookcase = state.bookcases[index];
+              // 不显示当前书架
+              if (bookcase.id == state.currentCaseId) return const SizedBox.shrink();
+              return ListTile(
+                title: Text(bookcase.title),
+                onTap: () {
+                  Navigator.pop(context);
+                  context.read<BookshelfCubit>().moveSelectedBooks(bookcase.id);
+                },
+              );
+            },
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('取消'),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _BookCard extends StatelessWidget {
@@ -97,18 +180,62 @@ class _BookCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return NovelCard(
-      title: item.title,
-      coverUrl: _getCoverUrl(item.aid),
-      onTap: () {
-        Navigator.pushNamed(
-          context,
-          '/novel/info',
-          arguments: item.aid,
-        );
+    final state = context.watch<BookshelfCubit>().state;
+    final isSelected = state.isSelecting && state.isBookSelected(item.bid);
+
+    return GestureDetector(
+      onLongPress: () {
+        if (!state.isSelecting) {
+          context.read<BookshelfCubit>().toggleSelectMode();
+          context.read<BookshelfCubit>().toggleBookSelection(item.bid);
+        }
       },
-      padding: const EdgeInsets.all(8.0),
-      showAuthor: false,
+      onTap: () {
+        if (state.isSelecting) {
+          context.read<BookshelfCubit>().toggleBookSelection(item.bid);
+        } else {
+          Navigator.pushNamed(
+            context,
+            '/novel/info',
+            arguments: item.aid,
+          );
+        }
+      },
+      child: Stack(
+        children: [
+          NovelCard(
+            title: item.title,
+            coverUrl: _getCoverUrl(item.aid),
+            padding: const EdgeInsets.all(8.0),
+            showAuthor: false,
+          ),
+          if (state.isSelecting)
+            Positioned(
+              right: 0,
+              top: 0,
+              child: Container(
+                width: 24,
+                height: 24,
+                margin: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: isSelected ? Colors.blue : Colors.white,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: isSelected ? Colors.blue : Colors.grey,
+                    width: 2,
+                  ),
+                ),
+                child: isSelected
+                    ? const Icon(
+                        Icons.check,
+                        size: 16,
+                        color: Colors.white,
+                      )
+                    : null,
+              ),
+            ),
+        ],
+      ),
     );
   }
 
