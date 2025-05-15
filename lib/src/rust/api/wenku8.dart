@@ -7,7 +7,7 @@ import '../frb_generated.dart';
 import '../wenku8/models.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `fmt`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `fmt`, `fmt`
 
 Future<void> wenku8Login({
   required String username,
@@ -138,9 +138,6 @@ Future<PageStatsNovelCover> search({
   page: page,
 );
 
-// Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SearchHistory>>
-abstract class SearchHistory implements RustOpaqueInterface {}
-
 class PageStatsNovelCover {
   final int currentPage;
   final int maxPage;
@@ -222,4 +219,29 @@ class ReadingHistory {
           progress == other.progress &&
           cover == other.cover &&
           author == other.author;
+}
+
+class SearchHistory {
+  final String searchType;
+  final String searchKey;
+  final PlatformInt64 searchTime;
+
+  const SearchHistory({
+    required this.searchType,
+    required this.searchKey,
+    required this.searchTime,
+  });
+
+  @override
+  int get hashCode =>
+      searchType.hashCode ^ searchKey.hashCode ^ searchTime.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is SearchHistory &&
+          runtimeType == other.runtimeType &&
+          searchType == other.searchType &&
+          searchKey == other.searchKey &&
+          searchTime == other.searchTime;
 }

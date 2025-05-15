@@ -1,5 +1,4 @@
-use crate::database::entities::active::reading_history::Model;
-use crate::database::entities::{ReadingHistoryEntity, SearchHistory};
+use crate::database::entities::ReadingHistoryEntity;
 use crate::wenku8::{
     Bookcase, BookcaseItem, BookshelfItem, HomeBlock, NovelCover, NovelInfo, PageStats, TagGroup,
     UserDetail, Volume,
@@ -268,8 +267,22 @@ pub async fn move_bookcase(
         .await
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SearchHistory {
+    pub search_type: String,
+    pub search_key: String,
+    pub search_time: i64,
+}
+
 pub async fn search_histories() -> anyhow::Result<Vec<SearchHistory>> {
-    crate::database::entities::active::search_history::Entity::list_all().await
+    let v = crate::database::entities::active::search_history::Entity::list_all().await?;
+    Ok(v.into_iter()
+        .map(|h| SearchHistory {
+            search_type: h.search_type,
+            search_key: h.search_key,
+            search_time: h.search_time,
+        })
+        .collect())
 }
 
 pub async fn search(
