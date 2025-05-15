@@ -117,11 +117,7 @@ jobs:
         uses: android-actions/setup-android@v3
         with:
           cmdline-tools-version: '9477386'
-          packages: |
-            platforms;android-34
-            build-tools;34.0.0
-            ndk;25.2.9519653
-            cmake;3.22.1
+          packages: 'platform-tools platforms;android-34 build-tools;34.0.0 ndk;25.2.9519653 cmake;3.22.1'
 
       - name: Install Linux Dependencies
         if: matrix.platform == 'linux'
@@ -169,7 +165,7 @@ jobs:
           flutter build macos --release
           mkdir -p macos_bundle
           ln -sf /Applications macos_bundle/
-          mv macos/Build/Products/Release/wild.app macos_bundle/
+          mv build/macos/Build/Products/Release/wild.app macos_bundle/
           hdiutil create -volname wild -srcfolder macos_bundle -ov -format UDBZ wild-${{ needs.check-version.outputs.version }}-macos.dmg
           rm -rf macos_bundle
 
