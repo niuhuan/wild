@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:wild/src/rust/api/wenku8.dart';
 
 import 'account_cubit.dart';
 
@@ -89,6 +90,41 @@ class AccountPage extends StatelessWidget {
                         _buildInfoRow('签名', userDetail.personalizedSignature),
                         _buildInfoRow('描述', userDetail.personalizedDescription),
                       ],
+                    ),
+                    const SizedBox(height: 24),
+                    // 退出登录按钮
+                    Card(
+                      child: ListTile(
+                        leading: const Icon(Icons.logout, color: Colors.red),
+                        title: const Text(
+                          '退出登录',
+                          style: TextStyle(color: Colors.red),
+                        ),
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text('退出登录'),
+                              content: const Text('确定要退出登录吗？'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text('取消'),
+                                ),
+                                TextButton(
+                                  onPressed: () async {
+                                    Navigator.pop(context);
+                                    await logout();
+                                    // 退出程序
+                                    Navigator.of(context).popUntil((route) => false);
+                                  },
+                                  child: const Text('确定'),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
                     ),
                   ],
                 );
