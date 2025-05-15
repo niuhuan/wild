@@ -181,6 +181,7 @@ jobs:
       - name: Upload Release Asset
         uses: softprops/action-gh-release@v1
         with:
+          tag_name: ${{ needs.check-version.outputs.version }}
           files: |
             ${{ matrix.platform == 'android-arm64' && format('wild-{0}-android-arm64.apk', needs.check-version.outputs.version) || '' }}
             ${{ matrix.platform == 'windows-x64' && format('wild-{0}-windows-x64.zip', needs.check-version.outputs.version) || '' }}
