@@ -19,6 +19,7 @@ import 'package:wild/pages/toplist/toplist_page.dart';
 import 'package:wild/pages/articlelist/articlelist_page.dart';
 import 'package:wild/pages/recommend/recommend_page.dart';
 import 'package:wild/pages/home/more_page.dart';
+import 'package:wild/pages/search_page.dart';
 
 final lightTheme = ThemeData(
   colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
@@ -117,6 +118,16 @@ class YourApp extends StatelessWidget {
             '/articlelist': (context) => const ArticlelistPage(),
             '/recommend': (context) => const RecommendPage(),
             '/more': (context) => const MorePage(),
+            '/search': (context) {
+              final args = ModalRoute.of(context)!.settings.arguments;
+              if (args is Map<String, dynamic>) {
+                return SearchPage(
+                  initialSearchType: args['searchType'] as String?,
+                  initialSearchKey: args['searchKey'] as String?,
+                );
+              }
+              return const SearchPage();
+            },
           },
         );
       },

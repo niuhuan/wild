@@ -235,9 +235,24 @@ class _NovelHeader extends StatelessWidget {
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 const SizedBox(height: 8),
-                Text(
-                  '作者：${novelInfo.author}',
-                  style: Theme.of(context).textTheme.bodyMedium,
+                InkWell(
+                  onTap: () {
+                    Navigator.pushNamed(
+                      context,
+                      '/search',
+                      arguments: {
+                        'searchType': 'author',
+                        'searchKey': novelInfo.author,
+                      },
+                    );
+                  },
+                  child: Text(
+                    '作者：${novelInfo.author}',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(

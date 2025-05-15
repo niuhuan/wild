@@ -4,7 +4,14 @@ import '../src/rust/wenku8/models.dart';
 import '../widgets/cached_image.dart';
 
 class SearchPage extends StatefulWidget {
-  const SearchPage({super.key});
+  final String? initialSearchType;
+  final String? initialSearchKey;
+
+  const SearchPage({
+    super.key,
+    this.initialSearchType,
+    this.initialSearchKey,
+  });
 
   @override
   State<SearchPage> createState() => _SearchPageState();
@@ -12,7 +19,7 @@ class SearchPage extends StatefulWidget {
 
 class _SearchPageState extends State<SearchPage> {
   final _searchController = TextEditingController();
-  String _searchType = 'articlename';
+  late String _searchType;
   PageStatsNovelCover? _searchResults;
   bool _isLoading = false;
   List<SearchHistory>? _searchHistories;
@@ -20,6 +27,11 @@ class _SearchPageState extends State<SearchPage> {
   @override
   void initState() {
     super.initState();
+    _searchType = widget.initialSearchType ?? 'articlename';
+    if (widget.initialSearchKey != null) {
+      _searchController.text = widget.initialSearchKey!;
+      _search(refresh: true);
+    }
     _loadSearchHistories();
   }
 
