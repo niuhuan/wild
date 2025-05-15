@@ -1067,8 +1067,9 @@ impl Wenku8Client {
         search_key: &str,
         page: i32,
     ) -> Result<PageStats<NovelCover>> {
+        let search_key = gbk_url_encode(search_key);
         let url = format!(
-            "{API_HOST}/modules/article/search.php?searchtype={search_type}&searchkey={search_key}&page={page}&charset=gbk"
+            "{API_HOST}/modules/article/search.php?searchtype={search_type}&searchkey={search_key}&page={page}&charset=gbk",
         );
         let response = self
             .client

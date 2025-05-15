@@ -5,6 +5,7 @@ import '../../src/rust/api/wenku8.dart';
 import '../../src/rust/wenku8/models.dart';
 import '../../widgets/cached_image.dart';
 import 'recommend_page.dart';
+import '../search_page.dart';
 
 class IndexPage extends StatefulWidget {
   const IndexPage({super.key});
@@ -33,6 +34,18 @@ class _IndexPageState extends State<IndexPage> with SingleTickerProviderStateMix
     return Scaffold(
       appBar: AppBar(
         title: const Text('轻小说文库'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            tooltip: '搜索',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SearchPage()),
+              );
+            },
+          ),
+        ],
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
