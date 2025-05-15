@@ -20,3 +20,6 @@ pub use cookie::cookie::Model as Cookie;
 pub use active::web_cache::Entity as WebCacheEntity;
 pub use active::web_cache::Model as WebCache;
 
+pub use active::search_history::Entity as SearchHistoryEntity;
+pub use active::search_history::Model as SearchHistory;
+

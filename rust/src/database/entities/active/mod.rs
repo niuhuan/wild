@@ -3,10 +3,17 @@ use sea_orm::DatabaseConnection;
 use sea_orm_migration::{MigrationTrait, MigratorTrait};
 use std::ops::Deref;
 
-pub mod reading_history;
-pub mod image_cache;
 pub mod chapter_cache;
+pub mod image_cache;
+pub mod reading_history;
+pub mod search_history;
 pub mod web_cache;
+
+pub use chapter_cache::*;
+pub use image_cache::*;
+pub use reading_history::*;
+pub use search_history::*;
+pub use web_cache::*;
 
 async fn get_connect() -> tokio::sync::MutexGuard<'static, DatabaseConnection> {
     ACTIVE_DB_CONNECT.get().unwrap().lock().await
@@ -52,6 +59,12 @@ impl MigratorTrait for Migrator {
             ),
             Box::new(
                 reading_history::migrations::m000003_create_table_reading_histories_cover_author::Migration,
+            ),
+            Box::new(
+                search_history::migrations::m000001_create_table_search_history::Migration,
+            ),
+            Box::new(
+                search_history::migrations::m000002_idx_search_history_time::Migration,
             ),
         ]
     }
