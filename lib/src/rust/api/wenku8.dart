@@ -125,6 +125,22 @@ Future<void> moveBookcase({
   toBookcaseId: toBookcaseId,
 );
 
+Future<List<SearchHistory>> searchHistories() =>
+    RustLib.instance.api.crateApiWenku8SearchHistories();
+
+Future<PageStatsNovelCover> search({
+  required String searchType,
+  required String searchKey,
+  required int page,
+}) => RustLib.instance.api.crateApiWenku8Search(
+  searchType: searchType,
+  searchKey: searchKey,
+  page: page,
+);
+
+// Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<SearchHistory>>
+abstract class SearchHistory implements RustOpaqueInterface {}
+
 class PageStatsNovelCover {
   final int currentPage;
   final int maxPage;

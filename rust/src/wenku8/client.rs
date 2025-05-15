@@ -1060,7 +1060,7 @@ impl Wenku8Client {
         Ok(())
     }
 
-    // https://www.wenku8.net/modules/article/search.php?searchtype=author&searchkey=%C0%B4&page=1&charset=gbk
+    // search_type: articlename author
     pub async fn search(
         &self,
         search_type: &str,

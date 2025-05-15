@@ -1,5 +1,5 @@
 use crate::database::entities::active::reading_history::Model;
-use crate::database::entities::ReadingHistoryEntity;
+use crate::database::entities::{ReadingHistoryEntity, SearchHistory};
 use crate::wenku8::{
     Bookcase, BookcaseItem, BookshelfItem, HomeBlock, NovelCover, NovelInfo, PageStats, TagGroup,
     UserDetail, Volume,
@@ -266,4 +266,33 @@ pub async fn move_bookcase(
     CLIENT
         .move_bookcase(bid_list, from_bookcase_id, to_bookcase_id)
         .await
+}
+
+pub async fn search_histories() -> anyhow::Result<Vec<SearchHistory>> {
+    crate::database::entities::active::search_history::Entity::list_all().await
+}
+
+pub async fn search(
+    search_type: String,
+    search_key: String,
+    page: i32,
+) -> anyhow::Result<PageStatsNovelCover> {
+    crate::database::entities::active::search_history::Entity::save_or_update(
+        search_type.clone(),
+        search_key.clone(),
+    )
+    .await?;
+    crate::database::entities::active::search_history::Entity::delete_old_records().await?;
+    let key = format!("SEARCH${}${}${}", search_type, search_key, page);
+    let data = crate::cache_first(
+        key,
+        Duration::from_secs(60 * 60),
+        Box::pin(async move { CLIENT.search(&search_type, &search_key, page).await }),
+    )
+    .await?;
+    Ok(PageStatsNovelCover {
+        current_page: data.current_page,
+        max_page: data.max_page,
+        records: data.records,
+    })
 }
