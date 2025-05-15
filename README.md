@@ -1,4 +1,14 @@
-# Wild - 轻小说文库客户端
+<div align="center">
+  <h1 align="center">
+    <img src="lib/assets/icon.png" width="200">
+    <br/>
+    Wild Novel
+
+[![license](https://img.shields.io/github/license/niuhuan/wild)](https://raw.githubusercontent.com/niuhuan/wild/master/LICENSE)
+[![releases](https://img.shields.io/github/v/release/niuhuan/wild)](https://github.com/niuhuan/wild/releases)
+[![downloads](https://img.shields.io/github/downloads/niuhuan/wild/total)](https://github.com/niuhuan/wild/releases)
+  </h1>
+</div>
 
 一个使用 Flutter 开发的轻小说文库客户端，提供流畅的阅读体验和丰富的功能。
 

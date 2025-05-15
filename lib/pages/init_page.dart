@@ -65,6 +65,61 @@ class _InitPageState extends State<InitPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(body: Center(child: Text('Loading')));
+    return Scaffold(
+      body: ConstrainedBox(
+        constraints: const BoxConstraints.expand(),
+        child: LayoutBuilder(
+          builder: (BuildContext context, BoxConstraints constraints) {
+            var width = 1080;
+            var height = 1920;
+            var min = constraints.maxWidth > constraints.maxHeight 
+                ? constraints.maxHeight 
+                : constraints.maxWidth;
+            var newHeight = min;
+            var newWidth = min * (width / height);
+            
+            return Stack(
+              children: [
+                Center(
+                  child: ShaderMask(
+                    shaderCallback: (Rect bounds) {
+                      return const LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.black,
+                          Colors.black,
+                          Colors.transparent,
+                        ],
+                        stops: [0.0, 0.95, 1.0],
+                      ).createShader(bounds);
+                    },
+                    blendMode: BlendMode.dstIn,
+                    child: Image.asset(
+                      'lib/assets/startup.png',
+                      width: newWidth,
+                      height: newHeight,
+                    ),
+                  ),
+                ),
+                // 加载指示器
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 48,
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
   }
 }

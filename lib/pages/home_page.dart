@@ -23,6 +23,8 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _historyCubit = HistoryCubit()..load();
+    // 加载书架数据
+    context.read<BookshelfCubit>().loadBookcases();
   }
 
   @override

@@ -51,7 +51,7 @@ class MyApp extends StatelessWidget {
       providers: [
         BlocProvider(create: (context) => AuthCubit()),
         BlocProvider(create: (context) => BookshelfCubit()..loadBookcases()),
-        BlocProvider(create: (context) => ThemeCubit()..loadTheme()),
+        BlocProvider(create: (context) => ThemeCubit()),
         BlocProvider(create: (context) => FontSizeCubit()),
         BlocProvider(create: (context) => LineHeightCubit()),
         BlocProvider(create: (context) => ParagraphSpacingCubit()),
