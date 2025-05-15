@@ -128,7 +128,7 @@ class _HistoryItem extends StatelessWidget {
                 onPressed: () {
                   Navigator.pushNamed(
                     context,
-                    '/novel/reader',
+                    '/novel/info',
                     arguments: {
                       'novelId': history.novelId,
                       'chapterId': history.chapterId,

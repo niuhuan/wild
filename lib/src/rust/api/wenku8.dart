@@ -25,6 +25,8 @@ Future<List<BookshelfItem>> wenku8GetBookshelf() =>
 Future<bool> preLoginState() =>
     RustLib.instance.api.crateApiWenku8PreLoginState();
 
+Future<void> logout() => RustLib.instance.api.crateApiWenku8Logout();
+
 Future<Uint8List> downloadCheckcode() =>
     RustLib.instance.api.crateApiWenku8DownloadCheckcode();
 

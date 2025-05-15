@@ -1,4 +1,4 @@
-use crate::database::entities::ReadingHistoryEntity;
+use crate::database::entities::{CookieEntity, ReadingHistoryEntity};
 use crate::wenku8::{
     Bookcase, BookcaseItem, BookshelfItem, HomeBlock, NovelCover, NovelInfo, PageStats, TagGroup,
     UserDetail, Volume,
@@ -21,6 +21,11 @@ pub async fn wenku8_get_bookshelf() -> Result<Vec<BookshelfItem>> {
 pub async fn pre_login_state() -> Result<bool> {
     let logged = crate::database::entities::CookieEntity::exists("jieqiUserInfo").await?;
     Ok(logged)
+}
+
+pub async fn logout() -> Result<()> {
+    CookieEntity::delete_all().await?;
+    Ok(())
 }
 
 pub async fn download_checkcode() -> Result<Vec<u8>> {

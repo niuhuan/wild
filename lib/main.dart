@@ -80,9 +80,15 @@ class YourApp extends StatelessWidget {
             '/login': (context) => const LoginPage(),
             '/home': (context) => const HomePage(),
             '/novel/info': (context) {
-              final novelId =
-                  ModalRoute.of(context)!.settings.arguments as String;
-              return NovelInfoPage(novelId: novelId);
+              final args = ModalRoute.of(context)!.settings.arguments;
+              if (args is Map<String, dynamic>) {
+                return NovelInfoPage(
+                  novelId: args['novelId'] as String,
+                  initialChapterId: args['chapterId'] as String?,
+                  initialChapterTitle: args['title'] as String?,
+                );
+              }
+              return NovelInfoPage(novelId: args as String);
             },
             '/novel/reader': (context) {
               final args =
