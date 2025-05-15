@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:wild/pages/home/account_page.dart';
+import 'package:wild/pages/home/settings_page.dart';
 
 class MorePage extends StatelessWidget {
   const MorePage({super.key});
@@ -28,7 +29,10 @@ class MorePage extends StatelessWidget {
             title: const Text('设置'),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
-              // TODO: Navigate to settings page
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SettingsPage()),
+              );
             },
           ),
           ListTile(
