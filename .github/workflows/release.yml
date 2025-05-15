@@ -94,6 +94,7 @@ jobs:
     needs: [check-assets, check-version]
     if: ${{ fromJson(needs.check-assets.outputs.matrix).platform != '[]' }}
     strategy:
+      fail-fast: false
       matrix: ${{ fromJson(needs.check-assets.outputs.matrix) }}
     runs-on: ${{ matrix.platform == 'windows-x64' && 'windows-latest' || matrix.platform == 'macos' && 'macos-latest' || matrix.platform == 'ios' && 'macos-latest' || 'ubuntu-latest' }}
     steps:
@@ -116,16 +117,18 @@ jobs:
         uses: android-actions/setup-android@v3
         with:
           cmdline-tools-version: '9477386'
-          ndk-version: '25.2.9519653'
-          cmake-version: '3.22.1'
-          build-tools-version: '34.0.0'
-          platform-version: '34'
+          packages: |
+            platform-tools
+            platforms;android-34
+            build-tools;34.0.0
+            ndk;25.2.9519653
+            cmake;3.22.1
 
       - name: Install Linux Dependencies
         if: matrix.platform == 'linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libfuse2
+          sudo apt-get install -y libfuse2 libgtk-3-dev libgl1-mesa-dev xorg-dev ninja-build
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
