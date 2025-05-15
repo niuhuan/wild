@@ -4,6 +4,7 @@ import 'package:wild/pages/home/more_page.dart';
 import 'package:wild/pages/home/index_page.dart';
 import 'package:wild/pages/home/history_cubit.dart';
 import 'package:wild/pages/home/bookshelf_cubit.dart';
+import 'package:wild/pages/update_cubit.dart';
 
 import 'home/bookshelf_page.dart';
 import 'home/history_page.dart';
@@ -49,42 +50,54 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return BlocProvider.value(
       value: _historyCubit,
-      child: Scaffold(
-        body: IndexedStack(
-          index: _currentIndex,
-          children: const [
-            IndexPage(),
-            BookshelfPage(),
-            HistoryPage(),
-            MorePage(),
-          ],
-        ),
-        bottomNavigationBar: NavigationBar(
-          selectedIndex: _currentIndex,
-          onDestinationSelected: _onDestinationSelected,
-          destinations: const [
-            NavigationDestination(
-              icon: Icon(Icons.home_outlined),
-              selectedIcon: Icon(Icons.home),
-              label: '首页',
+      child: BlocBuilder<UpdateCubit, UpdateState>(
+        builder: (context, state) {
+          return Scaffold(
+            body: IndexedStack(
+              index: _currentIndex,
+              children: const [
+                IndexPage(),
+                BookshelfPage(),
+                HistoryPage(),
+                MorePage(),
+              ],
             ),
-            NavigationDestination(
-              icon: Icon(Icons.book_outlined),
-              selectedIcon: Icon(Icons.book),
-              label: '书架',
+            bottomNavigationBar: NavigationBar(
+              selectedIndex: _currentIndex,
+              onDestinationSelected: _onDestinationSelected,
+              destinations: [
+                const NavigationDestination(
+                  icon: Icon(Icons.home_outlined),
+                  selectedIcon: Icon(Icons.home),
+                  label: '首页',
+                ),
+                const NavigationDestination(
+                  icon: Icon(Icons.book_outlined),
+                  selectedIcon: Icon(Icons.book),
+                  label: '书架',
+                ),
+                const NavigationDestination(
+                  icon: Icon(Icons.history_outlined),
+                  selectedIcon: Icon(Icons.history),
+                  label: '历史',
+                ),
+                NavigationDestination(
+                  icon: Badge(
+                    isLabelVisible: state.updateInfo != null,
+                    label: const Text('新'),
+                    child: const Icon(Icons.more_horiz_outlined),
+                  ),
+                  selectedIcon: Badge(
+                    isLabelVisible: state.updateInfo != null,
+                    label: const Text('新'),
+                    child: const Icon(Icons.more_horiz),
+                  ),
+                  label: '更多',
+                ),
+              ],
             ),
-            NavigationDestination(
-              icon: Icon(Icons.history_outlined),
-              selectedIcon: Icon(Icons.history),
-              label: '历史',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.more_horiz_outlined),
-              selectedIcon: Icon(Icons.more_horiz),
-              label: '更多',
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
