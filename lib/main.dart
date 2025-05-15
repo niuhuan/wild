@@ -22,6 +22,8 @@ import 'package:wild/pages/home/more_page.dart';
 import 'package:wild/pages/search_page.dart';
 import 'package:wild/pages/home/about_page.dart';
 import 'package:wild/utils/app_info.dart';
+import 'package:wild/pages/update_cubit.dart';
+import 'package:wild/widgets/update_checker.dart';
 
 final lightTheme = ThemeData(
   colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
@@ -55,6 +57,7 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (context) => FontSizeCubit()),
         BlocProvider(create: (context) => LineHeightCubit()),
         BlocProvider(create: (context) => ParagraphSpacingCubit()),
+        BlocProvider(create: (context) => UpdateCubit()),
       ],
       child: YourApp(),
     );
@@ -82,8 +85,8 @@ class YourApp extends StatelessWidget {
           initialRoute: '/init',
           routes: {
             '/init': (context) => const InitPage(),
-            '/login': (context) => const LoginPage(),
-            '/home': (context) => const HomePage(),
+            '/login': (context) => const UpdateChecker(child: LoginPage()),
+            '/home': (context) => const UpdateChecker(child: HomePage()),
             '/novel/info': (context) {
               final args = ModalRoute.of(context)!.settings.arguments;
               if (args is Map<String, dynamic>) {
