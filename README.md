@@ -112,7 +112,15 @@ flutter build ios  # iOS
 
 ## 开源协议
 
-本项目采用 MIT 协议开源，详情请查看 [LICENSE](LICENSE) 文件。
+本项目采用 GNU General Public License v3.0 (GPLv3) 协议开源。这意味着：
+
+1. 你可以自由使用、修改和分发本软件
+2. 你必须保留版权声明和许可声明
+3. 如果你分发修改后的版本，必须使用相同的 GPLv3 协议
+4. 你必须提供源代码
+5. 你的修改必须开源
+
+详情请查看 [LICENSE](LICENSE) 文件。
 
 ## 致谢
 
