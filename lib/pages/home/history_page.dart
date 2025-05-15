@@ -93,7 +93,7 @@ class _HistoryItem extends StatelessWidget {
                     Text(
                       history.novelName,
                       style: Theme.of(context).textTheme.titleMedium,
-                      maxLines: 1,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
@@ -108,11 +108,11 @@ class _HistoryItem extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '阅读进度：${history.progress}%',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
+                    // const SizedBox(height: 4),
+                    // Text(
+                    //   '阅读进度：${history.progress}%',
+                    //   style: Theme.of(context).textTheme.bodyMedium,
+                    // ),
                     const SizedBox(height: 4),
                     Text(
                       '最后阅读：${dateFormat.format(lastReadAt)}',
