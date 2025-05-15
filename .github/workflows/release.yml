@@ -81,17 +81,21 @@ jobs:
             ];
             
             const matrix = platforms.filter(p => !assets.includes(p.file));
-            return matrix.map(p => p.name);
+            return JSON.stringify(matrix);
 
       - name: Set Matrix
         id: set-matrix
         run: |
-          echo "matrix={\"include\":[$(echo '${{ steps.check-assets.outputs.result }}' | jq -r 'map({"platform": .}) | join(",")')]}" >> $GITHUB_OUTPUT
+          if [ -n '${{ steps.check-assets.outputs.result }}' ]; then
+            echo "matrix={\"platform\":$(echo '${{ steps.check-assets.outputs.result }}' | jq -r 'map(.name)')}" >> $GITHUB_OUTPUT
+          else
+            echo "matrix={\"platform\":[]}" >> $GITHUB_OUTPUT
+          fi
 
 
   build:
     needs: [check-assets, check-version]
-    if: ${{ fromJson(needs.check-assets.outputs.matrix).include != null }}
+    if: ${{ fromJson(needs.check-assets.outputs.matrix).platform != '[]' }}
     strategy:
       matrix: ${{ fromJson(needs.check-assets.outputs.matrix) }}
     runs-on: ${{ matrix.platform == 'windows-x64' && 'windows-latest' || matrix.platform == 'macos' && 'macos-latest' || matrix.platform == 'ios' && 'macos-latest' || 'ubuntu-latest' }}
