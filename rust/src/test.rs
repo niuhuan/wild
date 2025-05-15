@@ -114,6 +114,14 @@ fn test_parse_book_in_case() -> anyhow::Result<()> {
     Ok(())
 }
 
+#[test]
+fn parse_search() -> anyhow::Result<()> {
+    let text = std::fs::read_to_string("target/search.txt")?;
+    let tags = Wenku8Client::parse_search(text.as_str())?;
+    println!("{}", serde_json::to_string_pretty(&tags)?);
+    Ok(())
+}
+
 #[tokio::test(flavor = "multi_thread")]
 async fn test_c_content() -> anyhow::Result<()> {
     init_context().await?;

@@ -1059,6 +1059,35 @@ impl Wenku8Client {
         }
         Ok(())
     }
+
+    // https://www.wenku8.net/modules/article/search.php?searchtype=author&searchkey=%C0%B4&page=1&charset=gbk
+    pub async fn search(
+        &self,
+        search_type: &str,
+        search_key: &str,
+        page: i32,
+    ) -> Result<PageStats<NovelCover>> {
+        let url = format!(
+            "{API_HOST}/modules/article/search.php?searchtype={search_type}&searchkey={search_key}&page={page}&charset=gbk"
+        );
+        let response = self
+            .client
+            .get(url)
+            .header("User-Agent", USER_AGENT)
+            .send()
+            .await?;
+        if !response.status().is_success() {
+            return Err(anyhow!("Failed to get search result: {}", response.status()));
+        }
+
+        let text = response.bytes().await?;
+        let text = decode_gbk(text)?;
+        Self::parse_search(text.as_str())
+    }
+
+    pub(crate) fn parse_search(text: &str) -> Result<PageStats<NovelCover>> {
+        Self::parse_tag_page(text)
+    }
 }
 
 fn decode_gbk(bytes: bytes::Bytes) -> Result<String> {
