@@ -51,9 +51,16 @@ class _UpdateCheckerState extends State<UpdateChecker> {
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    updateInfo.body,
-                    style: Theme.of(context).textTheme.bodyMedium,
+                  ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxHeight: MediaQuery.of(context).size.height * 0.4,
+                    ),
+                    child: SingleChildScrollView(
+                      child: Text(
+                        updateInfo.body,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 24),
                   Align(
