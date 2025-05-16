@@ -148,16 +148,36 @@ class _LoginPageState extends State<LoginPage> {
                     },
                   ),
                   const SizedBox(height: 16),
-                  if (state.checkcode != null)
-                    if (state.checkcode!.isEmpty)
-                      Text("loading...")
-                    else
-                      Image.memory(
-                        state.checkcode!,
-                        width: 200,
-                        height: 50,
-                        fit: BoxFit.contain,
-                      ),
+                  Builder(
+                    builder: (context) {
+                      switch (state.checkcodeStatus) {
+                        case CheckcodeStatus.loading:
+                          return const SizedBox(
+                            width: 200,
+                            height: 50,
+                            child: Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                          );
+                        case CheckcodeStatus.success:
+                          if (state.checkcode == null || state.checkcode!.isEmpty) {
+                            return _buildRetryButton(context);
+                          }
+                          return GestureDetector(
+                            onTap: () => context.read<AuthCubit>().loadCheckcode(),
+                            child: Image.memory(
+                              state.checkcode!,
+                              width: 200,
+                              height: 50,
+                              fit: BoxFit.contain,
+                            ),
+                          );
+                        case CheckcodeStatus.error:
+                        case CheckcodeStatus.initial:
+                          return _buildRetryButton(context);
+                      }
+                    },
+                  ),
                   Container(height: 20),
                   TextFormField(
                     controller: _checkcodeController,
@@ -204,6 +224,26 @@ class _LoginPageState extends State<LoginPage> {
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildRetryButton(BuildContext context) {
+    return InkWell(
+      onTap: () => context.read<AuthCubit>().loadCheckcode(),
+      child: Container(
+        width: 200,
+        height: 50,
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey),
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: const Center(
+          child: Icon(
+            Icons.broken_image,
+            color: Colors.grey,
+          ),
+        ),
       ),
     );
   }

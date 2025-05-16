@@ -5,22 +5,25 @@ import 'package:equatable/equatable.dart';
 import 'package:wild/src/rust/api/wenku8.dart';
 
 enum AuthStatus { initial, authenticated, unauthenticated, loading, error }
+enum CheckcodeStatus { initial, loading, success, error }
 
 class AuthState extends Equatable {
   final AuthStatus status;
   final String? username;
   final String? errorMessage;
   final Uint8List? checkcode;
+  final CheckcodeStatus checkcodeStatus;
 
   const AuthState({
     this.status = AuthStatus.initial,
     this.username,
     this.errorMessage,
     this.checkcode,
+    this.checkcodeStatus = CheckcodeStatus.initial,
   });
 
   @override
-  List<Object?> get props => [status, username, errorMessage, checkcode];
+  List<Object?> get props => [status, username, errorMessage, checkcode, checkcodeStatus];
 }
 
 class AuthCubit extends Cubit<AuthState> {
@@ -55,18 +58,27 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   Future loadCheckcode() async {
-    emit(AuthState(status: state.status, checkcode: Uint8List(0)));
+    emit(AuthState(
+      status: state.status,
+      checkcode: Uint8List(0),
+      checkcodeStatus: CheckcodeStatus.loading,
+    ));
     try {
       final checkcode = await downloadCheckcode();
-      emit(AuthState(status: state.status, checkcode: checkcode));
+      emit(AuthState(
+        status: state.status,
+        checkcode: checkcode,
+        checkcodeStatus: CheckcodeStatus.success,
+      ));
       print("checkcode loaded : ${checkcode}");
     } catch (e, s) {
       print("2");
       print("${e}\n${s}");
       emit(
         AuthState(
-          status: AuthStatus.error,
+          status: state.status,
           checkcode: null,
+          checkcodeStatus: CheckcodeStatus.error,
           errorMessage: "无法成功获取验证码，请检查网络",
         ),
       );
