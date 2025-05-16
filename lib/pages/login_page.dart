@@ -79,8 +79,21 @@ class _LoginPageState extends State<LoginPage> {
       body: BlocConsumer<AuthCubit, AuthState>(
         listener: (context, state) {
           if (state.status == AuthStatus.error) {
+            var message = '登录失败，请检查网络连接';
+            var err = state.errorMessage ?? "";
+            if (err.contains("用户不存在") || err.contains("用戶不存在")) {
+              message = "用户不存在";
+            } else if (err.contains("密码错误") || err.contains("密碼錯誤")) {
+              message = "密码错误";
+            } else if (err.contains("校验码错误") || err.contains("校驗碼錯誤")) {
+              message = "验证码错误";
+            } else if (err.contains("用户登录") || err.contains("用戶登錄")) {
+              message = "用户登录";
+            } else if (err.contains("验证码过期") || err.contains("驗證碼過期")) {
+              message = "验证码过期";
+            }
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.errorMessage ?? '登录失败')),
+              SnackBar(content: Text(message)),
             );
           } else if (state.status == AuthStatus.authenticated) {
             Navigator.of(context).pushReplacementNamed('/home');
