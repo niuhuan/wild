@@ -43,29 +43,30 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> _onRegisterPressed() async {
     final result = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('注册提示'),
-        content: const Text('注册需要在网页端进行，是否跳转到注册页面？'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('取消'),
+      builder:
+          (context) => AlertDialog(
+            title: const Text('注册提示'),
+            content: const Text('注册需要在网页端进行，是否跳转到注册页面？'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('取消'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('确定'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('确定'),
-          ),
-        ],
-      ),
     );
 
     if (result == true) {
       final uri = Uri.parse('https://www.wenku8.net/register.php');
       if (!await launchUrl(uri)) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('无法打开注册页面')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('无法打开注册页面')));
         }
       }
     }
@@ -96,6 +97,15 @@ class _LoginPageState extends State<LoginPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  Expanded(flex: 2, child: Container()),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 50.0),
+                    child: Image.asset(
+                      'lib/assets/icon.png',
+                      width: 96,
+                      height: 96,
+                    ),
+                  ),
                   TextFormField(
                     controller: _usernameController,
                     decoration: const InputDecoration(
@@ -163,16 +173,19 @@ class _LoginPageState extends State<LoginPage> {
                       Expanded(
                         flex: 2,
                         child: ElevatedButton(
-                          onPressed: state.status == AuthStatus.loading
-                              ? null
-                              : _onLoginPressed,
-                          child: state.status == AuthStatus.loading
-                              ? const CircularProgressIndicator()
-                              : const Text('登录'),
+                          onPressed:
+                              state.status == AuthStatus.loading
+                                  ? null
+                                  : _onLoginPressed,
+                          child:
+                              state.status == AuthStatus.loading
+                                  ? const CircularProgressIndicator()
+                                  : const Text('登录'),
                         ),
                       ),
                     ],
                   ),
+                  Expanded(flex: 5, child: Container()),
                 ],
               ),
             ),
