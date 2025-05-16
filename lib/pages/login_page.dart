@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:wild/pages/auth_cubit.dart';
 
 class LoginPage extends StatefulWidget {
@@ -36,6 +37,37 @@ class _LoginPageState extends State<LoginPage> {
         _passwordController.text,
         _checkcodeController.text,
       );
+    }
+  }
+
+  Future<void> _onRegisterPressed() async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('注册提示'),
+        content: const Text('注册需要在网页端进行，是否跳转到注册页面？'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('确定'),
+          ),
+        ],
+      ),
+    );
+
+    if (result == true) {
+      final uri = Uri.parse('https://www.wenku8.net/register.php');
+      if (!await launchUrl(uri)) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('无法打开注册页面')),
+          );
+        }
+      }
     }
   }
 
@@ -118,18 +150,28 @@ class _LoginPageState extends State<LoginPage> {
                     },
                   ),
                   const SizedBox(height: 24),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed:
-                          state.status == AuthStatus.loading
+                  Row(
+                    children: [
+                      Expanded(
+                        flex: 1,
+                        child: OutlinedButton(
+                          onPressed: _onRegisterPressed,
+                          child: const Text('注册'),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        flex: 2,
+                        child: ElevatedButton(
+                          onPressed: state.status == AuthStatus.loading
                               ? null
                               : _onLoginPressed,
-                      child:
-                          state.status == AuthStatus.loading
+                          child: state.status == AuthStatus.loading
                               ? const CircularProgressIndicator()
                               : const Text('登录'),
-                    ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
