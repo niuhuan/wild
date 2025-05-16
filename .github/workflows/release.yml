@@ -159,9 +159,7 @@ jobs:
           wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
           chmod +x appimagetool-x86_64.AppImage
           ./appimagetool-x86_64.AppImage build/linux/x64/release/bundle/
-          ls
-          find build
-          mv *.AppImage wild-${{ needs.check-version.outputs.version }}-linux-x86_64.AppImage
+          mv wild-x86_64.AppImage wild-${{ needs.check-version.outputs.version }}-linux-x86_64.AppImage
 
       - name: Build macOS
         if: matrix.platform == 'macos'
