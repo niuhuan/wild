@@ -128,6 +128,12 @@ pub async fn update_history(
         author,
     )
     .await?;
+    ReadingHistoryEntity::delete_old_records().await?;
+    Ok(())
+}
+
+pub async fn delete_all_history() -> anyhow::Result<()> {
+    ReadingHistoryEntity::delete_all().await?;
     Ok(())
 }
 

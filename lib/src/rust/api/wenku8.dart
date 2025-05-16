@@ -69,6 +69,9 @@ Future<void> updateHistory({
   author: author,
 );
 
+Future<void> deleteAllHistory() =>
+    RustLib.instance.api.crateApiWenku8DeleteAllHistory();
+
 Future<ReadingHistory?> novelHistoryById({required String novelId}) =>
     RustLib.instance.api.crateApiWenku8NovelHistoryById(novelId: novelId);
 

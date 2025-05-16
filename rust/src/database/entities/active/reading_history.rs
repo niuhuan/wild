@@ -307,4 +307,36 @@ impl Entity {
         }
         Ok(())
     }
+
+    /// 删除100条以后的阅读历史记录
+    pub async fn delete_old_records() -> crate::Result<()> {
+        let db = super::get_connect().await;
+        // 先获取最新的100条记录
+        let records = Entity::find()
+            .order_by(Column::LastReadAt, Order::Desc)
+            .limit(100)
+            .all(db.deref())
+            .await?;
+
+        if records.len() < 100 {
+            return Ok(());
+        }
+
+        // 获取第100条记录的时间
+        let cutoff_time = records.last().unwrap().last_read_at;
+
+        // 删除这个时间点之前的记录
+        Entity::delete_many()
+            .filter(Column::LastReadAt.lt(cutoff_time))
+            .exec(db.deref())
+            .await?;
+
+        Ok(())
+    }
+
+    pub async fn delete_all() -> crate::Result<()> {
+        let db = super::get_connect().await;
+        Entity::delete_many().exec(db.deref()).await?;
+        Ok(())
+    }
 }
