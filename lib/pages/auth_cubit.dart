@@ -67,7 +67,7 @@ class AuthCubit extends Cubit<AuthState> {
         AuthState(
           status: AuthStatus.error,
           checkcode: null,
-          errorMessage: e.toString(),
+          errorMessage: "无法成功获取验证码，请检查网络",
         ),
       );
     }
