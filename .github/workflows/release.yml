@@ -156,9 +156,6 @@ jobs:
           mkdir -p linux/appimage
           mv build/linux/x64/release/bundle/wild build/linux/x64/release/bundle/AppRun}
           cp -r linux/appimage/* build/linux/x64/release/bundle/
-          VERSION=${{ needs.check-version.outputs.version }}
-          VERSION=${VERSION:1}
-          sed -i "s|^Version=.*|Version=${VERSION}|" build/linux/x64/release/bundle/AppRun.desktop
           wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
           chmod +x appimagetool-x86_64.AppImage
           ./appimagetool-x86_64.AppImage build/linux/x64/release/bundle/
