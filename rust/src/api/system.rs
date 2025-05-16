@@ -26,8 +26,8 @@ pub fn desktop_root() -> Result<String> {
             home.as_str(),
             "Library",
             "Application Support",
-            "niuhuan",
-            "daisy",
+            "opensource",
+            "wild",
         ]))
     }
     #[cfg(target_os = "linux")]
@@ -38,7 +38,7 @@ pub fn desktop_root() -> Result<String> {
             .to_str()
             .with_context(|| "error")?
             .to_string();
-        Ok(join_paths(vec![home.as_str(), ".niuhuan", "daisy"]))
+        Ok(join_paths(vec![home.as_str(), ".opensource", "wild"]))
     }
     #[cfg(not(any(target_os = "linux", target_os = "windows", target_os = "macos")))]
     panic!("未支持的平台")
