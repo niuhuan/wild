@@ -154,7 +154,7 @@ jobs:
         run: |
           flutter build linux --release
           mkdir -p linux/appimage
-          mv build/linux/x64/release/bundle/{wild, AppRun}
+          mv build/linux/x64/release/bundle/wild build/linux/x64/release/bundle/AppRun
           cp -r linux/appimage/* build/linux/x64/release/bundle/
           sed -i 's|^Version=.*|Version=${{ needs.check-version.outputs.version }}|' build/linux/x64/release/bundle/AppRun.desktop
           wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
