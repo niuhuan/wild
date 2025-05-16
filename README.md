@@ -16,12 +16,12 @@
 
 ## 截图
 
-<img src="images/IMG_01.PNG" max-width="100%" width="350" />
-<img src="images/IMG_02.PNG" max-width="100%" width="350" />
+<img src="images/IMG_01.PNG" max-width="100%" width="300" />
+<img src="images/IMG_02.PNG" max-width="100%" width="300" />
 
 
-<img src="images/IMG_03.PNG" max-width="100%" width="350" />
-<img src="images/IMG_04.PNG" max-width="100%" width="350" />
+<img src="images/IMG_03.PNG" max-width="100%" width="300" />
+<img src="images/IMG_04.PNG" max-width="100%" width="300" />
 
 
 ## 功能特性
