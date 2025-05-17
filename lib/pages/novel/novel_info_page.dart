@@ -11,12 +11,10 @@ import 'novel_info_cubit.dart';
 
 class NovelInfoPage extends StatelessWidget {
   final String novelId;
-  final bool shouldContinue;
 
   const NovelInfoPage({
     super.key,
     required this.novelId,
-    this.shouldContinue = false,
   });
 
   @override
@@ -26,79 +24,58 @@ class NovelInfoPage extends StatelessWidget {
 
     return BlocProvider(
       create: (context) => NovelInfoCubit(novelId)..load(),
-      child: BlocListener<NovelInfoCubit, NovelInfoState>(
-        listener: (context, state) {
-          if (state is NovelInfoLoaded && shouldContinue) {
-            // 如果有阅读历史，则跳转到阅读器
-            if (state.readingHistory != null) {
-              Navigator.pushReplacementNamed(
-                context,
-                '/novel/reader',
-                arguments: {
-                  'novelId': novelId,
-                  'chapterId': state.readingHistory!.chapterId,
-                  'title': state.readingHistory!.chapterTitle,
-                  'volumes': state.volumes,
-                  'novelInfo': state.novelInfo,
-                  'initialPage': state.readingHistory!.progressPage,
-                },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('小说详情'),
+          actions: [
+            BlocBuilder<BookshelfCubit, BookshelfState>(
+              builder: (context, state) {
+                if (state.status == BookshelfStatus.loading) {
+                  return const Center(
+                    child: SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  );
+                }
+                final isInBookshelf = state.isBookInBookshelf(novelId);
+                return IconButton(
+                  icon: Icon(
+                    isInBookshelf ? Icons.bookmark : Icons.bookmark_border,
+                    color:
+                        isInBookshelf
+                            ? Theme.of(context).colorScheme.primary
+                            : null,
+                  ),
+                  onPressed: () {
+                    if (isInBookshelf) {
+                      bookshelfCubit.removeFromBookshelf(novelId);
+                    } else {
+                      bookshelfCubit.addToBookshelf(novelId);
+                    }
+                  },
+                );
+              },
+            ),
+          ],
+        ),
+        body: BlocBuilder<NovelInfoCubit, NovelInfoState>(
+          builder: (context, state) {
+            if (state is NovelInfoLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (state is NovelInfoError) {
+              return Center(child: Text('加载失败: ${state.message}'));
+            }
+            if (state is NovelInfoLoaded) {
+              return _NovelInfoContent(
+                novelInfo: state.novelInfo,
+                volumes: state.volumes,
               );
             }
-          }
-        },
-        child: Scaffold(
-          appBar: AppBar(
-            title: const Text('小说详情'),
-            actions: [
-              BlocBuilder<BookshelfCubit, BookshelfState>(
-                builder: (context, state) {
-                  if (state.status == BookshelfStatus.loading) {
-                    return const Center(
-                      child: SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
-                    );
-                  }
-                  final isInBookshelf = state.isBookInBookshelf(novelId);
-                  return IconButton(
-                    icon: Icon(
-                      isInBookshelf ? Icons.bookmark : Icons.bookmark_border,
-                      color:
-                          isInBookshelf
-                              ? Theme.of(context).colorScheme.primary
-                              : null,
-                    ),
-                    onPressed: () {
-                      if (isInBookshelf) {
-                        bookshelfCubit.removeFromBookshelf(novelId);
-                      } else {
-                        bookshelfCubit.addToBookshelf(novelId);
-                      }
-                    },
-                  );
-                },
-              ),
-            ],
-          ),
-          body: BlocBuilder<NovelInfoCubit, NovelInfoState>(
-            builder: (context, state) {
-              if (state is NovelInfoLoading) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              if (state is NovelInfoError) {
-                return Center(child: Text('加载失败: ${state.message}'));
-              }
-              if (state is NovelInfoLoaded) {
-                return _NovelInfoContent(
-                  novelInfo: state.novelInfo,
-                  volumes: state.volumes,
-                );
-              }
-              return const SizedBox.shrink();
-            },
-          ),
+            return const SizedBox.shrink();
+          },
         ),
       ),
     );

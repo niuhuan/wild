@@ -137,16 +137,41 @@ class _HistoryItem extends StatelessWidget {
                     const SizedBox(height: 8),
                     InkWell(
                       onTap: () async {
-                        await Navigator.pushNamed(
-                          context,
-                          '/novel/info',
-                          arguments: {
-                            'novelId': history.novelId,
-                            'continue': true,
-                          },
-                        );
-                        // 返回后更新历史记录
-                        context.read<HistoryCubit>().load();
+                        try {
+                          // 获取小说信息和章节信息
+                          final novelInfo = await w8.novelInfo(aid: history.novelId);
+                          final volumes = await w8.novelReader(aid: history.novelId);
+                          
+                          if (!context.mounted) return;
+                          
+                          await Navigator.pushNamed(
+                            context,
+                            '/novel/reader',
+                            arguments: {
+                              'novelId': history.novelId,
+                              'chapterId': history.chapterId,
+                              'title': history.chapterTitle,
+                              'volumes': volumes,
+                              'novelInfo': novelInfo,
+                              'initialPage': history.progressPage,
+                            },
+                          );
+                          // 返回后更新历史记录
+                          if (context.mounted) {
+                            context.read<HistoryCubit>().load();
+                          }
+                        } catch (e) {
+                          if (!context.mounted) return;
+                          // 显示错误提示
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('加载失败: $e'),
+                              duration: const Duration(seconds: 2),
+                              behavior: SnackBarBehavior.floating,
+                              margin: const EdgeInsets.only(bottom: 16),
+                            ),
+                          );
+                        }
                       },
                       child: Container(
                         width: double.infinity,

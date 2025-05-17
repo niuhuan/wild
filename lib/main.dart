@@ -92,7 +92,6 @@ class YourApp extends StatelessWidget {
               if (args is Map<String, dynamic>) {
                 return NovelInfoPage(
                   novelId: args['novelId'] as String,
-                  shouldContinue: args['continue'] as bool? ?? false,
                 );
               }
               return NovelInfoPage(novelId: args as String);
