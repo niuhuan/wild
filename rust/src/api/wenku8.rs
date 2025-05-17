@@ -1,4 +1,4 @@
-use crate::database::entities::{CookieEntity, ReadingHistoryEntity};
+use crate::database::entities::{CookieEntity, ReadingHistoryEntity, SignLogEntity};
 use crate::wenku8::{
     Bookcase, BookcaseItem, BookshelfItem, HomeBlock, NovelCover, NovelInfo, PageStats, TagGroup,
     UserDetail, Volume,
@@ -319,4 +319,12 @@ pub async fn search(
         max_page: data.max_page,
         records: data.records,
     })
+}
+
+pub async fn auto_sign() -> anyhow::Result<()> {
+    if !SignLogEntity::is_signed_today().await? {
+        CLIENT.sign().await?;
+        SignLogEntity::sign().await?
+    }
+    Ok(())
 }

@@ -7,12 +7,14 @@ pub mod chapter_cache;
 pub mod image_cache;
 pub mod reading_history;
 pub mod search_history;
+pub mod sign_log;
 pub mod web_cache;
 
 pub use chapter_cache::*;
 pub use image_cache::*;
 pub use reading_history::*;
 pub use search_history::*;
+pub use sign_log::*;
 pub use web_cache::*;
 
 async fn get_connect() -> tokio::sync::MutexGuard<'static, DatabaseConnection> {
@@ -65,6 +67,9 @@ impl MigratorTrait for Migrator {
             ),
             Box::new(
                 search_history::migrations::m000002_idx_search_history_time::Migration,
+            ),
+            Box::new(
+                sign_log::migrations::m000001_create_table_sign_log::Migration,
             ),
         ]
     }

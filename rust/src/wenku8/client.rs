@@ -1078,7 +1078,10 @@ impl Wenku8Client {
             .send()
             .await?;
         if !response.status().is_success() {
-            return Err(anyhow!("Failed to get search result: {}", response.status()));
+            return Err(anyhow!(
+                "Failed to get search result: {}",
+                response.status()
+            ));
         }
 
         let text = response.bytes().await?;
@@ -1088,6 +1091,30 @@ impl Wenku8Client {
 
     pub(crate) fn parse_search(text: &str) -> Result<PageStats<NovelCover>> {
         Self::parse_tag_page(text)
+    }
+
+    pub async fn sign(&self) -> Result<String> {
+        let url = format!("{APP_HOST}/android.php");
+        let params = [
+            (
+                "request",
+                base64::prelude::BASE64_STANDARD.encode(format!("action=block&do=sign").as_bytes()),
+            ),
+            ("appver", "1.18".to_string()),
+            ("timetoken", chrono::Utc::now().timestamp().to_string()),
+        ];
+        let response = self
+            .client
+            .post(url)
+            .header("User-Agent", USER_AGENT)
+            .form(&params)
+            .send()
+            .await?;
+        if !response.status().is_success() {
+            return Err(anyhow!("Failed to get novel reader: {}", response.status()));
+        }
+        let text = response.text().await?;
+        Ok(text)
     }
 }
 

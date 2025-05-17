@@ -23,3 +23,6 @@ pub use active::web_cache::Model as WebCache;
 pub use active::search_history::Entity as SearchHistoryEntity;
 pub use active::search_history::Model as SearchHistory;
 
+pub use active::sign_log::Model as SignLog;
+pub use active::sign_log::Entity as SignLogEntity;
+

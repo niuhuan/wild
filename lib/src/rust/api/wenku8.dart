@@ -143,6 +143,8 @@ Future<PageStatsNovelCover> search({
   page: page,
 );
 
+Future<void> autoSign() => RustLib.instance.api.crateApiWenku8AutoSign();
+
 class PageStatsNovelCover {
   final int currentPage;
   final int maxPage;
