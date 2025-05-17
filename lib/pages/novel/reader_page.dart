@@ -97,7 +97,9 @@ class _ReaderViewState extends State<_ReaderView> {
   @override
   void initState() {
     super.initState();
-    _pageController = PageController();
+    _pageController = PageController(
+      initialPage: widget.state.currentPageIndex,
+    );
   }
 
   @override
