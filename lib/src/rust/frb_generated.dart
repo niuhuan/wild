@@ -176,6 +176,7 @@ abstract class RustLibApi extends BaseApi {
     required String chapterId,
     required String chapterTitle,
     required int progress,
+    required int progressPage,
     required String cover,
     required String author,
   });
@@ -1096,6 +1097,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     required String chapterId,
     required String chapterTitle,
     required int progress,
+    required int progressPage,
     required String cover,
     required String author,
   }) {
@@ -1110,6 +1112,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           sse_encode_String(chapterId, serializer);
           sse_encode_String(chapterTitle, serializer);
           sse_encode_i_32(progress, serializer);
+          sse_encode_i_32(progressPage, serializer);
           sse_encode_String(cover, serializer);
           sse_encode_String(author, serializer);
           pdeCallFfi(
@@ -1132,6 +1135,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           chapterId,
           chapterTitle,
           progress,
+          progressPage,
           cover,
           author,
         ],
@@ -1151,6 +1155,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           "chapterId",
           "chapterTitle",
           "progress",
+          "progressPage",
           "cover",
           "author",
         ],

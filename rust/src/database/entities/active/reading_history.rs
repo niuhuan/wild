@@ -15,6 +15,7 @@ pub struct Model {
     pub chapter_title: String,
     pub last_read_at: i64,
     pub progress: i32,
+    pub progress_page: i32,
     pub cover: String,
     pub author: String,
 }
@@ -248,6 +249,60 @@ pub(super) mod migrations {
             }
         }
     }
+
+    pub(crate) mod m000004_add_progress_page {
+        use sea_orm::sea_query::{Index, Table};
+        use sea_orm::{ColumnTrait, ConnectionTrait, EntityName, IdenStatic, Schema};
+        use sea_orm_migration::{MigrationName, MigrationTrait, SchemaManager};
+
+        pub struct Migration;
+
+        impl MigrationName for Migration {
+            fn name(&self) -> &str {
+                "m000004_add_progress_page"
+            }
+        }
+
+        #[async_trait::async_trait]
+        impl MigrationTrait for Migration {
+            async fn up(
+                &self,
+                manager: &SchemaManager,
+            ) -> std::result::Result<(), sea_orm_migration::DbErr> {
+                let db = manager.get_connection();
+                let backend = db.get_database_backend();
+                let schema = Schema::new(backend);
+                if !manager
+                    .has_column(
+                        super::super::Entity.table_name(),
+                        super::super::Column::ProgressPage.as_str(),
+                    )
+                    .await?
+                {
+                    manager
+                        .alter_table(
+                            Table::alter()
+                                .table(super::super::Entity.table_ref())
+                                .add_column(schema.get_column_def::<super::super::Entity>(
+                                    super::super::Column::ProgressPage,
+                                ).default(
+                                    sea_orm::Value::Int(Some(0)),
+                                ))
+                                .to_owned(),
+                        )
+                        .await?;
+                }
+                Ok(())
+            }
+
+            async fn down(
+                &self,
+                manager: &SchemaManager,
+            ) -> std::result::Result<(), sea_orm_migration::DbErr> {
+                Ok(())
+            }
+        }
+    }
 }
 
 impl Entity {
@@ -281,6 +336,7 @@ impl Entity {
         chapter_id: &str,
         chapter_title: &str,
         progress: i32,
+        progress_page: i32,
         cover: &str,
         author: &str,
     ) -> crate::Result<()> {
@@ -295,6 +351,7 @@ impl Entity {
             chapter_title: Set(chapter_title.to_string()),
             last_read_at: Set(time),
             progress: Set(progress),
+            progress_page: Set(progress_page),
             cover: Set(cover.to_string()),
             author: Set(author.to_string()),
         };

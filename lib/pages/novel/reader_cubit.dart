@@ -74,6 +74,7 @@ class ReaderCubit extends Cubit<ReaderState> {
         chapterId: targetCid,
         chapterTitle: chapterTitle,
         progress: 0,
+        progressPage: 0,
         cover: novelInfo.imgUrl,
         author: novelInfo.author,
       );
@@ -188,6 +189,7 @@ class ReaderCubit extends Cubit<ReaderState> {
       chapterId: chapter.cid,
       chapterTitle: chapter.title,
       progress: 0,
+      progressPage: 0,
       cover: novelInfo.imgUrl,
       author: novelInfo.author,
     );
@@ -226,6 +228,7 @@ class ReaderCubit extends Cubit<ReaderState> {
       chapterId: chapter.cid,
       chapterTitle: chapter.title,
       progress: 0,
+      progressPage: 0,
       cover: novelInfo.imgUrl,
       author: novelInfo.author,
     );

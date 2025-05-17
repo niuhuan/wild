@@ -55,6 +55,7 @@ Future<void> updateHistory({
   required String chapterId,
   required String chapterTitle,
   required int progress,
+  required int progressPage,
   required String cover,
   required String author,
 }) => RustLib.instance.api.crateApiWenku8UpdateHistory(
@@ -65,6 +66,7 @@ Future<void> updateHistory({
   chapterId: chapterId,
   chapterTitle: chapterTitle,
   progress: progress,
+  progressPage: progressPage,
   cover: cover,
   author: author,
 );

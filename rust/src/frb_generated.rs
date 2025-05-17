@@ -1156,6 +1156,7 @@ fn wire__crate__api__wenku8__update_history_impl(
             let api_chapter_id = <String>::sse_decode(&mut deserializer);
             let api_chapter_title = <String>::sse_decode(&mut deserializer);
             let api_progress = <i32>::sse_decode(&mut deserializer);
+            let api_progress_page = <i32>::sse_decode(&mut deserializer);
             let api_cover = <String>::sse_decode(&mut deserializer);
             let api_author = <String>::sse_decode(&mut deserializer);
             deserializer.end();
@@ -1170,6 +1171,7 @@ fn wire__crate__api__wenku8__update_history_impl(
                             &api_chapter_id,
                             &api_chapter_title,
                             api_progress,
+                            api_progress_page,
                             &api_cover,
                             &api_author,
                         )

@@ -71,6 +71,9 @@ impl MigratorTrait for Migrator {
             Box::new(
                 sign_log::migrations::m000001_create_table_sign_log::Migration,
             ),
+            Box::new(
+                reading_history::migrations::m000004_add_progress_page::Migration,
+            ),
         ]
     }
 }

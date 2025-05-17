@@ -113,6 +113,7 @@ pub async fn update_history(
     chapter_id: &str,
     chapter_title: &str,
     progress: i32,
+    progress_page: i32,
     cover: &str,
     author: &str,
 ) -> anyhow::Result<()> {
@@ -124,6 +125,7 @@ pub async fn update_history(
         chapter_id,
         chapter_title,
         progress,
+        progress_page,
         cover,
         author,
     )
