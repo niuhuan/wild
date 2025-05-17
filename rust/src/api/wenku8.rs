@@ -148,6 +148,7 @@ pub struct ReadingHistory {
     pub chapter_title: String,
     pub last_read_at: i64,
     pub progress: i32, // 阅读进度 0-1
+    pub progress_page: i32, // 阅读进度页码
     pub cover: String,
     pub author: String,
 }
@@ -164,6 +165,7 @@ pub async fn novel_history_by_id(novel_id: &str) -> anyhow::Result<Option<Readin
             chapter_title: history.chapter_title,
             last_read_at: history.last_read_at,
             progress: history.progress,
+            progress_page: history.progress_page,
             cover: history.cover,
             author: history.author,
         }))
@@ -182,6 +184,7 @@ pub async fn list_reading_history(offset: i32, limit: i32) -> crate::Result<Vec<
             chapter_title: history.chapter_title,
             last_read_at: history.last_read_at,
             progress: history.progress,
+            progress_page: history.progress_page,
             cover: history.cover,
             author: history.author,
         })

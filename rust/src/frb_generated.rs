@@ -1665,6 +1665,7 @@ impl SseDecode for crate::api::wenku8::ReadingHistory {
         let mut var_chapterTitle = <String>::sse_decode(deserializer);
         let mut var_lastReadAt = <i64>::sse_decode(deserializer);
         let mut var_progress = <i32>::sse_decode(deserializer);
+        let mut var_progressPage = <i32>::sse_decode(deserializer);
         let mut var_cover = <String>::sse_decode(deserializer);
         let mut var_author = <String>::sse_decode(deserializer);
         return crate::api::wenku8::ReadingHistory {
@@ -1676,6 +1677,7 @@ impl SseDecode for crate::api::wenku8::ReadingHistory {
             chapter_title: var_chapterTitle,
             last_read_at: var_lastReadAt,
             progress: var_progress,
+            progress_page: var_progressPage,
             cover: var_cover,
             author: var_author,
         };
@@ -2071,6 +2073,7 @@ impl flutter_rust_bridge::IntoDart for crate::api::wenku8::ReadingHistory {
             self.chapter_title.into_into_dart().into_dart(),
             self.last_read_at.into_into_dart().into_dart(),
             self.progress.into_into_dart().into_dart(),
+            self.progress_page.into_into_dart().into_dart(),
             self.cover.into_into_dart().into_dart(),
             self.author.into_into_dart().into_dart(),
         ]
@@ -2461,6 +2464,7 @@ impl SseEncode for crate::api::wenku8::ReadingHistory {
         <String>::sse_encode(self.chapter_title, serializer);
         <i64>::sse_encode(self.last_read_at, serializer);
         <i32>::sse_encode(self.progress, serializer);
+        <i32>::sse_encode(self.progress_page, serializer);
         <String>::sse_encode(self.cover, serializer);
         <String>::sse_encode(self.author, serializer);
     }
