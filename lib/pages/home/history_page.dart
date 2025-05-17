@@ -86,6 +86,7 @@ class _HistoryItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final dateFormat = DateFormat('yyyy-MM-dd HH:mm');
     final lastReadAt = DateTime.fromMillisecondsSinceEpoch(history.lastReadAt);
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -98,7 +99,7 @@ class _HistoryItem extends StatelessWidget {
           );
         },
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(12),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -109,7 +110,7 @@ class _HistoryItem extends StatelessWidget {
                 fit: BoxFit.cover,
                 borderRadius: BorderRadius.circular(4),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -127,39 +128,58 @@ class _HistoryItem extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '最近阅读：${history.chapterTitle}',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    // const SizedBox(height: 4),
-                    // Text(
-                    //   '阅读进度：${history.progress}%',
-                    //   style: Theme.of(context).textTheme.bodyMedium,
-                    // ),
-                    const SizedBox(height: 4),
-                    Text(
                       '最后阅读：${dateFormat.format(lastReadAt)}',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    InkWell(
+                      onTap: () {
+                        Navigator.pushNamed(
+                          context,
+                          '/novel/info',
+                          arguments: {
+                            'novelId': history.novelId,
+                            'chapterId': history.chapterId,
+                            'title': history.chapterTitle,
+                          },
+                        );
+                      },
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: colorScheme.primaryContainer.withOpacity(0.3),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: RichText(
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          text: TextSpan(
+                            children: [
+                              WidgetSpan(
+                                alignment: PlaceholderAlignment.middle,
+                                child: Icon(
+                                  Icons.book,
+                                  size: 16,
+                                  color: colorScheme.primary,
+                                ),
+                              ),
+                              const TextSpan(text: ' '),
+                              TextSpan(
+                                text: '继续阅读 - ${history.chapterTitle}',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: colorScheme.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
                   ],
                 ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.play_arrow),
-                onPressed: () {
-                  Navigator.pushNamed(
-                    context,
-                    '/novel/info',
-                    arguments: {
-                      'novelId': history.novelId,
-                      'chapterId': history.chapterId,
-                      'title': history.chapterTitle,
-                    },
-                  );
-                },
               ),
             ],
           ),

@@ -33,7 +33,7 @@ class NovelInfoPage extends StatelessWidget {
           if (state is NovelInfoLoaded) {
             // 如果有初始章节ID（从历史页面跳转过来）且有阅读历史，则跳转到阅读器
             if (initialChapterId != null && state.readingHistory != null) {
-              Navigator.pushReplacementNamed(
+              Navigator.pushNamed(
                 context,
                 '/novel/reader',
                 arguments: {
@@ -110,6 +110,18 @@ class _NovelInfoContent extends StatelessWidget {
   const _NovelInfoContent({required this.novelInfo, required this.volumes});
 
   Future<void> _navigateToReader(BuildContext context, String novelId, String chapterId, String title) async {
+    final currentState = context.read<NovelInfoCubit>().state;
+    if (currentState is! NovelInfoLoaded) return;
+
+    // 获取阅读历史中的页码
+    int? initialPage;
+    if (currentState.readingHistory != null && 
+        currentState.readingHistory!.chapterId == chapterId) {
+      initialPage = currentState.readingHistory!.progressPage;
+    }
+
+    print('Navigating to reader with initialPage: $initialPage');
+
     await Navigator.pushNamed(
       context,
       '/novel/reader',
@@ -119,6 +131,7 @@ class _NovelInfoContent extends StatelessWidget {
         'title': title,
         'volumes': volumes,
         'novelInfo': novelInfo,
+        'initialPage': initialPage,
       },
     );
     // 返回后刷新数据

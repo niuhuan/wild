@@ -16,6 +16,7 @@ class ReaderPage extends StatelessWidget {
   final String initialTitle;
   final List<Volume> volumes;
   final NovelInfo novelInfo;
+  final int? initialPage;
 
   const ReaderPage({
     super.key,
@@ -24,25 +25,26 @@ class ReaderPage extends StatelessWidget {
     required this.initialTitle,
     required this.volumes,
     required this.novelInfo,
+    this.initialPage,
   });
 
   @override
   Widget build(BuildContext context) {
+    print('ReaderPage building with initialPage: $initialPage');
     final fontSizeCubit = context.read<FontSizeCubit>();
     final paragraphSpacingCubit = context.read<ParagraphSpacingCubit>();
     final lineHeightCubit = context.read<LineHeightCubit>();
 
     return BlocProvider(
-      create:
-          (context) => ReaderCubit(
-            novelInfo: novelInfo,
-            initialAid: aid,
-            initialCid: cid,
-            initialVolumes: volumes,
-            fontSizeCubit: fontSizeCubit,
-            paragraphSpacingCubit: paragraphSpacingCubit,
-            lineHeightCubit: lineHeightCubit,
-          )..loadChapter(),
+      create: (context) => ReaderCubit(
+        novelInfo: novelInfo,
+        initialAid: aid,
+        initialCid: cid,
+        initialVolumes: volumes,
+        fontSizeCubit: fontSizeCubit,
+        paragraphSpacingCubit: paragraphSpacingCubit,
+        lineHeightCubit: lineHeightCubit,
+      )..loadChapter(initialPage: initialPage),
       child: BlocBuilder<ReaderCubit, ReaderState>(
         builder: (context, state) {
           if (state is ReaderLoading) {

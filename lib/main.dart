@@ -117,6 +117,7 @@ class YourApp extends StatelessWidget {
                   initialTitle: args['title'] as String,
                   volumes: (args['volumes'] as List).cast<Volume>(),
                   novelInfo: args['novelInfo'] as NovelInfo,
+                  initialPage: args['initialPage'] as int?,
                 ),
               );
             },

@@ -49,7 +49,7 @@ class ReaderCubit extends Cubit<ReaderState> {
     throw Exception('Volume not found');
   }
 
-  Future<void> loadChapter({String? aid, String? cid}) async {
+  Future<void> loadChapter({String? aid, String? cid, int? initialPage}) async {
     try {
       emit(ReaderLoading(super.state.showControls));
       initialAid = aid ?? initialAid;
@@ -66,6 +66,26 @@ class ReaderCubit extends Cubit<ReaderState> {
       final paragraphSpacing = paragraphSpacingCubit.state;
       final lineHeight = lineHeightCubit.state;
 
+      // 分页内容
+      final pages = _paginateContent(
+        targetAid,
+        targetCid,
+        chapterTitle,
+        content,
+        fontSize,
+        paragraphSpacing,
+        lineHeight,
+      );
+
+      // 验证并设置初始页码
+      int pageIndex = 0;
+      if (initialPage != null) {
+        if (initialPage >= 0 && initialPage < pages.length) {
+          pageIndex = initialPage;
+        }
+      }
+
+      // 更新阅读历史
       await updateHistory(
         novelId: targetAid,
         novelName: novelInfo.title,
@@ -74,7 +94,7 @@ class ReaderCubit extends Cubit<ReaderState> {
         chapterId: targetCid,
         chapterTitle: chapterTitle,
         progress: 0,
-        progressPage: 0,
+        progressPage: pageIndex,
         cover: novelInfo.imgUrl,
         author: novelInfo.author,
       );
@@ -85,16 +105,8 @@ class ReaderCubit extends Cubit<ReaderState> {
           cid: targetCid,
           title: chapterTitle,
           volumes: initialVolumes,
-          pages: _paginateContent(
-            targetAid,
-            targetCid,
-            chapterTitle,
-            content,
-            fontSize,
-            paragraphSpacing,
-            lineHeight,
-          ),
-          currentPageIndex: 0,
+          pages: pages,
+          currentPageIndex: pageIndex,
           showControls: super.state.showControls,
         ),
       );
@@ -153,7 +165,22 @@ class ReaderCubit extends Cubit<ReaderState> {
 
   void onPageChanged(int index) {
     if (state is ReaderLoaded) {
-      emit((state as ReaderLoaded).copyWith(currentPageIndex: index));
+      final currentState = state as ReaderLoaded;
+      emit(currentState.copyWith(currentPageIndex: index));
+      
+      // 更新阅读历史中的页码
+      updateHistory(
+        novelId: currentState.aid,
+        novelName: novelInfo.title,
+        volumeId: _findVolume(currentState.aid, currentState.cid).id,
+        volumeName: _findVolume(currentState.aid, currentState.cid).title,
+        chapterId: currentState.cid,
+        chapterTitle: currentState.title,
+        progress: 0,
+        progressPage: index,
+        cover: novelInfo.imgUrl,
+        author: novelInfo.author,
+      );
     }
   }
 
@@ -168,31 +195,17 @@ class ReaderCubit extends Cubit<ReaderState> {
     if (currentChapterIndex > 0) {
       // 同一卷的上一章
       volume = initialVolumes[currentVolumeIndex];
-       chapter =
-          initialVolumes[currentVolumeIndex].chapters[currentChapterIndex - 1];
-      await loadChapter(aid: chapter.aid, cid: chapter.cid);
+      chapter = initialVolumes[currentVolumeIndex].chapters[currentChapterIndex - 1];
+      await loadChapter(aid: chapter.aid, cid: chapter.cid, initialPage: 0);
     } else if (currentVolumeIndex > 0) {
       // 上一卷的最后一章
       volume = initialVolumes[currentVolumeIndex - 1];
       chapter = volume.chapters.last;
-      await loadChapter(aid: chapter.aid, cid: chapter.cid);
+      await loadChapter(aid: chapter.aid, cid: chapter.cid, initialPage: 0);
     } else {
       // 已经是第一章
       return;
     }
-
-    await updateHistory(
-      novelId: chapter.aid,
-      novelName: novelInfo.title,
-      volumeId: volume.id,
-      volumeName: volume.title,
-      chapterId: chapter.cid,
-      chapterTitle: chapter.title,
-      progress: 0,
-      progressPage: 0,
-      cover: novelInfo.imgUrl,
-      author: novelInfo.author,
-    );
   }
 
   void goToNextChapter() async {
@@ -203,35 +216,20 @@ class ReaderCubit extends Cubit<ReaderState> {
 
     Volume volume;
     Chapter chapter;
-    if (currentChapterIndex <
-        initialVolumes[currentVolumeIndex].chapters.length - 1) {
+    if (currentChapterIndex < initialVolumes[currentVolumeIndex].chapters.length - 1) {
       // 同一卷的下一章
       volume = initialVolumes[currentVolumeIndex];
-      chapter =
-          initialVolumes[currentVolumeIndex].chapters[currentChapterIndex + 1];
-      await loadChapter(aid: chapter.aid, cid: chapter.cid);
+      chapter = initialVolumes[currentVolumeIndex].chapters[currentChapterIndex + 1];
+      await loadChapter(aid: chapter.aid, cid: chapter.cid, initialPage: 0);
     } else if (currentVolumeIndex < initialVolumes.length - 1) {
       // 下一卷的第一章
       volume = initialVolumes[currentVolumeIndex + 1];
       chapter = volume.chapters.first;
-      await loadChapter(aid: chapter.aid, cid: chapter.cid);
+      await loadChapter(aid: chapter.aid, cid: chapter.cid, initialPage: 0);
     } else {
       // 已经是最后一章
       return;
     }
-
-    await updateHistory(
-      novelId: chapter.aid,
-      novelName: novelInfo.title,
-      volumeId: volume.id,
-      volumeName: volume.title,
-      chapterId: chapter.cid,
-      chapterTitle: chapter.title,
-      progress: 0,
-      progressPage: 0,
-      cover: novelInfo.imgUrl,
-      author: novelInfo.author,
-    );
   }
 
   bool _canGoPrevious() {
