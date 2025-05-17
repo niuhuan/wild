@@ -1498,8 +1498,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   ReadingHistory dco_decode_reading_history(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 10)
-      throw Exception('unexpected arr length: expect 10 but see ${arr.length}');
+    if (arr.length != 11)
+      throw Exception('unexpected arr length: expect 11 but see ${arr.length}');
     return ReadingHistory(
       novelId: dco_decode_String(arr[0]),
       novelName: dco_decode_String(arr[1]),
@@ -1509,8 +1509,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       chapterTitle: dco_decode_String(arr[5]),
       lastReadAt: dco_decode_i_64(arr[6]),
       progress: dco_decode_i_32(arr[7]),
-      cover: dco_decode_String(arr[8]),
-      author: dco_decode_String(arr[9]),
+      progressPage: dco_decode_i_32(arr[8]),
+      cover: dco_decode_String(arr[9]),
+      author: dco_decode_String(arr[10]),
     );
   }
 
@@ -1934,6 +1935,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_chapterTitle = sse_decode_String(deserializer);
     var var_lastReadAt = sse_decode_i_64(deserializer);
     var var_progress = sse_decode_i_32(deserializer);
+    var var_progressPage = sse_decode_i_32(deserializer);
     var var_cover = sse_decode_String(deserializer);
     var var_author = sse_decode_String(deserializer);
     return ReadingHistory(
@@ -1945,6 +1947,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       chapterTitle: var_chapterTitle,
       lastReadAt: var_lastReadAt,
       progress: var_progress,
+      progressPage: var_progressPage,
       cover: var_cover,
       author: var_author,
     );
@@ -2324,6 +2327,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_String(self.chapterTitle, serializer);
     sse_encode_i_64(self.lastReadAt, serializer);
     sse_encode_i_32(self.progress, serializer);
+    sse_encode_i_32(self.progressPage, serializer);
     sse_encode_String(self.cover, serializer);
     sse_encode_String(self.author, serializer);
   }

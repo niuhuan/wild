@@ -184,6 +184,7 @@ class ReadingHistory {
   final String chapterTitle;
   final PlatformInt64 lastReadAt;
   final int progress;
+  final int progressPage;
   final String cover;
   final String author;
 
@@ -196,6 +197,7 @@ class ReadingHistory {
     required this.chapterTitle,
     required this.lastReadAt,
     required this.progress,
+    required this.progressPage,
     required this.cover,
     required this.author,
   });
@@ -210,6 +212,7 @@ class ReadingHistory {
       chapterTitle.hashCode ^
       lastReadAt.hashCode ^
       progress.hashCode ^
+      progressPage.hashCode ^
       cover.hashCode ^
       author.hashCode;
 
@@ -226,6 +229,7 @@ class ReadingHistory {
           chapterTitle == other.chapterTitle &&
           lastReadAt == other.lastReadAt &&
           progress == other.progress &&
+          progressPage == other.progressPage &&
           cover == other.cover &&
           author == other.author;
 }
