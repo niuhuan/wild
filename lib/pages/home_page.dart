@@ -5,6 +5,7 @@ import 'package:wild/pages/home/index_page.dart';
 import 'package:wild/pages/home/history_cubit.dart';
 import 'package:wild/pages/home/bookshelf_cubit.dart';
 import 'package:wild/pages/update_cubit.dart';
+import 'package:wild/src/rust/api/wenku8.dart';
 
 import 'home/bookshelf_page.dart';
 import 'home/history_page.dart';
@@ -26,6 +27,31 @@ class _HomePageState extends State<HomePage> {
     _historyCubit = HistoryCubit()..load();
     // 加载书架数据
     context.read<BookshelfCubit>().loadBookcases();
+    // 自动签到
+    _autoSign();
+  }
+
+  Future<void> _autoSign() async {
+    try {
+      final signed = await autoSign();
+      if (signed && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('今日已自动签到'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        // ScaffoldMessenger.of(context).showSnackBar(
+        //   SnackBar(
+        //     content: Text('签到失败: $e'),
+        //     duration: const Duration(seconds: 2),
+        //   ),
+        // );
+      }
+    }
   }
 
   @override

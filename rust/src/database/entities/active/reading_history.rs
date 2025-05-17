@@ -14,7 +14,7 @@ pub struct Model {
     pub chapter_id: String,
     pub chapter_title: String,
     pub last_read_at: i64,
-    pub progress: i32, // 阅读进度 0-1
+    pub progress: i32,
     pub cover: String,
     pub author: String,
 }

@@ -321,10 +321,13 @@ pub async fn search(
     })
 }
 
-pub async fn auto_sign() -> anyhow::Result<()> {
+pub async fn auto_sign() -> anyhow::Result<bool> {
     if !SignLogEntity::is_signed_today().await? {
         CLIENT.sign().await?;
-        SignLogEntity::sign().await?
+        SignLogEntity::sign().await?;
+        SignLogEntity::delete_old_records().await?;
+        Ok(true)
+    } else {
+        Ok(false)
     }
-    Ok(())
 }

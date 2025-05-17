@@ -86,7 +86,7 @@ abstract class RustLibApi extends BaseApi {
     required int page,
   });
 
-  Future<void> crateApiWenku8AutoSign();
+  Future<bool> crateApiWenku8AutoSign();
 
   Future<List<BookcaseItem>> crateApiWenku8BookInCase({required String caseId});
 
@@ -262,7 +262,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   );
 
   @override
-  Future<void> crateApiWenku8AutoSign() {
+  Future<bool> crateApiWenku8AutoSign() {
     return handler.executeNormal(
       NormalTask(
         callFfi: (port_) {
@@ -275,7 +275,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
+          decodeSuccessData: sse_decode_bool,
           decodeErrorData: sse_decode_AnyhowException,
         ),
         constMeta: kCrateApiWenku8AutoSignConstMeta,
