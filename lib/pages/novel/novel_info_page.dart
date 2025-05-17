@@ -11,37 +11,36 @@ import 'novel_info_cubit.dart';
 
 class NovelInfoPage extends StatelessWidget {
   final String novelId;
-  final String? initialChapterId;
-  final String? initialChapterTitle;
+  final bool shouldContinue;
 
   const NovelInfoPage({
-    super.key, 
+    super.key,
     required this.novelId,
-    this.initialChapterId,
-    this.initialChapterTitle,
+    this.shouldContinue = false,
   });
 
   @override
   Widget build(BuildContext context) {
     // 获取全局的 BookshelfCubit
     final bookshelfCubit = context.read<BookshelfCubit>();
-    
+
     return BlocProvider(
       create: (context) => NovelInfoCubit(novelId)..load(),
       child: BlocListener<NovelInfoCubit, NovelInfoState>(
         listener: (context, state) {
-          if (state is NovelInfoLoaded) {
-            // 如果有初始章节ID（从历史页面跳转过来）且有阅读历史，则跳转到阅读器
-            if (initialChapterId != null && state.readingHistory != null) {
-              Navigator.pushNamed(
+          if (state is NovelInfoLoaded && shouldContinue) {
+            // 如果有阅读历史，则跳转到阅读器
+            if (state.readingHistory != null) {
+              Navigator.pushReplacementNamed(
                 context,
                 '/novel/reader',
                 arguments: {
                   'novelId': novelId,
-                  'chapterId': initialChapterId!,
-                  'title': initialChapterTitle ?? state.readingHistory!.chapterTitle,
+                  'chapterId': state.readingHistory!.chapterId,
+                  'title': state.readingHistory!.chapterTitle,
                   'volumes': state.volumes,
                   'novelInfo': state.novelInfo,
+                  'initialPage': state.readingHistory!.progressPage,
                 },
               );
             }
@@ -66,7 +65,10 @@ class NovelInfoPage extends StatelessWidget {
                   return IconButton(
                     icon: Icon(
                       isInBookshelf ? Icons.bookmark : Icons.bookmark_border,
-                      color: isInBookshelf ? Theme.of(context).colorScheme.primary : null,
+                      color:
+                          isInBookshelf
+                              ? Theme.of(context).colorScheme.primary
+                              : null,
                     ),
                     onPressed: () {
                       if (isInBookshelf) {
@@ -109,13 +111,18 @@ class _NovelInfoContent extends StatelessWidget {
 
   const _NovelInfoContent({required this.novelInfo, required this.volumes});
 
-  Future<void> _navigateToReader(BuildContext context, String novelId, String chapterId, String title) async {
+  Future<void> _navigateToReader(
+    BuildContext context,
+    String novelId,
+    String chapterId,
+    String title,
+  ) async {
     final currentState = context.read<NovelInfoCubit>().state;
     if (currentState is! NovelInfoLoaded) return;
 
     // 获取阅读历史中的页码
     int? initialPage;
-    if (currentState.readingHistory != null && 
+    if (currentState.readingHistory != null &&
         currentState.readingHistory!.chapterId == chapterId) {
       initialPage = currentState.readingHistory!.progressPage;
     }
@@ -134,10 +141,8 @@ class _NovelInfoContent extends StatelessWidget {
         'initialPage': initialPage,
       },
     );
-    // 返回后刷新数据
-    if (context.mounted) {
-      context.read<NovelInfoCubit>().loadHistory();
-    }
+    // 返回后更新历史记录
+    context.read<NovelInfoCubit>().loadHistory();
   }
 
   @override
@@ -181,14 +186,20 @@ class _NovelInfoContent extends StatelessWidget {
         if (state.readingHistory != null)
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.only(top: 24, bottom: 16, left: 16, right: 16),
+              padding: const EdgeInsets.only(
+                top: 24,
+                bottom: 16,
+                left: 16,
+                right: 16,
+              ),
               child: ElevatedButton.icon(
-                onPressed: () => _navigateToReader(
-                  context,
-                  state.readingHistory!.novelId,
-                  state.readingHistory!.chapterId,
-                  state.readingHistory!.novelName,
-                ),
+                onPressed:
+                    () => _navigateToReader(
+                      context,
+                      state.readingHistory!.novelId,
+                      state.readingHistory!.chapterId,
+                      state.readingHistory!.novelName,
+                    ),
                 icon: const Icon(Icons.book),
                 label: Text('继续阅读 - ${state.readingHistory!.chapterTitle}'),
                 style: ElevatedButton.styleFrom(
@@ -205,12 +216,13 @@ class _NovelInfoContent extends StatelessWidget {
             final volume = volumes[index];
             return _VolumeItem(
               volume: volume,
-              onChapterTap: (chapter) => _navigateToReader(
-                context,
-                chapter.aid,
-                chapter.cid,
-                chapter.title,
-              ),
+              onChapterTap:
+                  (chapter) => _navigateToReader(
+                    context,
+                    chapter.aid,
+                    chapter.cid,
+                    chapter.title,
+                  ),
             );
           }, childCount: volumes.length),
         ),
@@ -249,8 +261,8 @@ class _NovelHeader extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 InkWell(
-                  onTap: () {
-                    Navigator.pushNamed(
+                  onTap: () async {
+                    await Navigator.pushNamed(
                       context,
                       '/search',
                       arguments: {
@@ -258,6 +270,7 @@ class _NovelHeader extends StatelessWidget {
                         'searchKey': novelInfo.author,
                       },
                     );
+                    context.read<NovelInfoCubit>().loadHistory();
                   },
                   child: Text(
                     '作者：${novelInfo.author}',
@@ -379,10 +392,7 @@ class _VolumeItem extends StatelessWidget {
   final Volume volume;
   final Function(Chapter) onChapterTap;
 
-  const _VolumeItem({
-    required this.volume,
-    required this.onChapterTap,
-  });
+  const _VolumeItem({required this.volume, required this.onChapterTap});
 
   @override
   Widget build(BuildContext context) {
@@ -395,9 +405,9 @@ class _VolumeItem extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             child: Text(
               volume.title,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
           ),
           const Divider(height: 1),

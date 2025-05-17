@@ -57,8 +57,8 @@ class _UpdateCheckerState extends State<UpdateChecker> {
                     ),
                     child: SingleChildScrollView(
                       child: Text(
-                        updateInfo.body,
-                        style: Theme.of(context).textTheme.bodyMedium,
+                    updateInfo.body,
+                    style: Theme.of(context).textTheme.bodyMedium,
                       ),
                     ),
                   ),

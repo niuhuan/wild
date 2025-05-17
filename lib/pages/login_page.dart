@@ -92,9 +92,9 @@ class _LoginPageState extends State<LoginPage> {
             } else if (err.contains("验证码过期") || err.contains("驗證碼過期")) {
               message = "验证码过期";
             }
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(message)),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(message)));
           } else if (state.status == AuthStatus.authenticated) {
             Navigator.of(context).pushReplacementNamed('/home');
           }
@@ -155,16 +155,16 @@ class _LoginPageState extends State<LoginPage> {
                           return const SizedBox(
                             width: 200,
                             height: 50,
-                            child: Center(
-                              child: CircularProgressIndicator(),
-                            ),
+                            child: Center(child: CircularProgressIndicator()),
                           );
                         case CheckcodeStatus.success:
-                          if (state.checkcode == null || state.checkcode!.isEmpty) {
+                          if (state.checkcode == null ||
+                              state.checkcode!.isEmpty) {
                             return _buildRetryButton(context);
                           }
                           return GestureDetector(
-                            onTap: () => context.read<AuthCubit>().loadCheckcode(),
+                            onTap:
+                                () => context.read<AuthCubit>().loadCheckcode(),
                             child: Image.memory(
                               state.checkcode!,
                               width: 200,
@@ -239,10 +239,7 @@ class _LoginPageState extends State<LoginPage> {
           borderRadius: BorderRadius.circular(4),
         ),
         child: const Center(
-          child: Icon(
-            Icons.broken_image,
-            color: Colors.grey,
-          ),
+          child: Icon(Icons.broken_image, color: Colors.grey),
         ),
       ),
     );

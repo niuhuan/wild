@@ -91,12 +91,13 @@ class _HistoryItem extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: InkWell(
-        onTap: () {
-          Navigator.pushNamed(
+        onTap: () async {
+          await Navigator.pushNamed(
             context,
             '/novel/info',
             arguments: history.novelId,
           );
+          context.read<HistoryCubit>().load();
         },
         child: Padding(
           padding: const EdgeInsets.all(12),
@@ -135,20 +136,24 @@ class _HistoryItem extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     InkWell(
-                      onTap: () {
-                        Navigator.pushNamed(
+                      onTap: () async {
+                        await Navigator.pushNamed(
                           context,
                           '/novel/info',
                           arguments: {
                             'novelId': history.novelId,
-                            'chapterId': history.chapterId,
-                            'title': history.chapterTitle,
+                            'continue': true,
                           },
                         );
+                        // 返回后更新历史记录
+                        context.read<HistoryCubit>().load();
                       },
                       child: Container(
                         width: double.infinity,
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
                         decoration: BoxDecoration(
                           color: colorScheme.primaryContainer.withOpacity(0.3),
                           borderRadius: BorderRadius.circular(4),
@@ -169,9 +174,8 @@ class _HistoryItem extends StatelessWidget {
                               const TextSpan(text: ' '),
                               TextSpan(
                                 text: '继续阅读 - ${history.chapterTitle}',
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: colorScheme.primary,
-                                ),
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(color: colorScheme.primary),
                               ),
                             ],
                           ),
