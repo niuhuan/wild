@@ -3,7 +3,7 @@ use crate::CLIENT;
 
 fn set_logger() {
     tracing_subscriber::fmt()
-        .with_max_level(tracing::Level::DEBUG)
+        .with_max_level(tracing::Level::INFO)
         .with_test_writer()
         .init();
 }
@@ -45,6 +45,9 @@ fn test_parse_user_detail() -> anyhow::Result<()> {
 #[test]
 fn test_parse_novel_info() -> anyhow::Result<()> {
     let text = std::fs::read_to_string("target/ti.txt")?;
+    let info = Wenku8Client::parse_novel_info(text.as_str())?;
+    println!("{}", serde_json::to_string_pretty(&info)?);
+    let text = std::fs::read_to_string("target/ti2.txt")?;
     let info = Wenku8Client::parse_novel_info(text.as_str())?;
     println!("{}", serde_json::to_string_pretty(&info)?);
     Ok(())
@@ -119,6 +122,22 @@ fn parse_search() -> anyhow::Result<()> {
     let text = std::fs::read_to_string("target/search.txt")?;
     let tags = Wenku8Client::parse_search(text.as_str())?;
     println!("{}", serde_json::to_string_pretty(&tags)?);
+    Ok(())
+}
+
+#[tokio::test(flavor = "multi_thread")]
+async fn test_novel_info() -> anyhow::Result<()> {
+    init_context().await?;
+    let response = CLIENT.novel_info("3").await?;
+    println!("response : {}", serde_json::to_string_pretty(&response)?);
+    Ok(())
+}
+
+#[tokio::test(flavor = "multi_thread")]
+async fn test_add_bookshelf() -> anyhow::Result<()> {
+    init_context().await?;
+    let response = CLIENT.add_bookshelf("1143").await?;
+    println!("response : {}", serde_json::to_string_pretty(&response)?);
     Ok(())
 }
 

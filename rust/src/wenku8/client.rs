@@ -241,7 +241,7 @@ impl Wenku8Client {
         };
         novel_info.fin_update = fin_update;
 
-        let mut img_url = content
+        let img_url = content
             .select(&img_selector)
             .next()
             .ok_or_else(|| anyhow!("Failed to find img_url"))?
@@ -251,18 +251,24 @@ impl Wenku8Client {
             .to_string();
         novel_info.img_url = img_url;
 
-        let introduce = content
-            .select(&table_selector)
-            .nth(2)
-            .ok_or_else(|| anyhow!("Failed to find introduce"))?
-            .select(&td_selector)
-            .nth(1)
-            .ok_or_else(|| anyhow!("Failed to find introduce"))?
-            .select(&span_selector)
-            .nth(5)
-            .ok_or_else(|| anyhow!("Failed to find introduce"))?
-            .html();
-        novel_info.introduce = introduce;
+        if let Some(table) = content.select(&table_selector).nth(2) {
+            if let Some(td) = table.select(&td_selector).nth(1) {
+                if let Some(span) = td.select(&span_selector).nth(5) {
+                    let text = span.html();
+                    novel_info.introduce = text;
+                }
+            }
+        }
+        if novel_info.introduce.is_empty() {
+            if let Some(table) = content.select(&table_selector).nth(2) {
+                if let Some(td) = table.select(&td_selector).nth(1) {
+                    if let Some(span) = td.select(&span_selector).nth(3) {
+                        let text = span.text().collect::<String>();
+                        novel_info.introduce = text.chars().skip(5).collect::<String>();
+                    }
+                }
+            }
+        }
 
         let tag = content
             .select(&table_selector)

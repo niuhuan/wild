@@ -1,11 +1,11 @@
 use anyhow::Result;
+use entities::active;
+use entities::properties;
 use once_cell::sync::OnceCell;
 use sea_orm::DatabaseConnection;
 use std::path::Path;
 use std::time::Duration;
 use tokio::sync::Mutex;
-use entities::active;
-use entities::properties;
 
 pub mod entities;
 
@@ -31,7 +31,9 @@ pub async fn init_database(root: &str) -> Result<()> {
     let cookie_db = connect_db(cookie_path.to_str().unwrap()).await?;
 
     // 存储连接
-    PROPERTIES_DB_CONNECT.set(Mutex::new(properties_db)).unwrap();
+    PROPERTIES_DB_CONNECT
+        .set(Mutex::new(properties_db))
+        .unwrap();
     ACTIVE_DB_CONNECT.set(Mutex::new(active_db)).unwrap();
     COOKIE_DB_CONNECT.set(Mutex::new(cookie_db)).unwrap();
 
@@ -39,7 +41,7 @@ pub async fn init_database(root: &str) -> Result<()> {
     properties::migrations().await?;
     active::migrations().await?;
     entities::cookie::migrations().await?;
-    
+
     // 返回成功
     Ok(())
 }
@@ -51,8 +53,8 @@ pub(crate) async fn connect_db(path: &str) -> Result<DatabaseConnection> {
     opt.max_connections(20)
         .min_connections(5)
         .connect_timeout(Duration::from_secs(8))
-        .idle_timeout(Duration::from_secs(8))
-        .sqlx_logging(true);
+        .idle_timeout(Duration::from_secs(8));
+    #[cfg(test)]
+    opt.sqlx_logging(true);
     Ok(sea_orm::Database::connect(opt).await?)
 }
-
