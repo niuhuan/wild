@@ -109,6 +109,9 @@ impl MigratorTrait for Migrator {
                 novel_download::migrations::M000004IdxDownloadTimeNovelDownload,
             ),
             Box::new(
+                novel_download::migrations::M000005IdxCoverUrlNovelDownload,
+            ),
+            Box::new(
                 novel_download_volume::migrations::M000001CreateTableNovelDownloadVolume,
             ),
             Box::new(

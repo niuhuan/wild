@@ -394,4 +394,42 @@ pub mod migrations {
             Ok(())
         }
     }
+
+    pub struct M000005IdxCoverUrlNovelDownload;
+
+    impl MigrationName for M000005IdxCoverUrlNovelDownload {
+        fn name(&self) -> &str {
+            "m000005_idx_cover_url_novel_download"
+        }
+    }
+
+    #[async_trait::async_trait]
+    impl MigrationTrait for M000005IdxCoverUrlNovelDownload {
+        async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
+            manager
+                .create_index(
+                    Index::create()
+                        .name("idx_novel_download_cover_url")
+                        .table(Entity)
+                        .if_not_exists()
+                        .col(Column::CoverUrl)
+                        .to_owned(),
+                )
+                .await?;
+
+            Ok(())
+        }
+
+        async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
+            manager
+                .drop_index(
+                    Index::drop()
+                        .name("idx_novel_download_cover_url")
+                        .to_owned(),
+                )
+                .await?;
+
+            Ok(())
+        }
+    }
 }
