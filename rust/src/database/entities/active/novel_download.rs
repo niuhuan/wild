@@ -1,4 +1,8 @@
-use sea_orm::{prelude::*, sea_query::{Index, SqliteQueryBuilder}, Order, QueryOrder, QuerySelect, Schema, Set, Statement};
+use sea_orm::{
+    prelude::*,
+    sea_query::{Index, SqliteQueryBuilder},
+    Order, QueryOrder, QuerySelect, Schema, Set, Statement,
+};
 use serde::{Deserialize, Serialize};
 use std::ops::Deref;
 
@@ -161,9 +165,9 @@ impl Entity {
 }
 
 pub mod migrations {
-    use sea_orm_migration::prelude::*;
-    use super::Entity;
     use super::Column;
+    use super::Entity;
+    use sea_orm_migration::prelude::*;
 
     pub struct M000001CreateTableNovelDownload;
 
@@ -190,13 +194,29 @@ pub mod migrations {
                         .col(ColumnDef::new(Column::NovelName).string().not_null())
                         .col(ColumnDef::new(Column::DownloadStatus).integer().not_null())
                         .col(ColumnDef::new(Column::CoverUrl).string().not_null())
-                        .col(ColumnDef::new(Column::CoverDownloadStatus).integer().not_null())
+                        .col(
+                            ColumnDef::new(Column::CoverDownloadStatus)
+                                .integer()
+                                .not_null(),
+                        )
                         .col(ColumnDef::new(Column::Author).string().not_null())
                         .col(ColumnDef::new(Column::Tags).string().not_null())
-                        .col(ColumnDef::new(Column::ChooseChapterCount).integer().not_null())
-                        .col(ColumnDef::new(Column::DownloadChapterCount).integer().not_null())
+                        .col(
+                            ColumnDef::new(Column::ChooseChapterCount)
+                                .integer()
+                                .not_null(),
+                        )
+                        .col(
+                            ColumnDef::new(Column::DownloadChapterCount)
+                                .integer()
+                                .not_null(),
+                        )
                         .col(ColumnDef::new(Column::CreateTime).big_integer().not_null())
-                        .col(ColumnDef::new(Column::DownloadTime).big_integer().not_null())
+                        .col(
+                            ColumnDef::new(Column::DownloadTime)
+                                .big_integer()
+                                .not_null(),
+                        )
                         .col(ColumnDef::new(Column::Introduce).string().not_null())
                         .col(ColumnDef::new(Column::Trending).string().not_null())
                         .col(ColumnDef::new(Column::IsAnimated).boolean().not_null())
@@ -245,7 +265,11 @@ pub mod migrations {
 
         async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
             manager
-                .drop_index(Index::drop().name("idx_novel_download_cover_url").to_owned())
+                .drop_index(
+                    Index::drop()
+                        .name("idx_novel_download_cover_url")
+                        .to_owned(),
+                )
                 .await?;
 
             Ok(())
@@ -279,7 +303,11 @@ pub mod migrations {
 
         async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
             manager
-                .drop_index(Index::drop().name("idx_novel_download_create_time").to_owned())
+                .drop_index(
+                    Index::drop()
+                        .name("idx_novel_download_create_time")
+                        .to_owned(),
+                )
                 .await?;
 
             Ok(())
@@ -313,10 +341,14 @@ pub mod migrations {
 
         async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
             manager
-                .drop_index(Index::drop().name("idx_novel_download_download_time").to_owned())
+                .drop_index(
+                    Index::drop()
+                        .name("idx_novel_download_download_time")
+                        .to_owned(),
+                )
                 .await?;
 
             Ok(())
         }
     }
-} 
+}

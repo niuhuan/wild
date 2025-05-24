@@ -1,10 +1,20 @@
-use crate::database::entities::{CookieEntity, ReadingHistoryEntity, SignLogEntity};
+use crate::database::entities::{
+    CookieEntity, ReadingHistoryEntity, SignLogEntity,
+    active::{
+        novel_download,
+        novel_download_volume,
+        novel_download_chapter,
+        DOWNLOAD_STATUS_NOT_DOWNLOAD,
+    },
+};
 use crate::wenku8::{
-    Bookcase, BookcaseItem, BookshelfItem, HomeBlock, NovelCover, NovelInfo, PageStats, TagGroup,
-    UserDetail, Volume,
+    Bookcase, BookcaseItem, BookshelfItem, HomeBlock, Novel, NovelCover, NovelInfo, PageStats,
+    TagGroup, UserDetail, Volume,
 };
 use crate::Result;
 use crate::CLIENT;
+use anyhow::Ok;
+use sea_orm::{EntityTrait, ColumnTrait, QueryOrder};
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
@@ -147,7 +157,7 @@ pub struct ReadingHistory {
     pub chapter_id: String,
     pub chapter_title: String,
     pub last_read_at: i64,
-    pub progress: i32, // 阅读进度 0-1
+    pub progress: i32,      // 阅读进度 0-1
     pub progress_page: i32, // 阅读进度页码
     pub cover: String,
     pub author: String,
@@ -335,4 +345,182 @@ pub async fn auto_sign() -> anyhow::Result<bool> {
     } else {
         Ok(false)
     }
+}
+
+pub async fn download_novel(aid: String, cid_list: Vec<String>) -> anyhow::Result<()> {
+    let novel_detail = novel_info(aid.clone()).await?;
+    let volumes = novel_reader(aid.clone()).await?;
+    let mut cid_list = cid_list;
+    if cid_list.is_empty() {
+        cid_list = volumes.iter().flat_map(|v| v.chapters.iter().map(|c| c.cid.clone())).collect();
+    }
+
+    // 1. 先处理章节信息
+    for volume in &volumes {
+        let volume_id = volume.id.clone();
+        for chapter in &volume.chapters {
+            let chapter_id = chapter.cid.clone();
+            
+            // 检查章节是否在下载列表中
+            if cid_list.contains(&chapter_id) {
+                // 检查章节是否已存在
+                if let Some(existing_chapter) = novel_download_chapter::Entity::find_by_id(&chapter_id).await? {
+                    // 如果章节已存在，跳过
+                    continue;
+                }
+
+                // 章节不存在，插入新章节
+                let chapter_title = chapter.title.clone();
+                let chapter_url = chapter.url.clone();
+                let chapter_idx = volume.chapters.iter().position(|c| c.cid == chapter.cid).unwrap_or(0) as i32;
+
+                novel_download_chapter::Entity::upsert(
+                    &chapter_id,
+                    &chapter_title,
+                    &chapter_url,
+                    &aid,
+                    &volume_id,
+                    DOWNLOAD_STATUS_NOT_DOWNLOAD,
+                    0, // 总图片数初始为0
+                    chapter_idx,
+                ).await?;
+            }
+        }
+    }
+
+    // 2. 处理卷信息
+    for (volume_idx, volume) in volumes.iter().enumerate() {
+        let volume_id = volume.id.clone();
+        
+        // 检查卷是否已存在
+        if let Some(existing_volume) = novel_download_volume::Entity::find_by_id(&volume_id).await? {
+            // 如果卷已存在，重置下载状态
+            novel_download_volume::Entity::update_download_status(
+                &volume_id,
+                DOWNLOAD_STATUS_NOT_DOWNLOAD,
+            ).await?;
+        } else {
+            // 卷不存在，插入新卷
+            let volume_title = volume.title.clone();
+            novel_download_volume::Entity::upsert(
+                &volume_id,
+                &aid,
+                volume_idx as i32,
+                &volume_title,
+                DOWNLOAD_STATUS_NOT_DOWNLOAD,
+            ).await?;
+        }
+    }
+
+    // 3. 最后处理小说本体
+    let novel_id = aid.clone();
+    
+    // 检查小说是否已存在
+    if let Some(existing_novel) = novel_download::Entity::find_by_novel_id(&novel_id).await? {
+        // 如果小说已存在，更新信息并重置下载状态
+        let novel_name = novel_detail.title.clone();
+        let cover_url = novel_detail.img_url.clone();
+        let author = novel_detail.author.clone();
+        let tags = novel_detail.tags.join(",");
+        let introduce = novel_detail.introduce.clone();
+        let trending = novel_detail.trending.clone();
+        let is_animated = novel_detail.is_animated;
+        let fin_update = novel_detail.fin_update.clone();
+        let status = novel_detail.status.clone();
+        let choose_chapter_count = cid_list.len() as i32;
+
+        novel_download::Entity::upsert(
+            &novel_id,
+            &novel_name,
+            DOWNLOAD_STATUS_NOT_DOWNLOAD,
+            &cover_url,
+            DOWNLOAD_STATUS_NOT_DOWNLOAD,
+            &author,
+            &tags,
+            choose_chapter_count,
+            0, // 已下载章节数重置为0
+            &introduce,
+            &trending,
+            is_animated,
+            &fin_update,
+            &status,
+        ).await?;
+    } else {
+        // 小说不存在，插入新小说
+        let novel_name = novel_detail.title.clone();
+        let cover_url = novel_detail.img_url.clone();
+        let author = novel_detail.author.clone();
+        let tags = novel_detail.tags.join(",");
+        let introduce = novel_detail.introduce.clone();
+        let trending = novel_detail.trending.clone();
+        let is_animated = novel_detail.is_animated;
+        let fin_update = novel_detail.fin_update.clone();
+        let status = novel_detail.status.clone();
+        let choose_chapter_count = cid_list.len() as i32;
+
+        novel_download::Entity::upsert(
+            &novel_id,
+            &novel_name,
+            DOWNLOAD_STATUS_NOT_DOWNLOAD,
+            &cover_url,
+            DOWNLOAD_STATUS_NOT_DOWNLOAD,
+            &author,
+            &tags,
+            choose_chapter_count,
+            0,
+            &introduce,
+            &trending,
+            is_animated,
+            &fin_update,
+            &status,
+        ).await?;
+    }
+
+    Ok(())
+}
+
+pub async fn all_downloads() -> anyhow::Result<Vec<NovelDownload>> {
+    let downloads = novel_download::Entity::find()
+        .order_by_desc(novel_download::Column::CreateTime)
+        .all(&*crate::database::ACTIVE_DB_CONNECT.get().unwrap().lock().await)
+        .await?;
+
+    Ok(downloads.into_iter().map(|model| NovelDownload {
+        novel_id: model.novel_id,
+        novel_name: model.novel_name,
+        download_status: model.download_status,
+        cover_url: model.cover_url,
+        cover_download_status: model.cover_download_status,
+        author: model.author,
+        tags: model.tags,
+        choose_chapter_count: model.choose_chapter_count,
+        download_chapter_count: model.download_chapter_count,
+        create_time: model.create_time,
+        download_time: model.download_time,
+        introduce: model.introduce,
+        trending: model.trending,
+        is_animated: model.is_animated,
+        fin_update: model.fin_update,
+        status: model.status,
+    }).collect())
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct NovelDownload {
+    pub novel_id: String,
+    pub novel_name: String,
+    pub download_status: i32,
+    pub cover_url: String,
+    pub cover_download_status: i32,
+    pub author: String,
+    pub tags: String,
+    pub choose_chapter_count: i32,
+    pub download_chapter_count: i32,
+    pub create_time: i64,
+    pub download_time: i64,
+    pub introduce: String,
+    pub trending: String,
+    pub is_animated: bool,
+    pub fin_update: String,
+    pub status: String,
 }

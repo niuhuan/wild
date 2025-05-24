@@ -7,7 +7,7 @@ import '../frb_generated.dart';
 import '../wenku8/models.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `fmt`, `fmt`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_receiver_is_total_eq`, `clone`, `eq`, `fmt`, `fmt`, `fmt`
 
 Future<void> wenku8Login({
   required String username,
@@ -146,6 +146,96 @@ Future<PageStatsNovelCover> search({
 );
 
 Future<bool> autoSign() => RustLib.instance.api.crateApiWenku8AutoSign();
+
+Future<void> downloadNovel({
+  required String aid,
+  required List<String> cidList,
+}) => RustLib.instance.api.crateApiWenku8DownloadNovel(
+  aid: aid,
+  cidList: cidList,
+);
+
+Future<List<NovelDownload>> allDownloads() =>
+    RustLib.instance.api.crateApiWenku8AllDownloads();
+
+class NovelDownload {
+  final String novelId;
+  final String novelName;
+  final int downloadStatus;
+  final String coverUrl;
+  final int coverDownloadStatus;
+  final String author;
+  final String tags;
+  final int chooseChapterCount;
+  final int downloadChapterCount;
+  final PlatformInt64 createTime;
+  final PlatformInt64 downloadTime;
+  final String introduce;
+  final String trending;
+  final bool isAnimated;
+  final String finUpdate;
+  final String status;
+
+  const NovelDownload({
+    required this.novelId,
+    required this.novelName,
+    required this.downloadStatus,
+    required this.coverUrl,
+    required this.coverDownloadStatus,
+    required this.author,
+    required this.tags,
+    required this.chooseChapterCount,
+    required this.downloadChapterCount,
+    required this.createTime,
+    required this.downloadTime,
+    required this.introduce,
+    required this.trending,
+    required this.isAnimated,
+    required this.finUpdate,
+    required this.status,
+  });
+
+  @override
+  int get hashCode =>
+      novelId.hashCode ^
+      novelName.hashCode ^
+      downloadStatus.hashCode ^
+      coverUrl.hashCode ^
+      coverDownloadStatus.hashCode ^
+      author.hashCode ^
+      tags.hashCode ^
+      chooseChapterCount.hashCode ^
+      downloadChapterCount.hashCode ^
+      createTime.hashCode ^
+      downloadTime.hashCode ^
+      introduce.hashCode ^
+      trending.hashCode ^
+      isAnimated.hashCode ^
+      finUpdate.hashCode ^
+      status.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is NovelDownload &&
+          runtimeType == other.runtimeType &&
+          novelId == other.novelId &&
+          novelName == other.novelName &&
+          downloadStatus == other.downloadStatus &&
+          coverUrl == other.coverUrl &&
+          coverDownloadStatus == other.coverDownloadStatus &&
+          author == other.author &&
+          tags == other.tags &&
+          chooseChapterCount == other.chooseChapterCount &&
+          downloadChapterCount == other.downloadChapterCount &&
+          createTime == other.createTime &&
+          downloadTime == other.downloadTime &&
+          introduce == other.introduce &&
+          trending == other.trending &&
+          isAnimated == other.isAnimated &&
+          finUpdate == other.finUpdate &&
+          status == other.status;
+}
 
 class PageStatsNovelCover {
   final int currentPage;

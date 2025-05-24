@@ -25,6 +25,11 @@ pub use search_history::*;
 pub use sign_log::*;
 pub use web_cache::*;
 
+pub const DOWNLOAD_STATUS_NOT_DOWNLOAD: i32 = 0;
+pub const DOWNLOAD_STATUS_SUCCESS: i32 = 1;
+pub const DOWNLOAD_STATUS_FAILED: i32 = 2;
+pub const DOWNLOAD_STATUS_DELETING: i32 = 3;
+
 async fn get_connect() -> tokio::sync::MutexGuard<'static, DatabaseConnection> {
     ACTIVE_DB_CONNECT.get().unwrap().lock().await
 }

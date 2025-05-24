@@ -77,6 +77,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<NovelCover> dco_decode_list_novel_cover(dynamic raw);
 
   @protected
+  List<NovelDownload> dco_decode_list_novel_download(dynamic raw);
+
+  @protected
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
 
   @protected
@@ -96,6 +99,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   NovelCover dco_decode_novel_cover(dynamic raw);
+
+  @protected
+  NovelDownload dco_decode_novel_download(dynamic raw);
 
   @protected
   NovelInfo dco_decode_novel_info(dynamic raw);
@@ -188,6 +194,11 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<NovelCover> sse_decode_list_novel_cover(SseDeserializer deserializer);
 
   @protected
+  List<NovelDownload> sse_decode_list_novel_download(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
 
   @protected
@@ -211,6 +222,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   NovelCover sse_decode_novel_cover(SseDeserializer deserializer);
+
+  @protected
+  NovelDownload sse_decode_novel_download(SseDeserializer deserializer);
 
   @protected
   NovelInfo sse_decode_novel_info(SseDeserializer deserializer);
@@ -319,6 +333,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_list_novel_download(
+    List<NovelDownload> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_prim_u_8_strict(
     Uint8List self,
     SseSerializer serializer,
@@ -347,6 +367,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_novel_cover(NovelCover self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_novel_download(NovelDownload self, SseSerializer serializer);
 
   @protected
   void sse_encode_novel_info(NovelInfo self, SseSerializer serializer);
