@@ -19,6 +19,7 @@ mod local;
 mod test;
 mod wenku8;
 mod cache_manager;
+mod downloading;
 
 pub(crate) type Result<T> = anyhow::Result<T>;
 

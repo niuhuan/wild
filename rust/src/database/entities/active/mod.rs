@@ -5,6 +5,10 @@ use std::ops::Deref;
 
 pub mod chapter_cache;
 pub mod image_cache;
+pub mod novel_download;
+pub mod novel_download_chapter;
+pub mod novel_download_picture;
+pub mod novel_download_volume;
 pub mod reading_history;
 pub mod search_history;
 pub mod sign_log;
@@ -12,6 +16,10 @@ pub mod web_cache;
 
 pub use chapter_cache::*;
 pub use image_cache::*;
+pub use novel_download::*;
+pub use novel_download_chapter::*;
+pub use novel_download_picture::*;
+pub use novel_download_volume::*;
 pub use reading_history::*;
 pub use search_history::*;
 pub use sign_log::*;
@@ -73,6 +81,51 @@ impl MigratorTrait for Migrator {
             ),
             Box::new(
                 reading_history::migrations::m000004_add_progress_page::Migration,
+            ),
+            Box::new(
+                novel_download::migrations::M000001CreateTableNovelDownload,
+            ),
+            Box::new(
+                novel_download::migrations::M000002IdxCoverUrlNovelDownload,
+            ),
+            Box::new(
+                novel_download::migrations::M000003IdxCreateTimeNovelDownload,
+            ),
+            Box::new(
+                novel_download::migrations::M000004IdxDownloadTimeNovelDownload,
+            ),
+            Box::new(
+                novel_download_volume::migrations::M000001CreateTableNovelDownloadVolume,
+            ),
+            Box::new(
+                novel_download_volume::migrations::M000002IdxNovelIdNovelDownloadVolume,
+            ),
+            Box::new(
+                novel_download_volume::migrations::M000003IdxNovelIdVolumeIdxNovelDownloadVolume,
+            ),
+            Box::new(
+                novel_download_chapter::migrations::M000001CreateTableNovelDownloadChapter,
+            ),
+            Box::new(
+                novel_download_chapter::migrations::M000002IdxAidNovelDownloadChapter,
+            ),
+            Box::new(
+                novel_download_chapter::migrations::M000003IdxVolumeIdNovelDownloadChapter,
+            ),
+            Box::new(
+                novel_download_chapter::migrations::M000004IdxAidVolumeIdChapterIdxNovelDownloadChapter,
+            ),
+            Box::new(
+                novel_download_picture::migrations::M000001CreateTableNovelDownloadPicture,
+            ),
+            Box::new(
+                novel_download_picture::migrations::M000002IdxAidNovelDownloadPicture,
+            ),
+            Box::new(
+                novel_download_picture::migrations::M000003IdxAidChapterIdNovelDownloadPicture,
+            ),
+            Box::new(
+                novel_download_picture::migrations::M000004IdxAidChapterIdPictureIdxNovelDownloadPicture,
             ),
         ]
     }
