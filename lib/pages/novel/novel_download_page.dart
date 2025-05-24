@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wild/pages/novel/novel_download_cubit.dart';
+import 'package:wild/widgets/cached_image.dart';
 
 class NovelDownloadPage extends StatelessWidget {
   const NovelDownloadPage({super.key});
@@ -47,26 +48,95 @@ class NovelDownloadPage extends StatelessWidget {
               itemCount: state.downloads.length,
               itemBuilder: (context, index) {
                 final download = state.downloads[index];
-                return ListTile(
-                  leading: Image.network(
-                    download.coverUrl,
-                    width: 48,
-                    height: 64,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        width: 48,
-                        height: 64,
-                        color: Colors.grey[300],
-                        child: const Icon(Icons.image_not_supported),
-                      );
+                return Card(
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: InkWell(
+                    onTap: () {
+                      // TODO: 跳转到下载详情页
                     },
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Row(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: CachedImage(
+                              url: download.coverUrl,
+                              width: 80,
+                              height: 120,
+                              fit: BoxFit.cover,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  download.novelName,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  download.author,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey[600],
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.book_outlined,
+                                      size: 16,
+                                      color: Colors.grey[600],
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      '${download.downloadChapterCount}/${download.chooseChapterCount} 章节',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.download_outlined,
+                                      size: 16,
+                                      color: Colors.grey[600],
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      _getStatusText(download.downloadStatus),
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: _getStatusColor(download.downloadStatus),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          _buildStatusIcon(download.downloadStatus),
+                        ],
+                      ),
+                    ),
                   ),
-                  title: Text(download.novelName),
-                  subtitle: Text(
-                    '${download.downloadChapterCount}/${download.chooseChapterCount} 章节',
-                  ),
-                  trailing: _buildStatusIcon(download.downloadStatus),
                 );
               },
             );
@@ -88,6 +158,36 @@ class NovelDownloadPage extends StatelessWidget {
         return const Icon(Icons.delete_outline, color: Colors.orange);
       default:
         return const Icon(Icons.help_outline);
+    }
+  }
+
+  String _getStatusText(int status) {
+    switch (status) {
+      case 0: // DOWNLOAD_STATUS_NOT_DOWNLOAD
+        return '等待下载';
+      case 1: // DOWNLOAD_STATUS_SUCCESS
+        return '下载完成';
+      case 2: // DOWNLOAD_STATUS_FAILED
+        return '下载失败';
+      case 3: // DOWNLOAD_STATUS_DELETING
+        return '正在删除';
+      default:
+        return '未知状态';
+    }
+  }
+
+  Color _getStatusColor(int status) {
+    switch (status) {
+      case 0: // DOWNLOAD_STATUS_NOT_DOWNLOAD
+        return Colors.blue;
+      case 1: // DOWNLOAD_STATUS_SUCCESS
+        return Colors.green;
+      case 2: // DOWNLOAD_STATUS_FAILED
+        return Colors.red;
+      case 3: // DOWNLOAD_STATUS_DELETING
+        return Colors.orange;
+      default:
+        return Colors.grey;
     }
   }
 } 
