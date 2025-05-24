@@ -504,7 +504,6 @@ pub async fn all_downloads() -> anyhow::Result<Vec<NovelDownload>> {
 }
 
 pub async fn exists_download(novel_id: String) -> anyhow::Result<Option<ExistsDownload>> {
-    let db = &*crate::database::ACTIVE_DB_CONNECT.get().unwrap().lock().await;
     
     // 1. 获取小说本体信息
     let novel = match novel_download::Entity::find_by_novel_id(&novel_id).await? {
@@ -527,7 +526,7 @@ pub async fn exists_download(novel_id: String) -> anyhow::Result<Option<ExistsDo
         .collect();
 
     // 3. 获取章节信息
-    let chapters = novel_download_chapter::Entity::find_by_novel_id(db, &novel_id)
+    let chapters = novel_download_chapter::Entity::find_by_novel_id(&novel_id)
         .await?
         .into_iter()
         .map(|model| NovelDownloadChapter {

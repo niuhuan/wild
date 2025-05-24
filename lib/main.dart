@@ -6,6 +6,7 @@ import 'package:wild/pages/login_page.dart';
 import 'package:wild/pages/home_page.dart';
 import 'package:wild/pages/novel/line_height_cubit.dart';
 import 'package:wild/pages/novel/novel_info_page.dart';
+import 'package:wild/pages/novel/novel_downloading_page.dart';
 import 'package:wild/pages/novel/reader_page.dart';
 import 'package:wild/pages/novel/font_size_cubit.dart';
 import 'package:wild/pages/novel/paragraph_spacing_cubit.dart';
@@ -95,6 +96,15 @@ class YourApp extends StatelessWidget {
                 );
               }
               return NovelInfoPage(novelId: args as String);
+            },
+            '/novel/downloading': (context) {
+              final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+              return NovelDownloadingPage(
+                novelId: args['novelId'] as String,
+                existsDownload: args['existsDownload'],
+                novelInfo: args['novelInfo'] as NovelInfo,
+                volumes: (args['volumes'] as List).cast<Volume>(),
+              );
             },
             '/novel/reader': (context) {
               final args =

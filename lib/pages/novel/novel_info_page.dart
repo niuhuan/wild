@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:wild/src/rust/api/wenku8.dart';
+import 'package:wild/src/rust/api/wenku8.dart' as w8;
 import 'package:wild/src/rust/frb_generated.dart';
 import 'package:wild/widgets/cached_image.dart';
 import 'package:flutter_html/flutter_html.dart';
@@ -12,15 +12,39 @@ import 'novel_info_cubit.dart';
 class NovelInfoPage extends StatelessWidget {
   final String novelId;
 
-  const NovelInfoPage({
-    super.key,
-    required this.novelId,
-  });
+  const NovelInfoPage({super.key, required this.novelId});
 
   @override
   Widget build(BuildContext context) {
     // 获取全局的 BookshelfCubit
     final bookshelfCubit = context.read<BookshelfCubit>();
+
+    Future<void> _navigateToDownload(BuildContext context) async {
+      final state = context.read<NovelInfoCubit>().state;
+      if (state is! NovelInfoLoaded) return;
+
+      try {
+        final downloadInfo = await w8.existsDownload(novelId: novelId);
+        if (!context.mounted) return;
+
+        await Navigator.pushNamed(
+          context,
+          '/novel/downloading',
+          arguments: {
+            'novelId': novelId,
+            'existsDownload': downloadInfo,
+            'novelInfo': state.novelInfo,
+            'volumes': state.volumes,
+          },
+        );
+      } catch (e) {
+        print('获取下载信息失败: $e');
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('获取下载信息失败: $e')),
+        );
+      }
+    }
 
     return BlocProvider(
       create: (context) => NovelInfoCubit(novelId)..load(),
@@ -28,6 +52,17 @@ class NovelInfoPage extends StatelessWidget {
         appBar: AppBar(
           title: const Text('小说详情'),
           actions: [
+            BlocBuilder<NovelInfoCubit, NovelInfoState>(
+              builder: (context, state) {
+                if (state is! NovelInfoLoaded) {
+                  return const SizedBox.shrink();
+                }
+                return IconButton(
+                  icon: const Icon(Icons.download_outlined),
+                  onPressed: () => _navigateToDownload(context),
+                );
+              },
+            ),
             BlocBuilder<BookshelfCubit, BookshelfState>(
               builder: (context, state) {
                 if (state.status == BookshelfStatus.loading) {
@@ -43,16 +78,20 @@ class NovelInfoPage extends StatelessWidget {
                 return IconButton(
                   icon: Icon(
                     isInBookshelf ? Icons.bookmark : Icons.bookmark_border,
-                    color:
-                        isInBookshelf
-                            ? Theme.of(context).colorScheme.primary
-                            : null,
+                    color: isInBookshelf ? Theme.of(context).colorScheme.primary : null,
                   ),
-                  onPressed: () {
-                    if (isInBookshelf) {
-                      bookshelfCubit.removeFromBookshelf(novelId);
-                    } else {
-                      bookshelfCubit.addToBookshelf(novelId);
+                  onPressed: () async {
+                    try {
+                      if (isInBookshelf) {
+                        await bookshelfCubit.removeFromBookshelf(novelId);
+                      } else {
+                        await bookshelfCubit.addToBookshelf(novelId);
+                      }
+                    } catch (e) {
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('操作失败: $e')),
+                      );
                     }
                   },
                 );
@@ -72,6 +111,7 @@ class NovelInfoPage extends StatelessWidget {
               return _NovelInfoContent(
                 novelInfo: state.novelInfo,
                 volumes: state.volumes,
+                novelId: novelId,
               );
             }
             return const SizedBox.shrink();
@@ -85,8 +125,13 @@ class NovelInfoPage extends StatelessWidget {
 class _NovelInfoContent extends StatelessWidget {
   final NovelInfo novelInfo;
   final List<Volume> volumes;
+  final String novelId;
 
-  const _NovelInfoContent({required this.novelInfo, required this.volumes});
+  const _NovelInfoContent({
+    required this.novelInfo,
+    required this.volumes,
+    required this.novelId,
+  });
 
   Future<void> _navigateToReader(
     BuildContext context,

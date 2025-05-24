@@ -163,10 +163,11 @@ impl Entity {
         Ok(())
     }
 
-    pub async fn find_by_novel_id(db: &DatabaseConnection, novel_id: &str) -> crate::Result<Vec<Model>> {
+    pub async fn find_by_novel_id(novel_id: &str) -> crate::Result<Vec<Model>> {
+        let db = get_connect().await;
         Ok(Self::find()
             .filter(Column::Aid.eq(novel_id))
-            .all(db)
+            .all(db.deref())
             .await?)
     }
 }
