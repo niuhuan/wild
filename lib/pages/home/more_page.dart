@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wild/pages/home/account_page.dart';
 import 'package:wild/pages/home/settings_page.dart';
 import 'package:wild/pages/update_cubit.dart';
+import 'package:wild/pages/novel/novel_download_page.dart';
 
 class MorePage extends StatelessWidget {
   const MorePage({super.key});
@@ -17,6 +18,17 @@ class MorePage extends StatelessWidget {
           ),
           body: ListView(
             children: [
+              ListTile(
+                leading: const Icon(Icons.download_outlined),
+                title: const Text('下载'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const NovelDownloadPage()),
+                  );
+                },
+              ),
               ListTile(
                 leading: const Icon(Icons.person_outline),
                 title: const Text('账户'),
