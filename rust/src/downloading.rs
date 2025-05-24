@@ -74,8 +74,44 @@ async fn downloading_loop() -> Result<()> {
                 novel_name = %novel.novel_name,
                 "Processing novel"
             );
-
             let novel_dir = Path::new(DOWNLOAD_FOLDER.get().unwrap()).join(&novel.novel_id);
+
+            if novel.cover_download_status == 0 {
+                match CLIENT.download_image(&novel.cover_url).await {
+                    Ok(cover_content) => {
+                        let cover_file_path = novel_dir.join("cover");
+                        match tokio::fs::write(&cover_file_path, cover_content).await {
+                            Ok(_) => {
+                                debug!(novel_id = %novel.novel_id, "Successfully downloaded cover");
+                                novel_download::Entity::update_cover_download_status(
+                                    &novel.novel_id,
+                                    1,
+                                )
+                                .await?;
+                            }
+                            Err(e) => {
+                                error!(novel_id = %novel.novel_id, error = %e, "Failed to write cover file");
+                                novel_download::Entity::update_cover_download_status(
+                                    &novel.novel_id,
+                                    2,
+                                )
+                                .await?;
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        error!(novel_id = %novel.novel_id, error = %e, "Failed to download cover");
+                        novel_download::Entity::update_cover_download_status(&novel.novel_id, 2)
+                            .await?;
+                    }
+                }
+            }
+
+            if need_restart().await {
+                debug!("Download manager restarting after deletion check");
+                continue;
+            }
+
             match tokio::fs::create_dir_all(&novel_dir).await {
                 Ok(_) => debug!(path = ?novel_dir, "Created/verified novel directory"),
                 Err(e) => {
@@ -263,6 +299,69 @@ async fn downloading_loop() -> Result<()> {
 
             if need_restart().await {
                 warn!(novel_id = %novel.novel_id, "Download interrupted after volume processing");
+                break;
+            }
+
+            while let Some(picture) =
+                novel_download_picture::Entity::find_incomplete_by_novel(&novel.novel_id).await?
+            {
+                info!(
+                    novel_id = %novel.novel_id,
+                    picture_id = %picture.url,
+                    "Processing picture"
+                );
+
+                if need_restart().await {
+                    warn!(picture_id = %picture.url, "Download interrupted after picture processing");
+                    break;
+                }
+
+
+                match CLIENT.download_image(&picture.url).await {
+                    Ok(content) => {
+                        let picture_file_path =
+                            novel_dir.join(format!("picture_{}", picture.url_md5));
+                        match tokio::fs::write(&picture_file_path, content).await {
+                            Ok(_) => {
+                                debug!(novel_id = %novel.novel_id, "Successfully downloaded picture");
+                                novel_download_picture::Entity::update_download_status(
+                                    &picture.aid,
+                                    &picture.volume_id,
+                                    &picture.chapter_id,
+                                    picture.picture_idx,
+                                    1,
+                                )
+                                .await?;
+                            }
+                            Err(e) => {
+                                error!(picture_id = %picture.url, error = %e, "Failed to write picture file");
+                                novel_download_picture::Entity::update_download_status(
+                                    &picture.aid,
+                                    &picture.volume_id,
+                                    &picture.chapter_id,
+                                    picture.picture_idx,
+                                    2,
+                                )
+                                .await?;
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        error!(picture_id = %picture.url, error = %e, "Failed to download picture");
+                        novel_download_picture::Entity::update_download_status(
+                            &picture.aid,
+                            &picture.volume_id,
+                            &picture.chapter_id,
+                            picture.picture_idx,
+                            2,
+                        )
+                        .await?;
+                    }
+                }
+            }
+
+            if need_restart().await {
+                warn!(novel_id = %novel.novel_id, "Download interrupted after novel status check");
                 break;
             }
 

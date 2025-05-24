@@ -37,6 +37,24 @@ impl ActiveModelBehavior for ActiveModel {}
 
 impl Entity {
 
+    pub async fn find_by_url(url: &str) -> Result<Option<Model>, DbErr> {
+        Entity::find()
+            .filter(Column::Url.eq(url))
+            .limit(1)
+            .one(get_connect().await.deref())
+            .await
+    }
+
+    pub async fn find_incomplete_by_novel(novel_id: &str) -> Result<Option<Model>, DbErr> {
+        Entity::find()
+            .filter(Column::Aid.eq(novel_id))
+            .filter(Column::DownloadStatus.eq(0))
+            .order_by(Column::PictureIdx, Order::Asc)
+            .limit(1)
+            .one(get_connect().await.deref())
+            .await
+    }
+
     pub async fn delete_by_novel_id(conn: &impl ConnectionTrait, novel_id: &str) -> Result<(), DbErr> {
         Entity::delete_many()
             .filter(Column::Aid.eq(novel_id))

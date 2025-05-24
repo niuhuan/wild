@@ -37,6 +37,15 @@ pub enum Relation {}
 impl ActiveModelBehavior for ActiveModel {}
 
 impl Entity {
+
+    pub async fn find_by_image_url(img_url: &str) -> Result<Option<Model>, DbErr> {
+        Entity::find()
+            .filter(Column::CoverUrl.eq(img_url))
+            .limit(1)
+            .one(get_connect().await.deref())
+            .await
+    }
+
     pub async fn find_by_novel_id(novel_id: &str) -> Result<Option<Model>, DbErr> {
         Entity::find()
             .filter(Column::NovelId.eq(novel_id))

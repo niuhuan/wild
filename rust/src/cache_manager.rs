@@ -1,6 +1,6 @@
-use crate::database::entities::active::{chapter_cache, image_cache, web_cache};
+use crate::database::entities::active::{chapter_cache, image_cache, novel_download, novel_download_chapter, novel_download_picture, web_cache};
 use crate::database::entities::WebCacheEntity;
-use crate::{get_image_cache_dir, CLIENT, IMAGE_LOCKS};
+use crate::{get_image_cache_dir, CLIENT, DOWNLOAD_FOLDER, IMAGE_LOCKS};
 use chrono::Utc;
 use image::io::Reader as ImageReader;
 use image::GenericImageView;
@@ -42,6 +42,24 @@ pub async fn get_cached_image(img_url: String) -> crate::Result<String> {
     let lock_index = (url_md5.as_bytes()[url_md5.len() - 1] % 64) as usize;
     let _guard = IMAGE_LOCKS[lock_index].lock().await;
 
+    if let Some(a) = novel_download::Entity::find_by_image_url(img_url.as_str()).await? {
+        if a.cover_download_status == 1 {
+            let novel_dir = Path::new(DOWNLOAD_FOLDER.get().unwrap()).join(&a.novel_id);
+            let picture_file_path = novel_dir.join("cover");
+            let path = picture_file_path.to_str().unwrap().to_string(); 
+            return Ok(path);
+        }
+    }
+
+    if let Some(a) = novel_download_picture::Entity::find_by_url(img_url.as_str()).await? {
+        if a.download_status == 1 {
+            let novel_dir = Path::new(DOWNLOAD_FOLDER.get().unwrap()).join(&a.aid);
+            let picture_file_path = novel_dir.join(format!("picture_{}", a.url_md5));
+            let path = picture_file_path.to_str().unwrap().to_string();
+            return Ok(path);
+        }
+    }
+
     // 检查缓存记录
     if let Some(_cache) = image_cache::Entity::find_by_url(img_url.as_str()).await? {
         // 如果缓存记录存在，尝试读取文件
@@ -82,6 +100,16 @@ pub(crate) async fn get_chapter_content(aid: &str, cid: &str) -> anyhow::Result<
     let url_md5 = hex::encode(url_md5);
     let lock_index = (url_md5.as_bytes()[url_md5.len() - 1] % 64) as usize;
     let _guard = IMAGE_LOCKS[lock_index].lock().await;
+
+    // 如果章节已下载，则直接从本地文件读取
+    if let Some(a) = novel_download_chapter::Entity::find_by_id(cid).await? {
+        if a.download_status == 1 {
+            let novel_dir = Path::new(DOWNLOAD_FOLDER.get().unwrap()).join(&a.aid);
+            let chapter_file_path = novel_dir.join(format!("chapter_{}", cid));
+            let content = tokio::fs::read_to_string(chapter_file_path).await?;
+            return Ok(content);
+        }
+    }
 
     // 先尝试从缓存获取
     if let Some(cache) = chapter_cache::Entity::get_chapter_content(aid, cid).await? {
