@@ -1,6 +1,7 @@
 use sea_orm::{prelude::*, sea_query::{Index, SqliteQueryBuilder}, Order, QueryOrder, QuerySelect, Schema, Set, Statement};
 use serde::{Deserialize, Serialize};
 use std::ops::Deref;
+use sea_orm::{EntityTrait, ColumnTrait, DatabaseConnection};
 
 use super::get_connect;
 
@@ -160,6 +161,13 @@ impl Entity {
             .await?;
 
         Ok(())
+    }
+
+    pub async fn find_by_novel_id(db: &DatabaseConnection, novel_id: &str) -> crate::Result<Vec<Model>> {
+        Ok(Self::find()
+            .filter(Column::Aid.eq(novel_id))
+            .all(db)
+            .await?)
     }
 }
 

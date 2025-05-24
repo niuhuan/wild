@@ -480,10 +480,8 @@ pub async fn download_novel(aid: String, cid_list: Vec<String>) -> anyhow::Resul
 }
 
 pub async fn all_downloads() -> anyhow::Result<Vec<NovelDownload>> {
-    let downloads = novel_download::Entity::find()
-        .order_by_desc(novel_download::Column::CreateTime)
-        .all(&*crate::database::ACTIVE_DB_CONNECT.get().unwrap().lock().await)
-        .await?;
+    let db = &*crate::database::ACTIVE_DB_CONNECT.get().unwrap().lock().await;
+    let downloads = novel_download::Entity::find_all_ordered_by_create_time(db).await?;
 
     Ok(downloads.into_iter().map(|model| NovelDownload {
         novel_id: model.novel_id,
@@ -506,6 +504,8 @@ pub async fn all_downloads() -> anyhow::Result<Vec<NovelDownload>> {
 }
 
 pub async fn exists_download(novel_id: String) -> anyhow::Result<Option<ExistsDownload>> {
+    let db = &*crate::database::ACTIVE_DB_CONNECT.get().unwrap().lock().await;
+    
     // 1. 获取小说本体信息
     let novel = match novel_download::Entity::find_by_novel_id(&novel_id).await? {
         Some(novel) => novel,
@@ -527,7 +527,7 @@ pub async fn exists_download(novel_id: String) -> anyhow::Result<Option<ExistsDo
         .collect();
 
     // 3. 获取章节信息
-    let chapters = novel_download_chapter::Entity::find_by_novel_id(&novel_id)
+    let chapters = novel_download_chapter::Entity::find_by_novel_id(db, &novel_id)
         .await?
         .into_iter()
         .map(|model| NovelDownloadChapter {

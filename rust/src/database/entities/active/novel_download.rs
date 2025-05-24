@@ -2,6 +2,7 @@ use sea_orm::{
     prelude::*,
     sea_query::{Index, SqliteQueryBuilder},
     Order, QueryOrder, QuerySelect, Schema, Set, Statement,
+    EntityTrait, ColumnTrait, DatabaseConnection,
 };
 use serde::{Deserialize, Serialize};
 use std::ops::Deref;
@@ -161,6 +162,13 @@ impl Entity {
             .await?;
 
         Ok(())
+    }
+
+    pub async fn find_all_ordered_by_create_time(db: &DatabaseConnection) -> crate::Result<Vec<Model>> {
+        Ok(Self::find()
+            .order_by_desc(Column::CreateTime)
+            .all(db)
+            .await?)
     }
 }
 
