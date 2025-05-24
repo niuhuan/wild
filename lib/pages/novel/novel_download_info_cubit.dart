@@ -44,22 +44,28 @@ class NovelDownloadInfoCubit extends Cubit<NovelDownloadInfoState> {
       }
 
       // 从下载数据构建卷和章节列表
-      final volumes = download.novelDownloadVolume.map((volume) {
-        final chapters = download.novelDownloadChapter
-            .where((chapter) => chapter.volumeId == volume.id)
-            .map((chapter) => Chapter(
-                  aid: chapter.aid,
-                  cid: chapter.id,
-                  title: chapter.title,
-                  url: chapter.url,
-                ))
-            .toList();
-        return Volume(
-          id: volume.id,
-          title: volume.title,
-          chapters: chapters,
-        );
-      }).toList();
+      final volumes = download.novelDownloadVolume
+          .map((volume) {
+            final chapters = download.novelDownloadChapter
+                .where((chapter) => chapter.volumeId == volume.id)
+                .map((chapter) => Chapter(
+                      aid: chapter.aid,
+                      cid: chapter.id,
+                      title: chapter.title,
+                      url: chapter.url,
+                    ))
+                .toList();
+            // 只返回有章节的卷
+            if (chapters.isEmpty) return null;
+            return Volume(
+              id: volume.id,
+              title: volume.title,
+              chapters: chapters,
+            );
+          })
+          .where((volume) => volume != null) // 过滤掉 null
+          .map((volume) => volume!) // 将非空的卷转换为非空类型
+          .toList();
 
       final history = await w8.novelHistoryById(novelId: novelId);
       emit(NovelDownloadInfoLoaded(

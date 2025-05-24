@@ -206,6 +206,9 @@ impl Entity {
 }
 
 pub mod migrations {
+    use sea_orm::EntityName;
+    use sea_orm::IdenStatic;
+    use sea_orm::Schema;
     use sea_orm_migration::prelude::*;
     use super::Entity;
     use super::Column;
@@ -374,14 +377,25 @@ pub mod migrations {
     impl MigrationTrait for M000005AddUrlMd5NovelDownloadPicture {
         async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
             // 添加 url_md5 列
-            manager
-                .alter_table(
-                    Table::alter()
-                        .table(Entity)
-                        .add_column(ColumnDef::new(Column::UrlMd5).string().not_null().default(""))
-                        .to_owned(),
+            let db = manager.get_connection();
+            let backend = db.get_database_backend();
+            let schema = Schema::new(backend);
+            if !manager
+                .has_column(
+                    super::Entity.table_name(),
+                    super::Column::UrlMd5.as_str(),
                 )
-                .await?;
+                .await?
+            {
+                manager
+                    .alter_table(
+                        Table::alter()
+                            .table(Entity)
+                            .add_column(ColumnDef::new(Column::UrlMd5).string().not_null().default(""))
+                            .to_owned(),
+                    )
+                    .await?;
+            }
 
             // 为 url_md5 创建索引
             manager

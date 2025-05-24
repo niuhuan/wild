@@ -149,9 +149,9 @@ pub(crate) async fn cache_first<T: for<'de> serde::Deserialize<'de> + serde::Ser
 ) -> anyhow::Result<T> {
     let lock_index = (key.as_bytes()[key.len() - 1] % 64) as usize;
     let _guard = IMAGE_LOCKS[lock_index].lock().await;
-    let time = chrono::Local::now().timestamp_millis();
+    let time = chrono::Local::now().timestamp();
     if let Some(ref model) = WebCacheEntity::get_web_cache(key.as_str()).await? {
-        if time < (model.cache_time + expire.as_millis() as i64) {
+        if time < (model.cache_time + expire.as_secs() as i64) {
             Ok(serde_json::from_str(&model.cache_content)?)
         } else {
             let t = pin.await?;
