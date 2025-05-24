@@ -7,7 +7,7 @@ import '../frb_generated.dart';
 import '../wenku8/models.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_receiver_is_total_eq`, `clone`, `eq`, `fmt`, `fmt`, `fmt`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`
 
 Future<void> wenku8Login({
   required String username,
@@ -158,6 +158,36 @@ Future<void> downloadNovel({
 Future<List<NovelDownload>> allDownloads() =>
     RustLib.instance.api.crateApiWenku8AllDownloads();
 
+Future<ExistsDownload?> existsDownload({required String novelId}) =>
+    RustLib.instance.api.crateApiWenku8ExistsDownload(novelId: novelId);
+
+class ExistsDownload {
+  final NovelDownload novelDownload;
+  final List<NovelDownloadVolume> novelDownloadVolume;
+  final List<NovelDownloadChapter> novelDownloadChapter;
+
+  const ExistsDownload({
+    required this.novelDownload,
+    required this.novelDownloadVolume,
+    required this.novelDownloadChapter,
+  });
+
+  @override
+  int get hashCode =>
+      novelDownload.hashCode ^
+      novelDownloadVolume.hashCode ^
+      novelDownloadChapter.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ExistsDownload &&
+          runtimeType == other.runtimeType &&
+          novelDownload == other.novelDownload &&
+          novelDownloadVolume == other.novelDownloadVolume &&
+          novelDownloadChapter == other.novelDownloadChapter;
+}
+
 class NovelDownload {
   final String novelId;
   final String novelName;
@@ -235,6 +265,92 @@ class NovelDownload {
           isAnimated == other.isAnimated &&
           finUpdate == other.finUpdate &&
           status == other.status;
+}
+
+class NovelDownloadChapter {
+  final String id;
+  final String title;
+  final String url;
+  final String aid;
+  final String volumeId;
+  final int downloadStatus;
+  final int totalPicture;
+  final int chapterIdx;
+
+  const NovelDownloadChapter({
+    required this.id,
+    required this.title,
+    required this.url,
+    required this.aid,
+    required this.volumeId,
+    required this.downloadStatus,
+    required this.totalPicture,
+    required this.chapterIdx,
+  });
+
+  @override
+  int get hashCode =>
+      id.hashCode ^
+      title.hashCode ^
+      url.hashCode ^
+      aid.hashCode ^
+      volumeId.hashCode ^
+      downloadStatus.hashCode ^
+      totalPicture.hashCode ^
+      chapterIdx.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is NovelDownloadChapter &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          title == other.title &&
+          url == other.url &&
+          aid == other.aid &&
+          volumeId == other.volumeId &&
+          downloadStatus == other.downloadStatus &&
+          totalPicture == other.totalPicture &&
+          chapterIdx == other.chapterIdx;
+}
+
+class NovelDownloadVolume {
+  final String id;
+  final String novelId;
+  final int volumeIdx;
+  final String title;
+  final int downloadStatus;
+  final PlatformInt64 createTime;
+
+  const NovelDownloadVolume({
+    required this.id,
+    required this.novelId,
+    required this.volumeIdx,
+    required this.title,
+    required this.downloadStatus,
+    required this.createTime,
+  });
+
+  @override
+  int get hashCode =>
+      id.hashCode ^
+      novelId.hashCode ^
+      volumeIdx.hashCode ^
+      title.hashCode ^
+      downloadStatus.hashCode ^
+      createTime.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is NovelDownloadVolume &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          novelId == other.novelId &&
+          volumeIdx == other.volumeIdx &&
+          title == other.title &&
+          downloadStatus == other.downloadStatus &&
+          createTime == other.createTime;
 }
 
 class PageStatsNovelCover {

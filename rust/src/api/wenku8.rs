@@ -505,6 +505,75 @@ pub async fn all_downloads() -> anyhow::Result<Vec<NovelDownload>> {
     }).collect())
 }
 
+pub async fn exists_download(novel_id: String) -> anyhow::Result<Option<ExistsDownload>> {
+    // 1. 获取小说本体信息
+    let novel = match novel_download::Entity::find_by_novel_id(&novel_id).await? {
+        Some(novel) => novel,
+        None => return Ok(None),
+    };
+
+    // 2. 获取卷信息
+    let volumes = novel_download_volume::Entity::find_by_novel_id(&novel_id)
+        .await?
+        .into_iter()
+        .map(|model| NovelDownloadVolume {
+            id: model.id,
+            novel_id: model.novel_id,
+            volume_idx: model.volume_idx,
+            title: model.title,
+            download_status: model.download_status,
+            create_time: model.create_time,
+        })
+        .collect();
+
+    // 3. 获取章节信息
+    let chapters = novel_download_chapter::Entity::find_by_novel_id(&novel_id)
+        .await?
+        .into_iter()
+        .map(|model| NovelDownloadChapter {
+            id: model.id,
+            title: model.title,
+            url: model.url,
+            aid: model.aid,
+            volume_id: model.volume_id,
+            download_status: model.download_status,
+            total_picture: model.total_picture,
+            chapter_idx: model.chapter_idx,
+        })
+        .collect();
+
+    // 4. 组装返回结果
+    Ok(Some(ExistsDownload {
+        novel_download: NovelDownload {
+            novel_id: novel.novel_id,
+            novel_name: novel.novel_name,
+            download_status: novel.download_status,
+            cover_url: novel.cover_url,
+            cover_download_status: novel.cover_download_status,
+            author: novel.author,
+            tags: novel.tags,
+            choose_chapter_count: novel.choose_chapter_count,
+            download_chapter_count: novel.download_chapter_count,
+            create_time: novel.create_time,
+            download_time: novel.download_time,
+            introduce: novel.introduce,
+            trending: novel.trending,
+            is_animated: novel.is_animated,
+            fin_update: novel.fin_update,
+            status: novel.status,
+        },
+        novel_download_volume: volumes,
+        novel_download_chapter: chapters,
+    }))
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ExistsDownload {
+    pub novel_download: NovelDownload,
+    pub novel_download_volume: Vec<NovelDownloadVolume>,
+    pub novel_download_chapter: Vec<NovelDownloadChapter>,
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct NovelDownload {
     pub novel_id: String,
@@ -523,4 +592,26 @@ pub struct NovelDownload {
     pub is_animated: bool,
     pub fin_update: String,
     pub status: String,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct NovelDownloadVolume {
+    pub id: String,
+    pub novel_id: String,
+    pub volume_idx: i32,
+    pub title: String,
+    pub download_status: i32,
+    pub create_time: i64,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct NovelDownloadChapter {
+    pub id: String,
+    pub title: String,
+    pub url: String,
+    pub aid: String,
+    pub volume_id: String,
+    pub download_status: i32,
+    pub total_picture: i32,
+    pub chapter_idx: i32,
 }

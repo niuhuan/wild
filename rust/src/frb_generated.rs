@@ -37,7 +37,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.9.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -799923211;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 1761485827;
 
 // Section: executor
 
@@ -504,6 +504,42 @@ fn wire__crate__api__wenku8__download_novel_impl(
                     (move || async move {
                         let output_ok =
                             crate::api::wenku8::download_novel(api_aid, api_cid_list).await?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
+fn wire__crate__api__wenku8__exists_download_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "exists_download",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_novel_id = <String>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || async move {
+                        let output_ok = crate::api::wenku8::exists_download(api_novel_id).await?;
                         Ok(output_ok)
                     })()
                     .await,
@@ -1456,6 +1492,22 @@ impl SseDecode for crate::wenku8::models::Chapter {
     }
 }
 
+impl SseDecode for crate::api::wenku8::ExistsDownload {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_novelDownload = <crate::api::wenku8::NovelDownload>::sse_decode(deserializer);
+        let mut var_novelDownloadVolume =
+            <Vec<crate::api::wenku8::NovelDownloadVolume>>::sse_decode(deserializer);
+        let mut var_novelDownloadChapter =
+            <Vec<crate::api::wenku8::NovelDownloadChapter>>::sse_decode(deserializer);
+        return crate::api::wenku8::ExistsDownload {
+            novel_download: var_novelDownload,
+            novel_download_volume: var_novelDownloadVolume,
+            novel_download_chapter: var_novelDownloadChapter,
+        };
+    }
+}
+
 impl SseDecode for crate::wenku8::models::HomeBlock {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -1579,6 +1631,34 @@ impl SseDecode for Vec<crate::api::wenku8::NovelDownload> {
         let mut ans_ = vec![];
         for idx_ in 0..len_ {
             ans_.push(<crate::api::wenku8::NovelDownload>::sse_decode(
+                deserializer,
+            ));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::wenku8::NovelDownloadChapter> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = vec![];
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::wenku8::NovelDownloadChapter>::sse_decode(
+                deserializer,
+            ));
+        }
+        return ans_;
+    }
+}
+
+impl SseDecode for Vec<crate::api::wenku8::NovelDownloadVolume> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = vec![];
+        for idx_ in 0..len_ {
+            ans_.push(<crate::api::wenku8::NovelDownloadVolume>::sse_decode(
                 deserializer,
             ));
         }
@@ -1726,6 +1806,50 @@ impl SseDecode for crate::api::wenku8::NovelDownload {
     }
 }
 
+impl SseDecode for crate::api::wenku8::NovelDownloadChapter {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_id = <String>::sse_decode(deserializer);
+        let mut var_title = <String>::sse_decode(deserializer);
+        let mut var_url = <String>::sse_decode(deserializer);
+        let mut var_aid = <String>::sse_decode(deserializer);
+        let mut var_volumeId = <String>::sse_decode(deserializer);
+        let mut var_downloadStatus = <i32>::sse_decode(deserializer);
+        let mut var_totalPicture = <i32>::sse_decode(deserializer);
+        let mut var_chapterIdx = <i32>::sse_decode(deserializer);
+        return crate::api::wenku8::NovelDownloadChapter {
+            id: var_id,
+            title: var_title,
+            url: var_url,
+            aid: var_aid,
+            volume_id: var_volumeId,
+            download_status: var_downloadStatus,
+            total_picture: var_totalPicture,
+            chapter_idx: var_chapterIdx,
+        };
+    }
+}
+
+impl SseDecode for crate::api::wenku8::NovelDownloadVolume {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_id = <String>::sse_decode(deserializer);
+        let mut var_novelId = <String>::sse_decode(deserializer);
+        let mut var_volumeIdx = <i32>::sse_decode(deserializer);
+        let mut var_title = <String>::sse_decode(deserializer);
+        let mut var_downloadStatus = <i32>::sse_decode(deserializer);
+        let mut var_createTime = <i64>::sse_decode(deserializer);
+        return crate::api::wenku8::NovelDownloadVolume {
+            id: var_id,
+            novel_id: var_novelId,
+            volume_idx: var_volumeIdx,
+            title: var_title,
+            download_status: var_downloadStatus,
+            create_time: var_createTime,
+        };
+    }
+}
+
 impl SseDecode for crate::wenku8::models::NovelInfo {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -1751,6 +1875,19 @@ impl SseDecode for crate::wenku8::models::NovelInfo {
             trending: var_trending,
             is_animated: var_isAnimated,
         };
+    }
+}
+
+impl SseDecode for Option<crate::api::wenku8::ExistsDownload> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::api::wenku8::ExistsDownload>::sse_decode(
+                deserializer,
+            ));
+        } else {
+            return None;
+        }
     }
 }
 
@@ -1933,37 +2070,38 @@ fn pde_ffi_dispatcher_primary_impl(
         11 => wire__crate__api__wenku8__download_checkcode_impl(port, ptr, rust_vec_len, data_len),
         12 => wire__crate__api__wenku8__download_image_impl(port, ptr, rust_vec_len, data_len),
         13 => wire__crate__api__wenku8__download_novel_impl(port, ptr, rust_vec_len, data_len),
-        15 => wire__crate__api__wenku8__index_impl(port, ptr, rust_vec_len, data_len),
-        16 => wire__crate__api__system__init_impl(port, ptr, rust_vec_len, data_len),
-        17 => wire__crate__api__simple__init_app_impl(port, ptr, rust_vec_len, data_len),
-        18 => {
+        14 => wire__crate__api__wenku8__exists_download_impl(port, ptr, rust_vec_len, data_len),
+        16 => wire__crate__api__wenku8__index_impl(port, ptr, rust_vec_len, data_len),
+        17 => wire__crate__api__system__init_impl(port, ptr, rust_vec_len, data_len),
+        18 => wire__crate__api__simple__init_app_impl(port, ptr, rust_vec_len, data_len),
+        19 => {
             wire__crate__api__wenku8__list_reading_history_impl(port, ptr, rust_vec_len, data_len)
         }
-        19 => wire__crate__api__database__load_property_impl(port, ptr, rust_vec_len, data_len),
-        20 => wire__crate__api__wenku8__logout_impl(port, ptr, rust_vec_len, data_len),
-        21 => wire__crate__api__wenku8__move_bookcase_impl(port, ptr, rust_vec_len, data_len),
-        22 => wire__crate__api__wenku8__novel_history_by_id_impl(port, ptr, rust_vec_len, data_len),
-        23 => wire__crate__api__wenku8__novel_info_impl(port, ptr, rust_vec_len, data_len),
-        24 => wire__crate__api__wenku8__novel_reader_impl(port, ptr, rust_vec_len, data_len),
-        25 => wire__crate__api__wenku8__page_stats_novel_cover_default_impl(
+        20 => wire__crate__api__database__load_property_impl(port, ptr, rust_vec_len, data_len),
+        21 => wire__crate__api__wenku8__logout_impl(port, ptr, rust_vec_len, data_len),
+        22 => wire__crate__api__wenku8__move_bookcase_impl(port, ptr, rust_vec_len, data_len),
+        23 => wire__crate__api__wenku8__novel_history_by_id_impl(port, ptr, rust_vec_len, data_len),
+        24 => wire__crate__api__wenku8__novel_info_impl(port, ptr, rust_vec_len, data_len),
+        25 => wire__crate__api__wenku8__novel_reader_impl(port, ptr, rust_vec_len, data_len),
+        26 => wire__crate__api__wenku8__page_stats_novel_cover_default_impl(
             port,
             ptr,
             rust_vec_len,
             data_len,
         ),
-        26 => wire__crate__api__wenku8__pre_login_state_impl(port, ptr, rust_vec_len, data_len),
-        27 => wire__crate__api__database__save_property_impl(port, ptr, rust_vec_len, data_len),
-        28 => wire__crate__api__wenku8__search_impl(port, ptr, rust_vec_len, data_len),
-        29 => wire__crate__api__wenku8__search_histories_impl(port, ptr, rust_vec_len, data_len),
-        30 => wire__crate__api__wenku8__tag_page_impl(port, ptr, rust_vec_len, data_len),
-        31 => wire__crate__api__wenku8__tags_impl(port, ptr, rust_vec_len, data_len),
-        32 => wire__crate__api__wenku8__toplist_impl(port, ptr, rust_vec_len, data_len),
-        33 => wire__crate__api__wenku8__update_history_impl(port, ptr, rust_vec_len, data_len),
-        34 => wire__crate__api__wenku8__user_detail_impl(port, ptr, rust_vec_len, data_len),
-        35 => {
+        27 => wire__crate__api__wenku8__pre_login_state_impl(port, ptr, rust_vec_len, data_len),
+        28 => wire__crate__api__database__save_property_impl(port, ptr, rust_vec_len, data_len),
+        29 => wire__crate__api__wenku8__search_impl(port, ptr, rust_vec_len, data_len),
+        30 => wire__crate__api__wenku8__search_histories_impl(port, ptr, rust_vec_len, data_len),
+        31 => wire__crate__api__wenku8__tag_page_impl(port, ptr, rust_vec_len, data_len),
+        32 => wire__crate__api__wenku8__tags_impl(port, ptr, rust_vec_len, data_len),
+        33 => wire__crate__api__wenku8__toplist_impl(port, ptr, rust_vec_len, data_len),
+        34 => wire__crate__api__wenku8__update_history_impl(port, ptr, rust_vec_len, data_len),
+        35 => wire__crate__api__wenku8__user_detail_impl(port, ptr, rust_vec_len, data_len),
+        36 => {
             wire__crate__api__wenku8__wenku8_get_bookshelf_impl(port, ptr, rust_vec_len, data_len)
         }
-        36 => wire__crate__api__wenku8__wenku8_login_impl(port, ptr, rust_vec_len, data_len),
+        37 => wire__crate__api__wenku8__wenku8_login_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -1976,7 +2114,7 @@ fn pde_ffi_dispatcher_sync_impl(
 ) -> flutter_rust_bridge::for_generated::WireSyncRust2DartSse {
     // Codec=Pde (Serialization + dispatch), see doc to use other codecs
     match func_id {
-        14 => wire__crate__api__simple__greet_impl(ptr, rust_vec_len, data_len),
+        15 => wire__crate__api__simple__greet_impl(ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -2070,6 +2208,28 @@ impl flutter_rust_bridge::IntoIntoDart<crate::wenku8::models::Chapter>
     for crate::wenku8::models::Chapter
 {
     fn into_into_dart(self) -> crate::wenku8::models::Chapter {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::wenku8::ExistsDownload {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.novel_download.into_into_dart().into_dart(),
+            self.novel_download_volume.into_into_dart().into_dart(),
+            self.novel_download_chapter.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::wenku8::ExistsDownload
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::wenku8::ExistsDownload>
+    for crate::api::wenku8::ExistsDownload
+{
+    fn into_into_dart(self) -> crate::api::wenku8::ExistsDownload {
         self
     }
 }
@@ -2171,6 +2331,58 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::wenku8::NovelDownload>
     for crate::api::wenku8::NovelDownload
 {
     fn into_into_dart(self) -> crate::api::wenku8::NovelDownload {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::wenku8::NovelDownloadChapter {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.id.into_into_dart().into_dart(),
+            self.title.into_into_dart().into_dart(),
+            self.url.into_into_dart().into_dart(),
+            self.aid.into_into_dart().into_dart(),
+            self.volume_id.into_into_dart().into_dart(),
+            self.download_status.into_into_dart().into_dart(),
+            self.total_picture.into_into_dart().into_dart(),
+            self.chapter_idx.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::wenku8::NovelDownloadChapter
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::wenku8::NovelDownloadChapter>
+    for crate::api::wenku8::NovelDownloadChapter
+{
+    fn into_into_dart(self) -> crate::api::wenku8::NovelDownloadChapter {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::wenku8::NovelDownloadVolume {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.id.into_into_dart().into_dart(),
+            self.novel_id.into_into_dart().into_dart(),
+            self.volume_idx.into_into_dart().into_dart(),
+            self.title.into_into_dart().into_dart(),
+            self.download_status.into_into_dart().into_dart(),
+            self.create_time.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::wenku8::NovelDownloadVolume
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::wenku8::NovelDownloadVolume>
+    for crate::api::wenku8::NovelDownloadVolume
+{
+    fn into_into_dart(self) -> crate::api::wenku8::NovelDownloadVolume {
         self
     }
 }
@@ -2418,6 +2630,21 @@ impl SseEncode for crate::wenku8::models::Chapter {
     }
 }
 
+impl SseEncode for crate::api::wenku8::ExistsDownload {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <crate::api::wenku8::NovelDownload>::sse_encode(self.novel_download, serializer);
+        <Vec<crate::api::wenku8::NovelDownloadVolume>>::sse_encode(
+            self.novel_download_volume,
+            serializer,
+        );
+        <Vec<crate::api::wenku8::NovelDownloadChapter>>::sse_encode(
+            self.novel_download_chapter,
+            serializer,
+        );
+    }
+}
+
 impl SseEncode for crate::wenku8::models::HomeBlock {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -2520,6 +2747,26 @@ impl SseEncode for Vec<crate::api::wenku8::NovelDownload> {
     }
 }
 
+impl SseEncode for Vec<crate::api::wenku8::NovelDownloadChapter> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::wenku8::NovelDownloadChapter>::sse_encode(item, serializer);
+        }
+    }
+}
+
+impl SseEncode for Vec<crate::api::wenku8::NovelDownloadVolume> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::api::wenku8::NovelDownloadVolume>::sse_encode(item, serializer);
+        }
+    }
+}
+
 impl SseEncode for Vec<u8> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -2614,6 +2861,32 @@ impl SseEncode for crate::api::wenku8::NovelDownload {
     }
 }
 
+impl SseEncode for crate::api::wenku8::NovelDownloadChapter {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.id, serializer);
+        <String>::sse_encode(self.title, serializer);
+        <String>::sse_encode(self.url, serializer);
+        <String>::sse_encode(self.aid, serializer);
+        <String>::sse_encode(self.volume_id, serializer);
+        <i32>::sse_encode(self.download_status, serializer);
+        <i32>::sse_encode(self.total_picture, serializer);
+        <i32>::sse_encode(self.chapter_idx, serializer);
+    }
+}
+
+impl SseEncode for crate::api::wenku8::NovelDownloadVolume {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.id, serializer);
+        <String>::sse_encode(self.novel_id, serializer);
+        <i32>::sse_encode(self.volume_idx, serializer);
+        <String>::sse_encode(self.title, serializer);
+        <i32>::sse_encode(self.download_status, serializer);
+        <i64>::sse_encode(self.create_time, serializer);
+    }
+}
+
 impl SseEncode for crate::wenku8::models::NovelInfo {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -2627,6 +2900,16 @@ impl SseEncode for crate::wenku8::models::NovelInfo {
         <String>::sse_encode(self.heat, serializer);
         <String>::sse_encode(self.trending, serializer);
         <bool>::sse_encode(self.is_animated, serializer);
+    }
+}
+
+impl SseEncode for Option<crate::api::wenku8::ExistsDownload> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::api::wenku8::ExistsDownload>::sse_encode(value, serializer);
+        }
     }
 }
 

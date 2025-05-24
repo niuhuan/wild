@@ -41,10 +41,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   bool dco_decode_bool(dynamic raw);
 
   @protected
+  ExistsDownload dco_decode_box_autoadd_exists_download(dynamic raw);
+
+  @protected
   ReadingHistory dco_decode_box_autoadd_reading_history(dynamic raw);
 
   @protected
   Chapter dco_decode_chapter(dynamic raw);
+
+  @protected
+  ExistsDownload dco_decode_exists_download(dynamic raw);
 
   @protected
   HomeBlock dco_decode_home_block(dynamic raw);
@@ -80,6 +86,14 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<NovelDownload> dco_decode_list_novel_download(dynamic raw);
 
   @protected
+  List<NovelDownloadChapter> dco_decode_list_novel_download_chapter(
+    dynamic raw,
+  );
+
+  @protected
+  List<NovelDownloadVolume> dco_decode_list_novel_download_volume(dynamic raw);
+
+  @protected
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
 
   @protected
@@ -104,7 +118,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   NovelDownload dco_decode_novel_download(dynamic raw);
 
   @protected
+  NovelDownloadChapter dco_decode_novel_download_chapter(dynamic raw);
+
+  @protected
+  NovelDownloadVolume dco_decode_novel_download_volume(dynamic raw);
+
+  @protected
   NovelInfo dco_decode_novel_info(dynamic raw);
+
+  @protected
+  ExistsDownload? dco_decode_opt_box_autoadd_exists_download(dynamic raw);
 
   @protected
   ReadingHistory? dco_decode_opt_box_autoadd_reading_history(dynamic raw);
@@ -152,12 +175,20 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   bool sse_decode_bool(SseDeserializer deserializer);
 
   @protected
+  ExistsDownload sse_decode_box_autoadd_exists_download(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   ReadingHistory sse_decode_box_autoadd_reading_history(
     SseDeserializer deserializer,
   );
 
   @protected
   Chapter sse_decode_chapter(SseDeserializer deserializer);
+
+  @protected
+  ExistsDownload sse_decode_exists_download(SseDeserializer deserializer);
 
   @protected
   HomeBlock sse_decode_home_block(SseDeserializer deserializer);
@@ -199,6 +230,16 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  List<NovelDownloadChapter> sse_decode_list_novel_download_chapter(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<NovelDownloadVolume> sse_decode_list_novel_download_volume(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
 
   @protected
@@ -227,7 +268,22 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   NovelDownload sse_decode_novel_download(SseDeserializer deserializer);
 
   @protected
+  NovelDownloadChapter sse_decode_novel_download_chapter(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  NovelDownloadVolume sse_decode_novel_download_volume(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   NovelInfo sse_decode_novel_info(SseDeserializer deserializer);
+
+  @protected
+  ExistsDownload? sse_decode_opt_box_autoadd_exists_download(
+    SseDeserializer deserializer,
+  );
 
   @protected
   ReadingHistory? sse_decode_opt_box_autoadd_reading_history(
@@ -282,6 +338,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_bool(bool self, SseSerializer serializer);
 
   @protected
+  void sse_encode_box_autoadd_exists_download(
+    ExistsDownload self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_box_autoadd_reading_history(
     ReadingHistory self,
     SseSerializer serializer,
@@ -289,6 +351,12 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_chapter(Chapter self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_exists_download(
+    ExistsDownload self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_home_block(HomeBlock self, SseSerializer serializer);
@@ -339,6 +407,18 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_list_novel_download_chapter(
+    List<NovelDownloadChapter> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_novel_download_volume(
+    List<NovelDownloadVolume> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_list_prim_u_8_strict(
     Uint8List self,
     SseSerializer serializer,
@@ -372,7 +452,25 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void sse_encode_novel_download(NovelDownload self, SseSerializer serializer);
 
   @protected
+  void sse_encode_novel_download_chapter(
+    NovelDownloadChapter self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_novel_download_volume(
+    NovelDownloadVolume self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_novel_info(NovelInfo self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_box_autoadd_exists_download(
+    ExistsDownload? self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_opt_box_autoadd_reading_history(
