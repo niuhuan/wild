@@ -52,8 +52,8 @@ class NovelDownloadPage extends StatelessWidget {
                 return Card(
                   margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: InkWell(
-                    onTap: () {
-                      Navigator.push(
+                    onTap: () async {
+                      await Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => NovelDownloadInfoPage(
@@ -61,6 +61,9 @@ class NovelDownloadPage extends StatelessWidget {
                           ),
                         ),
                       );
+                      if (context.mounted) {
+                        context.read<NovelDownloadCubit>().loadDownloads();
+                      }
                     },
                     child: Padding(
                       padding: const EdgeInsets.all(12),
