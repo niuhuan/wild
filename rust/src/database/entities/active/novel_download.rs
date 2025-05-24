@@ -1,8 +1,8 @@
 use sea_orm::{
     prelude::*,
-    sea_query::{Index, SqliteQueryBuilder},
-    Order, QueryOrder, QuerySelect, Schema, Set, Statement,
-    EntityTrait, ColumnTrait, DatabaseConnection,
+    sea_query::{Expr, Index, SqliteQueryBuilder},
+    ColumnTrait, DatabaseConnection, EntityTrait, Order, QueryOrder, QuerySelect, Schema, Set,
+    Statement,
 };
 use serde::{Deserialize, Serialize};
 use std::ops::Deref;
@@ -37,6 +37,14 @@ pub enum Relation {}
 impl ActiveModelBehavior for ActiveModel {}
 
 impl Entity {
+    pub async fn add_one_download_chapter_count(novel_id: &str) -> Result<(), DbErr> {
+        Entity::update_many()
+            .col_expr(Column::DownloadChapterCount, Expr::col(Column::DownloadChapterCount).add(1))
+            .filter(Column::NovelId.eq(novel_id))
+            .exec(get_connect().await.deref())
+            .await?;
+        Ok(())
+    }
 
     pub async fn find_by_image_url(img_url: &str) -> Result<Option<Model>, DbErr> {
         Entity::find()
@@ -116,16 +124,11 @@ impl Entity {
         Ok(())
     }
 
-    pub async fn update_download_status(
-        novel_id: &str,
-        download_status: i32,
-        download_chapter_count: i32,
-    ) -> Result<(), DbErr> {
+    pub async fn update_download_status(novel_id: &str, download_status: i32) -> Result<(), DbErr> {
         let now = chrono::Utc::now().timestamp();
         let model = ActiveModel {
             novel_id: Set(novel_id.to_string()),
             download_status: Set(download_status),
-            download_chapter_count: Set(download_chapter_count),
             download_time: Set(now),
             ..Default::default()
         };
@@ -173,7 +176,9 @@ impl Entity {
         Ok(())
     }
 
-    pub async fn find_all_ordered_by_create_time(db: &DatabaseConnection) -> crate::Result<Vec<Model>> {
+    pub async fn find_all_ordered_by_create_time(
+        db: &DatabaseConnection,
+    ) -> crate::Result<Vec<Model>> {
         Ok(Self::find()
             .order_by_desc(Column::CreateTime)
             .all(db)

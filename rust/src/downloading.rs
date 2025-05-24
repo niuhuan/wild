@@ -186,6 +186,20 @@ async fn downloading_loop() -> Result<()> {
                                             error = %e,
                                             "Failed to update chapter status"
                                         );
+                                    } else {
+                                        // 更新小说下载章节数
+                                        if let Err(e) = novel_download::Entity::add_one_download_chapter_count(
+                                            &novel.novel_id,
+                                        )
+                                        .await
+                                        {
+                                            error!(
+                                                novel_id = %novel.novel_id,
+                                                chapter_id = %chapter.id,
+                                                error = %e,
+                                                "Failed to update novel download chapter count"
+                                            );
+                                        }
                                     }
                                 }
                                 Err(e) => {
