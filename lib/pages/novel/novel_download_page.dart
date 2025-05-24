@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wild/pages/novel/novel_download_cubit.dart';
 import 'package:wild/widgets/cached_image.dart';
+import 'package:wild/pages/novel/novel_download_info_page.dart';
 
 class NovelDownloadPage extends StatelessWidget {
   const NovelDownloadPage({super.key});
@@ -52,7 +53,14 @@ class NovelDownloadPage extends StatelessWidget {
                   margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: InkWell(
                     onTap: () {
-                      // TODO: 跳转到下载详情页
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => NovelDownloadInfoPage(
+                            novelId: download.novelId,
+                          ),
+                        ),
+                      );
                     },
                     child: Padding(
                       padding: const EdgeInsets.all(12),
