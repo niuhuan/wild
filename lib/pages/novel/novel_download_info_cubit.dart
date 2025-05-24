@@ -86,7 +86,7 @@ class NovelDownloadInfoCubit extends Cubit<NovelDownloadInfoState> {
 
   Future<void> deleteDownload() async {
     try {
-      // await w8.novelDownloadUpdateDownloadStatus(novelId: novelId, downloadStatus: 3);
+      await w8.deleteDownload(novelId: novelId);
     } catch (e) {
       if (state is NovelDownloadInfoLoaded) {
         emit(NovelDownloadInfoError(e.toString()));

@@ -5,7 +5,6 @@ import 'package:wild/widgets/cached_image.dart';
 import 'package:wild/pages/novel/novel_download_info_cubit.dart';
 import 'package:wild/pages/novel/reader_page.dart';
 import 'package:wild/src/rust/wenku8/models.dart';
-import 'package:wild/src/rust/api/database.dart';
 
 class NovelDownloadInfoPage extends StatelessWidget {
   final String novelId;
