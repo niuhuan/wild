@@ -39,6 +39,7 @@ pub(crate) static CLIENT: Lazy<Wenku8Client> = Lazy::new(|| {
 static INIT_LOCK: OnceCell<Mutex<()>> = OnceCell::new();
 static INIT_DONE: OnceCell<()> = OnceCell::new();
 static IMAGE_CACHE_DIR: OnceCell<String> = OnceCell::new();
+pub(crate) static DOWNLOAD_FOLDER: OnceCell<String> = OnceCell::new();
 
 // 创建64个锁，用于防止同一个URL的并发下载
 static IMAGE_LOCKS: Lazy<Vec<Mutex<()>>> = Lazy::new(|| {
@@ -80,11 +81,17 @@ pub async fn init(root: String) -> Result<()> {
     IMAGE_CACHE_DIR
         .set(image_cache_dir.to_str().unwrap().to_string())
         .unwrap();
+    // 创建下载目录
+    let download_folder = Path::new(&root).join("download");
+    std::fs::create_dir_all(&download_folder)?;
+    DOWNLOAD_FOLDER.set(download_folder.to_str().unwrap().to_string()).unwrap();
 
     // 清理过期的图片缓存
     cleanup_image_cache().await?;
     cleanup_expired_chapters().await?;
     cleanup_expired_web_cache().await?;
+
+    downloading::start_downloading().await?;
 
     // 标记初始化完成
     let _ = INIT_DONE.set(());
