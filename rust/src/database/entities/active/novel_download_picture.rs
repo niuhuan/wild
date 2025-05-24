@@ -12,6 +12,7 @@ use super::get_connect;
 /// - chapter_id: 章节ID，关联 novel_download_chapter 表的 id
 /// - picture_idx: 图片序号，用于排序
 /// - url: 图片URL
+/// - url_md5: 图片URL的MD5值，用于去重和缓存
 /// - download_status: 下载状态（0: 未开始, 1: 下载中, 2: 已完成, 3: 错误）
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "novel_download_picture")]
@@ -25,6 +26,7 @@ pub struct Model {
     #[sea_orm(primary_key)]
     pub picture_idx: i32,
     pub url: String,
+    pub url_md5: String,
     pub download_status: i32,
 }
 
@@ -66,6 +68,7 @@ impl Entity {
         chapter_id: &str,
         picture_idx: i32,
         url: &str,
+        url_md5: &str,
         download_status: i32,
     ) -> Result<(), DbErr> {
         let model = ActiveModel {
@@ -74,6 +77,7 @@ impl Entity {
             chapter_id: Set(chapter_id.to_string()),
             picture_idx: Set(picture_idx),
             url: Set(url.to_string()),
+            url_md5: Set(url_md5.to_string()),
             download_status: Set(download_status),
         };
 
@@ -87,6 +91,7 @@ impl Entity {
                 ])
                 .update_columns([
                     Column::Url,
+                    Column::UrlMd5,
                     Column::DownloadStatus,
                 ])
                 .to_owned(),
@@ -110,6 +115,7 @@ impl Entity {
             volume_id: Set(volume_id.to_string()),
             chapter_id: Set(chapter_id.to_string()),
             picture_idx: Set(picture_idx),
+            url_md5: Set(String::new()), // 保持原有值
             download_status: Set(download_status),
             ..Default::default()
         };
@@ -191,6 +197,7 @@ pub mod migrations {
                         .col(ColumnDef::new(Column::ChapterId).string().not_null())
                         .col(ColumnDef::new(Column::PictureIdx).integer().not_null())
                         .col(ColumnDef::new(Column::Url).string().not_null())
+                        .col(ColumnDef::new(Column::UrlMd5).string().not_null())
                         .col(ColumnDef::new(Column::DownloadStatus).integer().not_null())
                         .primary_key(
                             &mut Index::create()
@@ -315,6 +322,62 @@ pub mod migrations {
         async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
             manager
                 .drop_index(Index::drop().name("idx_novel_download_picture_chapter_id_picture_idx").to_owned())
+                .await?;
+
+            Ok(())
+        }
+    }
+
+    pub struct M000005AddUrlMd5NovelDownloadPicture;
+
+    impl MigrationName for M000005AddUrlMd5NovelDownloadPicture {
+        fn name(&self) -> &str {
+            "m000005_add_url_md5_novel_download_picture"
+        }
+    }
+
+    #[async_trait::async_trait]
+    impl MigrationTrait for M000005AddUrlMd5NovelDownloadPicture {
+        async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
+            // 添加 url_md5 列
+            manager
+                .alter_table(
+                    Table::alter()
+                        .table(Entity)
+                        .add_column(ColumnDef::new(Column::UrlMd5).string().not_null().default(""))
+                        .to_owned(),
+                )
+                .await?;
+
+            // 为 url_md5 创建索引
+            manager
+                .create_index(
+                    Index::create()
+                        .name("idx_novel_download_picture_url_md5")
+                        .table(Entity)
+                        .if_not_exists()
+                        .col(Column::UrlMd5)
+                        .to_owned(),
+                )
+                .await?;
+
+            Ok(())
+        }
+
+        async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
+            // 删除 url_md5 索引
+            manager
+                .drop_index(Index::drop().name("idx_novel_download_picture_url_md5").to_owned())
+                .await?;
+
+            // 删除 url_md5 列
+            manager
+                .alter_table(
+                    Table::alter()
+                        .table(Entity)
+                        .drop_column(Column::UrlMd5)
+                        .to_owned(),
+                )
                 .await?;
 
             Ok(())

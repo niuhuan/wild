@@ -132,6 +132,9 @@ impl MigratorTrait for Migrator {
             Box::new(
                 novel_download_picture::migrations::M000004IdxAidChapterIdPictureIdxNovelDownloadPicture,
             ),
+            Box::new(
+                novel_download_picture::migrations::M000005AddUrlMd5NovelDownloadPicture,
+            ),
         ]
     }
 }
