@@ -1,5 +1,5 @@
 use crate::database::ACTIVE_DB_CONNECT;
-use sea_orm::DatabaseConnection;
+use sea_orm::{DatabaseConnection, EntityTrait};
 use sea_orm_migration::{MigrationTrait, MigratorTrait};
 use std::ops::Deref;
 
@@ -32,6 +32,15 @@ pub const DOWNLOAD_STATUS_DELETING: i32 = 3;
 
 async fn get_connect() -> tokio::sync::MutexGuard<'static, DatabaseConnection> {
     ACTIVE_DB_CONNECT.get().unwrap().lock().await
+}
+
+pub(crate) async fn remove_download_data(novel_id: &str) -> crate::Result<()> {
+    let db = get_connect().await;
+    novel_download::Entity::delete_by_id(novel_id).exec(db.deref()).await?;
+    novel_download_volume::Entity::delete_by_novel_id(db.deref(), novel_id).await?;
+    novel_download_chapter::Entity::delete_by_novel_id(db.deref(),novel_id).await?;
+    novel_download_picture::Entity::delete_by_novel_id(db.deref(),novel_id).await?;
+    Ok(())
 }
 
 pub(crate) async fn migrations() -> crate::Result<()> {

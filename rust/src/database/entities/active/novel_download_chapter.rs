@@ -36,6 +36,14 @@ pub enum Relation {}
 impl ActiveModelBehavior for ActiveModel {}
 
 impl Entity {
+
+    pub async fn delete_by_novel_id(conn: &impl ConnectionTrait, novel_id: &str) -> Result<(), DbErr> {
+        Entity::delete_many()
+            .filter(Column::Aid.eq(novel_id))
+            .exec(conn)
+            .await?;
+        Ok(())
+    }
     /// 根据章节ID查找
     pub async fn find_by_id(id: &str) -> Result<Option<Model>, DbErr> {
         Entity::find()
@@ -93,8 +101,6 @@ impl Entity {
                         Column::Url,
                         Column::Aid,
                         Column::VolumeId,
-                        Column::DownloadStatus,
-                        Column::TotalPicture,
                         Column::ChapterIdx,
                     ])
                     .to_owned(),
@@ -170,6 +176,32 @@ impl Entity {
             .all(db.deref())
             .await?)
     }
+
+    pub async fn find_incomplete_by_volume(novel_id: &str, volume_id: &str) -> Result<Option<Model>, DbErr> {
+        Entity::find()
+            .filter(Column::Aid.eq(novel_id))
+            .filter(Column::VolumeId.eq(volume_id))
+            .filter(Column::DownloadStatus.eq(0))
+            .order_by(Column::ChapterIdx, Order::Asc)
+            .limit(1)
+            .one(get_connect().await.deref())
+            .await
+    }
+
+    pub async fn update_status(novel_id: &str, volume_id: &str, chapter_id: &str, status: i32) -> Result<(), DbErr> {
+        Entity::update_many()
+            .filter(Column::Aid.eq(novel_id))
+            .filter(Column::VolumeId.eq(volume_id))
+            .filter(Column::Id.eq(chapter_id))
+            .set(ActiveModel {
+                download_status: Set(status),
+                ..Default::default()
+            })
+            .exec(get_connect().await.deref())
+            .await?;
+        Ok(())
+    }
+
 }
 
 pub mod migrations {

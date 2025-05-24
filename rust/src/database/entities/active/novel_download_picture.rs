@@ -36,6 +36,22 @@ pub enum Relation {}
 impl ActiveModelBehavior for ActiveModel {}
 
 impl Entity {
+
+    pub async fn delete_by_novel_id(conn: &impl ConnectionTrait, novel_id: &str) -> Result<(), DbErr> {
+        Entity::delete_many()
+            .filter(Column::Aid.eq(novel_id))
+            .exec(conn)
+            .await?;
+        Ok(())
+    }
+
+    pub async fn find_by_novel_id(novel_id: &str) -> Result<Vec<Model>, DbErr> {
+        Entity::find()
+            .filter(Column::Aid.eq(novel_id))
+            .all(get_connect().await.deref())
+            .await
+    }
+
     /// 根据章节ID查找所有图片，按图片序号排序
     pub async fn find_by_chapter_id(chapter_id: &str) -> Result<Vec<Model>, DbErr> {
         Entity::find()

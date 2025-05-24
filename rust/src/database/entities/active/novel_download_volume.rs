@@ -89,12 +89,11 @@ impl Entity {
         Ok(())
     }
 
-    pub async fn delete_by_novel_id(novel_id: &str) -> Result<(), DbErr> {
+    pub async fn delete_by_novel_id(conn: &impl ConnectionTrait, novel_id: &str) -> Result<(), DbErr> {
         Entity::delete_many()
             .filter(Column::NovelId.eq(novel_id))
-            .exec(get_connect().await.deref())
+            .exec(conn)
             .await?;
-
         Ok(())
     }
 
@@ -113,6 +112,39 @@ impl Entity {
             .await?;
 
         Ok(())
+    }
+
+    pub async fn find_incomplete_by_novel(novel_id: &str) -> Result<Option<Model>, DbErr> {
+        Entity::find()
+            .filter(Column::NovelId.eq(novel_id))
+            .filter(Column::DownloadStatus.eq(0))
+            .order_by(Column::Id, Order::Asc)
+            .limit(1)
+            .one(get_connect().await.deref())
+            .await
+    }
+
+    pub async fn update_status(novel_id: &str, volume_id: &str, status: i32) -> Result<(), DbErr> {
+        Entity::update_many()
+            .filter(Column::NovelId.eq(novel_id))
+            .filter(Column::Id.eq(volume_id))
+            .set(ActiveModel {
+                download_status: Set(status),
+                ..Default::default()
+            })
+            .exec(get_connect().await.deref())
+            .await?;
+        Ok(())
+    }
+
+    pub async fn has_failed(novel_id: &str) -> Result<bool, DbErr> {
+        let has_failed = Entity::find()
+            .filter(Column::NovelId.eq(novel_id))
+            .filter(Column::DownloadStatus.eq(2))
+            .one(get_connect().await.deref())
+            .await?
+            .is_some();
+        Ok(has_failed)
     }
 }
 

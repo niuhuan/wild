@@ -170,6 +170,32 @@ impl Entity {
             .all(db)
             .await?)
     }
+
+    pub async fn find_first_deleting() -> Result<Option<Model>, DbErr> {
+        Entity::find()
+            .filter(Column::DownloadStatus.eq(3))
+            .one(get_connect().await.deref())
+            .await
+    }
+
+    pub async fn find_first_not_started() -> Result<Option<Model>, DbErr> {
+        Entity::find()
+            .filter(Column::DownloadStatus.eq(0))
+            .one(get_connect().await.deref())
+            .await
+    }
+
+    pub async fn update_status(novel_id: &str, status: i32) -> Result<(), DbErr> {
+        Entity::update_many()
+            .filter(Column::NovelId.eq(novel_id))
+            .set(ActiveModel {
+                download_status: Set(status),
+                ..Default::default()
+            })
+            .exec(get_connect().await.deref())
+            .await?;
+        Ok(())
+    }
 }
 
 pub mod migrations {
