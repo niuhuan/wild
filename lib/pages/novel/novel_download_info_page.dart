@@ -5,6 +5,7 @@ import 'package:wild/widgets/cached_image.dart';
 import 'package:wild/pages/novel/novel_download_info_cubit.dart';
 import 'package:wild/pages/novel/reader_page.dart';
 import 'package:wild/src/rust/wenku8/models.dart';
+import 'package:flutter_html/flutter_html.dart';
 
 class NovelDownloadInfoPage extends StatelessWidget {
   final String novelId;
@@ -382,7 +383,19 @@ class _NovelDescription extends StatelessWidget {
         children: [
           Text('简介', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
-          Text(description, style: Theme.of(context).textTheme.bodyMedium),
+          Html(
+            data: description,
+            style: {
+              'body': Style(
+                margin: Margins.zero,
+                padding: HtmlPaddings.zero,
+                fontSize: FontSize(14),
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+              'p': Style(margin: Margins.only(bottom: 8)),
+              'br': Style(margin: Margins.only(bottom: 8)),
+            },
+          ),
         ],
       ),
     );
