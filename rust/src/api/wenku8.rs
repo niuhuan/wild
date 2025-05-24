@@ -5,6 +5,7 @@ use crate::database::entities::{
         novel_download_volume,
         novel_download_chapter,
         DOWNLOAD_STATUS_NOT_DOWNLOAD,
+        DOWNLOAD_STATUS_DELETING,
     },
 };
 use crate::wenku8::{
@@ -17,6 +18,7 @@ use anyhow::Ok;
 use sea_orm::{EntityTrait, ColumnTrait, QueryOrder};
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
+use crate::downloading::RESTART_FLAG;
 
 #[flutter_rust_bridge::frb]
 pub async fn wenku8_login(username: String, password: String, checkcode: String) -> Result<()> {
@@ -476,6 +478,11 @@ pub async fn download_novel(aid: String, cid_list: Vec<String>) -> anyhow::Resul
         ).await?;
     }
 
+
+    // 设置重启标志
+    let mut restart_flag = RESTART_FLAG.lock().await;
+    *restart_flag = true;
+    
     Ok(())
 }
 
@@ -613,4 +620,15 @@ pub struct NovelDownloadChapter {
     pub download_status: i32,
     pub total_picture: i32,
     pub chapter_idx: i32,
+}
+
+pub async fn delete_download(novel_id: String) -> anyhow::Result<()> {
+    // 设置小说下载状态为删除中
+    novel_download::Entity::update_status(&novel_id, DOWNLOAD_STATUS_DELETING).await?;
+    
+    // 设置重启标志
+    let mut restart_flag = RESTART_FLAG.lock().await;
+    *restart_flag = true;
+    
+    Ok(())
 }

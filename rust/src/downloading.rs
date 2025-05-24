@@ -12,7 +12,7 @@ use tokio::sync::Mutex;
 use tokio::task::spawn;
 use tracing::{debug, error, info, instrument, warn, Level};
 
-static RESTART_FLAG: Lazy<Mutex<bool>> = Lazy::new(|| Mutex::new(false));
+pub(crate) static RESTART_FLAG: Lazy<Mutex<bool>> = Lazy::new(|| Mutex::new(false));
 
 async fn need_restart() -> bool {
     *RESTART_FLAG.lock().await

@@ -161,6 +161,9 @@ Future<List<NovelDownload>> allDownloads() =>
 Future<ExistsDownload?> existsDownload({required String novelId}) =>
     RustLib.instance.api.crateApiWenku8ExistsDownload(novelId: novelId);
 
+Future<void> deleteDownload({required String novelId}) =>
+    RustLib.instance.api.crateApiWenku8DeleteDownload(novelId: novelId);
+
 class ExistsDownload {
   final NovelDownload novelDownload;
   final List<NovelDownloadVolume> novelDownloadVolume;
