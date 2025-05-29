@@ -165,6 +165,7 @@ class _CategoryPageState extends State<CategoryPage> {
   String _viewMode = "0"; // 默认按更新查看
   PageStatsNovelCover? _currentPage;
   bool _isLoading = false;
+  String? _errorMessage;
   static const _keyTag = 'category_page_selected_tag';
   static const _keyViewMode = 'category_page_view_mode';
 
@@ -211,13 +212,12 @@ class _CategoryPageState extends State<CategoryPage> {
       final tagGroups = await tags();
       setState(() {
         _tagGroups = tagGroups;
+        _errorMessage = null;
       });
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('加载标签失败: $e')),
-        );
-      }
+      setState(() {
+        _errorMessage = e.toString();
+      });
     }
   }
 
@@ -227,6 +227,7 @@ class _CategoryPageState extends State<CategoryPage> {
       _isLoading = true;
       if (refresh) {
         _currentPage = null;
+        _errorMessage = null;
       }
     });
 
@@ -247,9 +248,13 @@ class _CategoryPageState extends State<CategoryPage> {
           );
         }
         _isLoading = false;
+        _errorMessage = null;
       });
     } catch (e) {
-      setState(() => _isLoading = false);
+      setState(() {
+        _isLoading = false;
+        _errorMessage = e.toString();
+      });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('加载小说列表失败: $e')),
@@ -279,13 +284,13 @@ class _CategoryPageState extends State<CategoryPage> {
                   ],
                   selected: {_viewMode},
                   onSelectionChanged: (Set<String> selection) {
+                    _saveState();
                     setState(() {
                       _viewMode = selection.first;
                       if (_selectedTag != null) {
                         _loadTagPage(_selectedTag!, refresh: true);
                       }
                     });
-                    _saveState();
                   },
                 ),
               ),
@@ -363,7 +368,7 @@ class _CategoryPageState extends State<CategoryPage> {
                       }
                       return items;
                     },
-                    onSelected: (tag) {
+                    onSelected: (tag) async {
                       setState(() {
                         _selectedTag = tag;
                       });
@@ -375,50 +380,79 @@ class _CategoryPageState extends State<CategoryPage> {
             ],
           ),
         ),
-        // Novel grid
+        // Novel grid or error state
         Expanded(
           child: _selectedTag == null
               ? const Center(child: Text('请选择分类'))
-              : _currentPage == null
-                  ? const Center(child: CircularProgressIndicator())
-                  : NotificationListener<ScrollNotification>(
-                      onNotification: (notification) {
-                        if (notification is ScrollEndNotification &&
-                            notification.metrics.pixels >=
-                                notification.metrics.maxScrollExtent - 200 &&
-                            !_isLoading &&
-                            _currentPage!.currentPage < _currentPage!.maxPage) {
-                          _loadTagPage(_selectedTag!);
-                        }
-                        return true;
-                      },
-                      child: GridView.builder(
-                        padding: const EdgeInsets.all(8),
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 3,
-                          childAspectRatio: 207 / 307,
-                          crossAxisSpacing: 8,
-                          mainAxisSpacing: 8,
-                        ),
-                        itemCount: _currentPage!.records.length +
-                            (_currentPage!.currentPage < _currentPage!.maxPage
-                                ? 1
-                                : 0),
-                        itemBuilder: (context, index) {
-                          if (index >= _currentPage!.records.length) {
-                            return const Center(
-                              child: Padding(
-                                padding: EdgeInsets.all(16.0),
-                                child: CircularProgressIndicator(),
-                              ),
-                            );
-                          }
-                          final novel = _currentPage!.records[index] as NovelCover;
-                          return _NovelCoverCard(novel: novel);
-                        },
+              : _errorMessage != null
+                  ? RefreshIndicator(
+                      onRefresh: () => _loadTagPage(_selectedTag!, refresh: true),
+                      child: ListView(
+                        padding: const EdgeInsets.all(16),
+                        children: [
+                          SizedBox(
+                            height: MediaQuery.of(context).size.height - 100,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                const Icon(Icons.error_outline, size: 48, color: Colors.grey),
+                                const SizedBox(height: 16),
+                                Text(
+                                  '加载失败 (下拉刷新)',
+                                  style: Theme.of(context).textTheme.titleMedium,
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  _errorMessage!,
+                                  style: Theme.of(context).textTheme.bodyMedium,
+                                  textAlign: TextAlign.start,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
+                    )
+                  : _currentPage == null
+                      ? const Center(child: CircularProgressIndicator())
+                      : NotificationListener<ScrollNotification>(
+                          onNotification: (notification) {
+                            if (notification is ScrollEndNotification &&
+                                notification.metrics.pixels >=
+                                    notification.metrics.maxScrollExtent - 200 &&
+                                !_isLoading &&
+                                _currentPage!.currentPage < _currentPage!.maxPage) {
+                              _loadTagPage(_selectedTag!);
+                            }
+                            return true;
+                          },
+                          child: GridView.builder(
+                            padding: const EdgeInsets.all(8),
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 3,
+                              childAspectRatio: 207 / 307,
+                              crossAxisSpacing: 8,
+                              mainAxisSpacing: 8,
+                            ),
+                            itemCount: _currentPage!.records.length +
+                                (_currentPage!.currentPage < _currentPage!.maxPage
+                                    ? 1
+                                    : 0),
+                            itemBuilder: (context, index) {
+                              if (index >= _currentPage!.records.length) {
+                                return const Center(
+                                  child: Padding(
+                                    padding: EdgeInsets.all(16.0),
+                                    child: CircularProgressIndicator(),
+                                  ),
+                                );
+                              }
+                              final novel = _currentPage!.records[index] as NovelCover;
+                              return _NovelCoverCard(novel: novel);
+                            },
+                          ),
+                        ),
         ),
       ],
     );
