@@ -344,6 +344,9 @@ impl Wenku8Client {
                     .ok_or_else(|| anyhow!("Failed to find block title"))?
                     .text()
                     .collect::<String>();
+                if "文库Telegram群组".eq(&block_title) {
+                    continue;
+                }
                 let mut novel_covers = Vec::new();
                 for img in block.select(&img_selector) {
                     let parent = img
@@ -352,6 +355,8 @@ impl Wenku8Client {
                     if let Element(e) = &parent.value() {
                         if e.name.local.to_string().eq("a") {
                             let parent = ElementRef::wrap(parent).unwrap();
+                            println!("block_title: {}", block_title);
+                            println!("parent: {}", parent.html());
                             let title = parent
                                 .value()
                                 .attr("title")
