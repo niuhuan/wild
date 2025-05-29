@@ -18,7 +18,19 @@ class RecommendPage extends StatelessWidget {
         }
 
         if (state is RecommendError) {
-          return Center(child: Text('加载失败: ${state.message}'));
+          return RefreshIndicator(
+            onRefresh: () => context.read<RecommendCubit>().load(),
+            child: ListView(
+              children: [
+                SizedBox(
+                  height: MediaQuery.of(context).size.height - 100,
+                  child: Center(
+                    child: Text('加载失败 (下拉刷新): ${state.message}'),
+                  ),
+                ),
+              ],
+            ),
+          );
         }
 
         if (state is RecommendLoaded) {
