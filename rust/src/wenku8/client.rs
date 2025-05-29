@@ -341,9 +341,12 @@ impl Wenku8Client {
                 let block_title = block
                     .select(&blocktitle_selector)
                     .next()
-                    .ok_or_else(|| anyhow!("Failed to find block title"))?
-                    .text()
-                    .collect::<String>();
+                    .ok_or_else(|| anyhow!("Failed to find block title"))?;
+                // if exists class="txt" continue
+                if block_title.value().classes().any(|e| e.eq("txt")) {
+                    continue;
+                }
+                let block_title = block_title.text().collect::<String>();
                 if "文库Telegram群组".eq(&block_title) {
                     continue;
                 }
