@@ -23,6 +23,7 @@ class _SearchPageState extends State<SearchPage> {
   PageStatsNovelCover? _searchResults;
   bool _isLoading = false;
   List<SearchHistory>? _searchHistories;
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -53,13 +54,22 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Future<void> _search({bool refresh = false}) async {
-    if (_searchController.text.isEmpty) return;
+    if (_searchController.text.isEmpty) {
+      setState(() {
+        _errorMessage = null;
+        _searchResults = null;
+      });
+      return;
+    }
     if (_isLoading) return;
+
+    print('开始搜索: type=${_searchType}, key=${_searchController.text}, refresh=$refresh');
 
     setState(() {
       _isLoading = true;
       if (refresh) {
         _searchResults = null;
+        _errorMessage = null;
       }
     });
 
@@ -69,6 +79,10 @@ class _SearchPageState extends State<SearchPage> {
         searchKey: _searchController.text,
         page: refresh ? 1 : (_searchResults?.currentPage ?? 0) + 1,
       );
+
+      print('搜索成功: 找到 ${results.records.length} 条结果');
+
+      if (!mounted) return;
 
       setState(() {
         if (refresh) {
@@ -81,17 +95,20 @@ class _SearchPageState extends State<SearchPage> {
           );
         }
         _isLoading = false;
+        _errorMessage = null;
       });
 
       // 刷新搜索历史
       _loadSearchHistories();
     } catch (e) {
-      setState(() => _isLoading = false);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('搜索失败: $e')),
-        );
-      }
+      print('搜索失败: $e');
+      if (!mounted) return;
+      
+      setState(() {
+        _isLoading = false;
+        _errorMessage = e.toString();
+        _searchResults = null;  // 确保清除搜索结果
+      });
     }
   }
 
@@ -113,6 +130,7 @@ class _SearchPageState extends State<SearchPage> {
                 _searchType = selection.first;
                 _searchController.clear();
                 _searchResults = null;
+                _errorMessage = null;
               });
             },
           ),
@@ -126,6 +144,7 @@ class _SearchPageState extends State<SearchPage> {
             padding: const EdgeInsets.all(16.0),
             child: TextField(
               controller: _searchController,
+              textInputAction: TextInputAction.search,
               decoration: InputDecoration(
                 hintText: '搜索小说或作者',
                 prefixIcon: const Icon(Icons.search),
@@ -134,7 +153,11 @@ class _SearchPageState extends State<SearchPage> {
                 ),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16),
               ),
-              onSubmitted: (_) => _search(refresh: true),
+              onSubmitted: (value) {
+                if (value.isNotEmpty) {
+                  _search(refresh: true);
+                }
+              },
             ),
           ),
           // 搜索结果或搜索历史
@@ -175,6 +198,40 @@ class _SearchPageState extends State<SearchPage> {
                     },
                   );
                 },
+              ),
+            )
+          // 错误状态
+          else if (_errorMessage != null)
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: () => _search(refresh: true),
+                child: ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    SizedBox(
+                      height: MediaQuery.of(context).size.height - 100,
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            const Icon(Icons.error_outline, size: 48, color: Colors.grey),
+                            const SizedBox(height: 16),
+                            Text(
+                              '搜索失败 (下拉刷新)',
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              _errorMessage!,
+                              style: Theme.of(context).textTheme.bodyMedium,
+                              textAlign: TextAlign.start,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             )
           // 搜索结果
