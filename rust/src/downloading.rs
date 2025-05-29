@@ -18,6 +18,17 @@ async fn need_restart() -> bool {
     *RESTART_FLAG.lock().await
 }
 
+pub async fn reset_fail_downloads() -> Result<()> {
+    novel_download_picture::Entity::reset_fail_downloads().await?;
+    novel_download_chapter::Entity::reset_fail_downloads().await?;
+    novel_download_volume::Entity::reset_fail_downloads().await?;
+    novel_download::Entity::reset_fail_downloads().await?;
+    // need restart
+    *RESTART_FLAG.lock().await = true;
+    info!("Reset fail downloads");
+    Ok(())
+}
+
 #[instrument(skip_all)]
 pub async fn start_downloading() -> Result<()> {
     info!("Starting download manager...");
@@ -69,6 +80,11 @@ async fn downloading_loop() -> Result<()> {
 
         // Step 2: Find first incomplete novel
         while let Some(novel) = novel_download::Entity::find_first_not_started().await? {
+            if need_restart().await {
+                warn!(novel_id = %novel.novel_id, "Download interrupted after novel status check");
+                break;
+            }
+
             info!(
                 novel_id = %novel.novel_id,
                 novel_name = %novel.novel_name,
@@ -188,10 +204,11 @@ async fn downloading_loop() -> Result<()> {
                                         );
                                     } else {
                                         // 更新小说下载章节数
-                                        if let Err(e) = novel_download::Entity::add_one_download_chapter_count(
-                                            &novel.novel_id,
-                                        )
-                                        .await
+                                        if let Err(e) =
+                                            novel_download::Entity::add_one_download_chapter_count(
+                                                &novel.novel_id,
+                                            )
+                                            .await
                                         {
                                             error!(
                                                 novel_id = %novel.novel_id,
@@ -330,7 +347,6 @@ async fn downloading_loop() -> Result<()> {
                     break;
                 }
 
-
                 match CLIENT.download_image(&picture.url).await {
                     Ok(content) => {
                         let picture_file_path =
@@ -379,6 +395,7 @@ async fn downloading_loop() -> Result<()> {
                 break;
             }
 
+            // 总结
             // Check novel status
             let volumes = novel_download_volume::Entity::find_by_novel_id(&novel.novel_id).await?;
             let has_failed = volumes.iter().any(|volume| volume.download_status == 2);
@@ -387,43 +404,40 @@ async fn downloading_loop() -> Result<()> {
                     novel_id = %novel.novel_id,
                     "Novel has failed volumes"
                 );
-                if let Err(e) = novel_download::Entity::update_status(&novel.novel_id, 2).await {
-                    error!(
-                        novel_id = %novel.novel_id,
-                        error = %e,
-                        "Failed to update novel status"
-                    );
-                }
-            } else {
-                let all_success = volumes.iter().all(|volume| volume.download_status == 1);
-                if all_success {
-                    let all_pictures =
-                        novel_download_picture::Entity::find_by_novel_id(&novel.novel_id).await?;
-                    let all_success = all_pictures
-                        .iter()
-                        .all(|picture| picture.download_status == 1);
-                    if all_success {
-                        info!(
-                            novel_id = %novel.novel_id,
-                            "Novel completed successfully"
-                        );
-                        if let Err(e) =
-                            novel_download::Entity::update_status(&novel.novel_id, 1).await
-                        {
-                            error!(
-                                novel_id = %novel.novel_id,
-                                error = %e,
-                                "Failed to update novel status"
-                            );
-                        }
-                    }
-                }
+                let _ = novel_download::Entity::update_status(&novel.novel_id, 2).await;
             }
-
-            if need_restart().await {
-                warn!(novel_id = %novel.novel_id, "Download interrupted after novel status check");
-                break;
+            let all_success = volumes.iter().all(|volume| volume.download_status == 1);
+            if !all_success {
+                continue;
             }
+            let all_pictures =
+                novel_download_picture::Entity::find_by_novel_id(&novel.novel_id).await?;
+            let has_failed = all_pictures
+                .iter()
+                .any(|picture| picture.download_status == 2);
+            if has_failed {
+                let _ = novel_download::Entity::update_status(&novel.novel_id, 2).await;
+                continue;
+            }
+            let all_success = all_pictures
+                .iter()
+                .all(|picture| picture.download_status == 1);
+            if !all_success {
+                continue;
+            }
+            let all_chapters = novel_download_chapter::Entity::find_by_novel_id(&novel.novel_id).await?;
+            let has_failed = all_chapters.iter().any(|chapter| chapter.download_status == 2);
+            if has_failed {
+                let _ = novel_download::Entity::update_status(&novel.novel_id, 2).await;
+                continue;
+            }
+            let all_success = all_chapters.iter().all(|chapter| chapter.download_status == 1);
+            if !all_success {
+                continue;
+            }
+            let success_chapter_count = all_chapters.iter().filter(|chapter| chapter.download_status == 1).count();
+            let _ = novel_download::Entity::update_download_chapter_count(&novel.novel_id, success_chapter_count.try_into().unwrap()).await;
+            let _ = novel_download::Entity::update_status(&novel.novel_id, 1).await;
         }
 
         tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;

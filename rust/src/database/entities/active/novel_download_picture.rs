@@ -1,11 +1,15 @@
-use sea_orm::{prelude::*, sea_query::{Index, SqliteQueryBuilder}, Order, QueryOrder, QuerySelect, Schema, Set, Statement};
+use sea_orm::{
+    prelude::*,
+    sea_query::{Index, SqliteQueryBuilder},
+    Order, QueryOrder, QuerySelect, Schema, Set, Statement,
+};
 use serde::{Deserialize, Serialize};
 use std::ops::Deref;
 
 use super::get_connect;
 
 /// 小说章节图片下载表
-/// 
+///
 /// 字段说明：
 /// - aid: 小说ID，关联 novel_download 表的 novel_id
 /// - volume_id: 卷ID，关联 novel_download_volume 表的 id
@@ -36,7 +40,6 @@ pub enum Relation {}
 impl ActiveModelBehavior for ActiveModel {}
 
 impl Entity {
-
     pub async fn find_by_url(url: &str) -> Result<Option<Model>, DbErr> {
         Entity::find()
             .filter(Column::Url.eq(url))
@@ -55,7 +58,10 @@ impl Entity {
             .await
     }
 
-    pub async fn delete_by_novel_id(conn: &impl ConnectionTrait, novel_id: &str) -> Result<(), DbErr> {
+    pub async fn delete_by_novel_id(
+        conn: &impl ConnectionTrait,
+        novel_id: &str,
+    ) -> Result<(), DbErr> {
         Entity::delete_many()
             .filter(Column::Aid.eq(novel_id))
             .exec(conn)
@@ -123,11 +129,7 @@ impl Entity {
                     Column::ChapterId,
                     Column::PictureIdx,
                 ])
-                .update_columns([
-                    Column::Url,
-                    Column::UrlMd5,
-                    Column::DownloadStatus,
-                ])
+                .update_columns([Column::Url, Column::UrlMd5, Column::DownloadStatus])
                 .to_owned(),
             )
             .exec(get_connect().await.deref())
@@ -203,15 +205,24 @@ impl Entity {
 
         Ok(())
     }
+
+    pub async fn reset_fail_downloads() -> Result<(), DbErr> {
+        Entity::update_many()
+            .col_expr(Column::DownloadStatus, Expr::value(0))
+            .filter(Column::DownloadStatus.eq(2))
+            .exec(get_connect().await.deref())
+            .await?;
+        Ok(())
+    }
 }
 
 pub mod migrations {
+    use super::Column;
+    use super::Entity;
     use sea_orm::EntityName;
     use sea_orm::IdenStatic;
     use sea_orm::Schema;
     use sea_orm_migration::prelude::*;
-    use super::Entity;
-    use super::Column;
 
     pub struct M000001CreateTableNovelDownloadPicture;
 
@@ -289,7 +300,11 @@ pub mod migrations {
 
         async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
             manager
-                .drop_index(Index::drop().name("idx_novel_download_picture_url").to_owned())
+                .drop_index(
+                    Index::drop()
+                        .name("idx_novel_download_picture_url")
+                        .to_owned(),
+                )
                 .await?;
 
             Ok(())
@@ -323,7 +338,11 @@ pub mod migrations {
 
         async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
             manager
-                .drop_index(Index::drop().name("idx_novel_download_picture_chapter_id").to_owned())
+                .drop_index(
+                    Index::drop()
+                        .name("idx_novel_download_picture_chapter_id")
+                        .to_owned(),
+                )
                 .await?;
 
             Ok(())
@@ -358,7 +377,11 @@ pub mod migrations {
 
         async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
             manager
-                .drop_index(Index::drop().name("idx_novel_download_picture_chapter_id_picture_idx").to_owned())
+                .drop_index(
+                    Index::drop()
+                        .name("idx_novel_download_picture_chapter_id_picture_idx")
+                        .to_owned(),
+                )
                 .await?;
 
             Ok(())
@@ -381,17 +404,19 @@ pub mod migrations {
             let backend = db.get_database_backend();
             let schema = Schema::new(backend);
             if !manager
-                .has_column(
-                    super::Entity.table_name(),
-                    super::Column::UrlMd5.as_str(),
-                )
+                .has_column(super::Entity.table_name(), super::Column::UrlMd5.as_str())
                 .await?
             {
                 manager
                     .alter_table(
                         Table::alter()
                             .table(Entity)
-                            .add_column(ColumnDef::new(Column::UrlMd5).string().not_null().default(""))
+                            .add_column(
+                                ColumnDef::new(Column::UrlMd5)
+                                    .string()
+                                    .not_null()
+                                    .default(""),
+                            )
                             .to_owned(),
                     )
                     .await?;
@@ -415,7 +440,11 @@ pub mod migrations {
         async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
             // 删除 url_md5 索引
             manager
-                .drop_index(Index::drop().name("idx_novel_download_picture_url_md5").to_owned())
+                .drop_index(
+                    Index::drop()
+                        .name("idx_novel_download_picture_url_md5")
+                        .to_owned(),
+                )
                 .await?;
 
             // 删除 url_md5 列
@@ -431,4 +460,4 @@ pub mod migrations {
             Ok(())
         }
     }
-} 
+}

@@ -22,6 +22,16 @@ pub enum Relation {}
 impl ActiveModelBehavior for ActiveModel {}
 
 impl Entity {
+
+    pub async fn reset_fail_downloads() -> Result<(), DbErr> {
+        Entity::update_many()
+            .col_expr(Column::DownloadStatus, Expr::value(0))
+            .filter(Column::DownloadStatus.eq(2))
+            .exec(get_connect().await.deref())
+            .await?;
+        Ok(())
+    }
+
     pub async fn find_by_id(id: &str) -> Result<Option<Model>, DbErr> {
         Entity::find()
             .filter(Column::Id.eq(id))

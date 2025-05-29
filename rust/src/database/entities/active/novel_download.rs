@@ -37,6 +37,16 @@ pub enum Relation {}
 impl ActiveModelBehavior for ActiveModel {}
 
 impl Entity {
+
+    pub async fn reset_fail_downloads() -> Result<(), DbErr> {
+        Entity::update_many()
+            .col_expr(Column::DownloadStatus, Expr::value(0))
+            .filter(Column::DownloadStatus.eq(2))
+            .exec(get_connect().await.deref())
+            .await?;
+        Ok(())
+    }
+
     pub async fn add_one_download_chapter_count(novel_id: &str) -> Result<(), DbErr> {
         Entity::update_many()
             .col_expr(Column::DownloadChapterCount, Expr::col(Column::DownloadChapterCount).add(1))
@@ -206,6 +216,19 @@ impl Entity {
                 download_status: Set(status),
                 ..Default::default()
             })
+            .exec(get_connect().await.deref())
+            .await?;
+        Ok(())
+    }
+
+    pub async fn update_download_chapter_count(novel_id: &str, download_chapter_count: i32) -> Result<(), DbErr> {
+        let model = ActiveModel {
+            novel_id: Set(novel_id.to_string()),
+            download_chapter_count: Set(download_chapter_count),
+            ..Default::default()
+        };
+        Entity::update(model)
+            .filter(Column::NovelId.eq(novel_id))
             .exec(get_connect().await.deref())
             .await?;
         Ok(())

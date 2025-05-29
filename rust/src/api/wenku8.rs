@@ -1,13 +1,8 @@
-use crate::database::entities::{
-    CookieEntity, ReadingHistoryEntity, SignLogEntity,
+use crate::{database::entities::{
     active::{
-        novel_download,
-        novel_download_volume,
-        novel_download_chapter,
-        DOWNLOAD_STATUS_NOT_DOWNLOAD,
-        DOWNLOAD_STATUS_DELETING,
-    },
-};
+        novel_download, novel_download_chapter, novel_download_volume, DOWNLOAD_STATUS_DELETING, DOWNLOAD_STATUS_NOT_DOWNLOAD
+    }, CookieEntity, ReadingHistoryEntity, SignLogEntity
+}, downloading};
 use crate::wenku8::{
     Bookcase, BookcaseItem, BookshelfItem, HomeBlock, Novel, NovelCover, NovelInfo, PageStats,
     TagGroup, UserDetail, Volume,
@@ -635,5 +630,10 @@ pub async fn delete_download(novel_id: String) -> anyhow::Result<()> {
 
 pub async fn clean_all_web_cache() -> anyhow::Result<()> {
     crate::cache_manager::clean_all_web_cache().await?;
+    Ok(())
+}
+
+pub async fn reset_fail_downloads() -> Result<()> {
+    downloading::reset_fail_downloads().await?;
     Ok(())
 }

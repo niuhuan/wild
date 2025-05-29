@@ -37,6 +37,15 @@ impl ActiveModelBehavior for ActiveModel {}
 
 impl Entity {
 
+    pub async fn reset_fail_downloads() -> Result<(), DbErr> {
+        Entity::update_many()
+            .col_expr(Column::DownloadStatus, Expr::value(0))
+            .filter(Column::DownloadStatus.eq(2))
+            .exec(get_connect().await.deref())
+            .await?;
+        Ok(())
+    }
+
     pub async fn delete_by_novel_id(conn: &impl ConnectionTrait, novel_id: &str) -> Result<(), DbErr> {
         Entity::delete_many()
             .filter(Column::Aid.eq(novel_id))
