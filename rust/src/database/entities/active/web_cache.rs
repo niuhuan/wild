@@ -135,4 +135,10 @@ impl Entity {
             .await?;
         Ok(())
     }
+
+    pub async fn delete_all() -> Result<(), DbErr> {
+        let db = get_connect().await;
+        Self::delete_many().exec(db.deref()).await?;
+        Ok(())
+    }
 }

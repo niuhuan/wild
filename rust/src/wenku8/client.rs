@@ -342,12 +342,24 @@ impl Wenku8Client {
                     .select(&blocktitle_selector)
                     .next()
                     .ok_or_else(|| anyhow!("Failed to find block title"))?;
-                // if exists class="txt" continue
-                if block_title.value().classes().any(|e| e.eq("txt")) {
+
+
+                // if exists first child  span class="txt" continue
+                if let Some(span) = block_title.first_child() {
+                    if let Some(span) = ElementRef::wrap(span) {
+                        if span.value().classes().any(|e| e.eq("txt")) {
+                            continue;
+                        }
+                    }
+                }
+
+                println!("block_title  classes: {:?}", block_title.value().classes().collect::<Vec<&str>>());
+                let block_title = block_title.text().collect::<String>();
+                println!("block_title: {}", block_title);
+                if "文库Telegram群组".eq(&block_title) {
                     continue;
                 }
-                let block_title = block_title.text().collect::<String>();
-                if "文库Telegram群组".eq(&block_title) {
+                if block_title.starts_with("轻小说文库公告") {
                     continue;
                 }
                 let mut novel_covers = Vec::new();
@@ -358,7 +370,6 @@ impl Wenku8Client {
                     if let Element(e) = &parent.value() {
                         if e.name.local.to_string().eq("a") {
                             let parent = ElementRef::wrap(parent).unwrap();
-                            println!("block_title: {}", block_title);
                             println!("parent: {}", parent.html());
                             let title = parent
                                 .value()

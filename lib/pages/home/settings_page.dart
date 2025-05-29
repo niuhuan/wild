@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wild/pages/novel/theme_cubit.dart';
+import 'package:wild/src/rust/api/wenku8.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -62,6 +63,105 @@ class SettingsPage extends StatelessWidget {
                       },
                     ),
                   ],
+                ),
+              ),
+              // 缓存设置
+              Card(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                      child: Text(
+                        '缓存设置',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.cleaning_services_outlined),
+                      title: const Text('清除接口缓存'),
+                      subtitle: const Text('清除所有网络请求的缓存数据'),
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text('清除缓存'),
+                            content: const Text('确定要清除所有接口缓存吗？'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text('取消'),
+                              ),
+                              TextButton(
+                                onPressed: () async {
+                                  Navigator.pop(context);
+                                  try {
+                                    await cleanAllWebCache();
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                          content: Text('缓存已清除'),
+                                          duration: Duration(seconds: 2),
+                                        ),
+                                      );
+                                    }
+                                  } catch (e) {
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text('清除缓存失败: $e'),
+                                          duration: const Duration(seconds: 2),
+                                        ),
+                                      );
+                                    }
+                                  }
+                                },
+                                child: const Text('确定'),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              // 退出登录
+              Card(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: ListTile(
+                  leading: const Icon(Icons.logout, color: Colors.red),
+                  title: const Text(
+                    '退出登录',
+                    style: TextStyle(color: Colors.red),
+                  ),
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('退出登录'),
+                        content: const Text('确定要退出登录吗？'),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('取消'),
+                          ),
+                          TextButton(
+                            onPressed: () async {
+                              Navigator.pop(context);
+                              await logout();
+                              // 退出程序
+                              Navigator.of(context).popUntil((route) => false);
+                            },
+                            child: const Text('确定'),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                 ),
               ),
             ],

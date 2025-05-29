@@ -632,3 +632,8 @@ pub async fn delete_download(novel_id: String) -> anyhow::Result<()> {
     
     Ok(())
 }
+
+pub async fn clean_all_web_cache() -> anyhow::Result<()> {
+    crate::cache_manager::clean_all_web_cache().await?;
+    Ok(())
+}

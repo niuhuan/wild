@@ -164,6 +164,9 @@ Future<ExistsDownload?> existsDownload({required String novelId}) =>
 Future<void> deleteDownload({required String novelId}) =>
     RustLib.instance.api.crateApiWenku8DeleteDownload(novelId: novelId);
 
+Future<void> cleanAllWebCache() =>
+    RustLib.instance.api.crateApiWenku8CleanAllWebCache();
+
 class ExistsDownload {
   final NovelDownload novelDownload;
   final List<NovelDownloadVolume> novelDownloadVolume;

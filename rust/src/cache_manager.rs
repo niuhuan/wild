@@ -142,6 +142,11 @@ pub(crate) async fn cleanup_expired_web_cache() -> anyhow::Result<()> {
     Ok(())
 }
 
+pub(crate) async fn clean_all_web_cache() -> anyhow::Result<()> {
+    web_cache::Entity::delete_all().await?;
+    Ok(())
+}
+
 pub(crate) async fn cache_first<T: for<'de> serde::Deserialize<'de> + serde::Serialize>(
     key: String,
     expire: Duration,
