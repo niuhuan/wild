@@ -719,6 +719,7 @@ class ArticlelistPage extends StatefulWidget {
 class _ArticlelistPageState extends State<ArticlelistPage> {
   PageStatsNovelCover? _currentPage;
   bool _isLoading = false;
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -732,6 +733,7 @@ class _ArticlelistPageState extends State<ArticlelistPage> {
       _isLoading = true;
       if (refresh) {
         _currentPage = null;
+        _errorMessage = null;
       }
     });
 
@@ -751,56 +753,87 @@ class _ArticlelistPageState extends State<ArticlelistPage> {
           );
         }
         _isLoading = false;
+        _errorMessage = null;
       });
     } catch (e) {
-      setState(() => _isLoading = false);
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('加载完结小说失败: $e')));
-      }
+      setState(() {
+        _isLoading = false;
+        _errorMessage = e.toString();
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return _currentPage == null
-        ? const Center(child: CircularProgressIndicator())
-        : NotificationListener<ScrollNotification>(
-          onNotification: (notification) {
-            if (notification is ScrollEndNotification &&
-                notification.metrics.pixels >=
-                    notification.metrics.maxScrollExtent - 200 &&
-                !_isLoading &&
-                _currentPage!.currentPage < _currentPage!.maxPage) {
-              _loadArticlelist();
-            }
-            return true;
-          },
-          child: GridView.builder(
-            padding: const EdgeInsets.all(8),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3,
-              childAspectRatio: 207 / 307,
-              crossAxisSpacing: 8,
-              mainAxisSpacing: 8,
-            ),
-            itemCount:
-                _currentPage!.records.length +
-                (_currentPage!.currentPage < _currentPage!.maxPage ? 1 : 0),
-            itemBuilder: (context, index) {
-              if (index >= _currentPage!.records.length) {
-                return const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(16.0),
-                    child: CircularProgressIndicator(),
+    return _errorMessage != null
+        ? RefreshIndicator(
+            onRefresh: () => _loadArticlelist(refresh: true),
+            child: ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                SizedBox(
+                  height: MediaQuery.of(context).size.height - 100,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      const Icon(
+                        Icons.error_outline,
+                        size: 48,
+                        color: Colors.grey,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        '加载失败 (下拉刷新)',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        _errorMessage!,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                        textAlign: TextAlign.start,
+                      ),
+                    ],
                   ),
-                );
-              }
-              final novel = _currentPage!.records[index] as NovelCover;
-              return _NovelCoverCard(novel: novel);
-            },
-          ),
-        );
+                ),
+              ],
+            ),
+          )
+        : _currentPage == null
+            ? const Center(child: CircularProgressIndicator())
+            : NotificationListener<ScrollNotification>(
+                onNotification: (notification) {
+                  if (notification is ScrollEndNotification &&
+                      notification.metrics.pixels >=
+                          notification.metrics.maxScrollExtent - 200 &&
+                      !_isLoading &&
+                      _currentPage!.currentPage < _currentPage!.maxPage) {
+                    _loadArticlelist();
+                  }
+                  return true;
+                },
+                child: GridView.builder(
+                  padding: const EdgeInsets.all(8),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    childAspectRatio: 207 / 307,
+                    crossAxisSpacing: 8,
+                    mainAxisSpacing: 8,
+                  ),
+                  itemCount: _currentPage!.records.length +
+                      (_currentPage!.currentPage < _currentPage!.maxPage ? 1 : 0),
+                  itemBuilder: (context, index) {
+                    if (index >= _currentPage!.records.length) {
+                      return const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(16.0),
+                          child: CircularProgressIndicator(),
+                        ),
+                      );
+                    }
+                    final novel = _currentPage!.records[index] as NovelCover;
+                    return _NovelCoverCard(novel: novel);
+                  },
+                ),
+              );
   }
 }

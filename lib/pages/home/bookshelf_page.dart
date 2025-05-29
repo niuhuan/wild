@@ -9,15 +9,7 @@ class BookshelfPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<BookshelfCubit, BookshelfState>(
-      listener: (context, state) {
-        // 当状态变为 error 时显示错误提示
-        if (state.status == BookshelfStatus.error) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('操作失败: ${state.errorMessage}')),
-          );
-        }
-      },
+    return BlocBuilder<BookshelfCubit, BookshelfState>(
       builder: (context, state) {
         if (state.status == BookshelfStatus.loading) {
           return const Scaffold(
@@ -27,7 +19,41 @@ class BookshelfPage extends StatelessWidget {
 
         if (state.status == BookshelfStatus.error) {
           return Scaffold(
-            body: Center(child: Text('加载失败: ${state.errorMessage}')),
+            appBar: AppBar(
+              title: const Text('我的书架'),
+            ),
+            body: RefreshIndicator(
+              onRefresh: () => context.read<BookshelfCubit>().loadBookcases(),
+              child: ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height - 100,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        const Icon(
+                          Icons.error_outline,
+                          size: 48,
+                          color: Colors.grey,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          '加载失败 (下拉刷新)',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          state.errorMessage ?? '未知错误',
+                          style: Theme.of(context).textTheme.bodyMedium,
+                          textAlign: TextAlign.start,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
           );
         }
 
