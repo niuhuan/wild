@@ -14,7 +14,8 @@ class IndexPage extends StatefulWidget {
   State<IndexPage> createState() => _IndexPageState();
 }
 
-class _IndexPageState extends State<IndexPage> with SingleTickerProviderStateMixin {
+class _IndexPageState extends State<IndexPage>
+    with SingleTickerProviderStateMixin {
   late final TabController _tabController;
 
   @override
@@ -125,12 +126,7 @@ class _NovelCoverCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: CachedImage(
-              url: novel.img,
-              fit: BoxFit.cover,
-            ),
-          ),
+          Expanded(child: CachedImage(url: novel.img, fit: BoxFit.cover)),
           Padding(
             padding: const EdgeInsets.all(4.0),
             child: Text(
@@ -255,11 +251,6 @@ class _CategoryPageState extends State<CategoryPage> {
         _isLoading = false;
         _errorMessage = e.toString();
       });
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('加载小说列表失败: $e')),
-        );
-      }
     }
   }
 
@@ -301,9 +292,14 @@ class _CategoryPageState extends State<CategoryPage> {
                   child: PopupMenuButton<String>(
                     tooltip: '分类',
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
                       decoration: BoxDecoration(
-                        border: Border.all(color: Theme.of(context).dividerColor),
+                        border: Border.all(
+                          color: Theme.of(context).dividerColor,
+                        ),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
@@ -312,12 +308,14 @@ class _CategoryPageState extends State<CategoryPage> {
                           Text(
                             _selectedTag ?? '分类',
                             style: TextStyle(
-                              color: _selectedTag != null
-                                  ? Theme.of(context).colorScheme.primary
-                                  : null,
-                              fontWeight: _selectedTag != null
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
+                              color:
+                                  _selectedTag != null
+                                      ? Theme.of(context).colorScheme.primary
+                                      : null,
+                              fontWeight:
+                                  _selectedTag != null
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
                             ),
                           ),
                           const SizedBox(width: 4),
@@ -350,12 +348,16 @@ class _CategoryPageState extends State<CategoryPage> {
                                   tag,
                                   style: TextStyle(
                                     fontSize: 14,
-                                    color: _selectedTag == tag
-                                        ? Theme.of(context).colorScheme.primary
-                                        : null,
-                                    fontWeight: _selectedTag == tag
-                                        ? FontWeight.bold
-                                        : FontWeight.normal,
+                                    color:
+                                        _selectedTag == tag
+                                            ? Theme.of(
+                                              context,
+                                            ).colorScheme.primary
+                                            : null,
+                                    fontWeight:
+                                        _selectedTag == tag
+                                            ? FontWeight.bold
+                                            : FontWeight.normal,
                                   ),
                                 ),
                               ),
@@ -376,83 +378,116 @@ class _CategoryPageState extends State<CategoryPage> {
                       _saveState();
                     },
                   ),
+                )
+              else if (_errorMessage != null)
+                Padding(
+                  padding: const EdgeInsets.only(left: 8),
+                  child: TextButton.icon(
+                    onPressed: () {
+                      setState(() {
+                        _errorMessage = null;
+                      });
+                      _loadTags();
+                    },
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('重试加载分类'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+                )
+              else
+                const Padding(
+                  padding: EdgeInsets.only(left: 8),
+                  child: SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
                 ),
             ],
           ),
         ),
         // Novel grid or error state
         Expanded(
-          child: _selectedTag == null
-              ? const Center(child: Text('请选择分类'))
-              : _errorMessage != null
+          child:
+              _selectedTag == null
+                  ? const Center(child: Text('请选择分类'))
+                  : _errorMessage != null
                   ? RefreshIndicator(
-                      onRefresh: () => _loadTagPage(_selectedTag!, refresh: true),
-                      child: ListView(
-                        padding: const EdgeInsets.all(16),
-                        children: [
-                          SizedBox(
-                            height: MediaQuery.of(context).size.height - 100,
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                const Icon(Icons.error_outline, size: 48, color: Colors.grey),
-                                const SizedBox(height: 16),
-                                Text(
-                                  '加载失败 (下拉刷新)',
-                                  style: Theme.of(context).textTheme.titleMedium,
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  _errorMessage!,
-                                  style: Theme.of(context).textTheme.bodyMedium,
-                                  textAlign: TextAlign.start,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                  : _currentPage == null
-                      ? const Center(child: CircularProgressIndicator())
-                      : NotificationListener<ScrollNotification>(
-                          onNotification: (notification) {
-                            if (notification is ScrollEndNotification &&
-                                notification.metrics.pixels >=
-                                    notification.metrics.maxScrollExtent - 200 &&
-                                !_isLoading &&
-                                _currentPage!.currentPage < _currentPage!.maxPage) {
-                              _loadTagPage(_selectedTag!);
-                            }
-                            return true;
-                          },
-                          child: GridView.builder(
-                            padding: const EdgeInsets.all(8),
-                            gridDelegate:
-                                const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 3,
-                              childAspectRatio: 207 / 307,
-                              crossAxisSpacing: 8,
-                              mainAxisSpacing: 8,
-                            ),
-                            itemCount: _currentPage!.records.length +
-                                (_currentPage!.currentPage < _currentPage!.maxPage
-                                    ? 1
-                                    : 0),
-                            itemBuilder: (context, index) {
-                              if (index >= _currentPage!.records.length) {
-                                return const Center(
-                                  child: Padding(
-                                    padding: EdgeInsets.all(16.0),
-                                    child: CircularProgressIndicator(),
-                                  ),
-                                );
-                              }
-                              final novel = _currentPage!.records[index] as NovelCover;
-                              return _NovelCoverCard(novel: novel);
-                            },
+                    onRefresh: () => _loadTagPage(_selectedTag!, refresh: true),
+                    child: ListView(
+                      padding: const EdgeInsets.all(16),
+                      children: [
+                        SizedBox(
+                          height: MediaQuery.of(context).size.height - 100,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              const Icon(
+                                Icons.error_outline,
+                                size: 48,
+                                color: Colors.grey,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                '加载失败 (下拉刷新)',
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                _errorMessage!,
+                                style: Theme.of(context).textTheme.bodyMedium,
+                                textAlign: TextAlign.start,
+                              ),
+                            ],
                           ),
                         ),
+                      ],
+                    ),
+                  )
+                  : _currentPage == null
+                  ? const Center(child: CircularProgressIndicator())
+                  : NotificationListener<ScrollNotification>(
+                    onNotification: (notification) {
+                      if (notification is ScrollEndNotification &&
+                          notification.metrics.pixels >=
+                              notification.metrics.maxScrollExtent - 200 &&
+                          !_isLoading &&
+                          _currentPage!.currentPage < _currentPage!.maxPage) {
+                        _loadTagPage(_selectedTag!);
+                      }
+                      return true;
+                    },
+                    child: GridView.builder(
+                      padding: const EdgeInsets.all(8),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 3,
+                            childAspectRatio: 207 / 307,
+                            crossAxisSpacing: 8,
+                            mainAxisSpacing: 8,
+                          ),
+                      itemCount:
+                          _currentPage!.records.length +
+                          (_currentPage!.currentPage < _currentPage!.maxPage
+                              ? 1
+                              : 0),
+                      itemBuilder: (context, index) {
+                        if (index >= _currentPage!.records.length) {
+                          return const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(16.0),
+                              child: CircularProgressIndicator(),
+                            ),
+                          );
+                        }
+                        final novel =
+                            _currentPage!.records[index] as NovelCover;
+                        return _NovelCoverCard(novel: novel);
+                      },
+                    ),
+                  ),
         ),
       ],
     );
@@ -566,100 +601,108 @@ class _ToplistPageState extends State<ToplistPage> {
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
-              children: _sortOptions.map((option) {
-                final (label, value) = option;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: FilterChip(
-                    label: Text(label),
-                    selected: _selectedSort == value,
-                    onSelected: (selected) {
-                      if (selected) {
-                        setState(() {
-                          _selectedSort = value;
-                          _errorMessage = null;
-                        });
-                        _loadToplist(refresh: true);
-                        _saveState();
-                      }
-                    },
-                  ),
-                );
-              }).toList(),
+              children:
+                  _sortOptions.map((option) {
+                    final (label, value) = option;
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: FilterChip(
+                        label: Text(label),
+                        selected: _selectedSort == value,
+                        onSelected: (selected) {
+                          if (selected) {
+                            setState(() {
+                              _selectedSort = value;
+                              _errorMessage = null;
+                            });
+                            _loadToplist(refresh: true);
+                            _saveState();
+                          }
+                        },
+                      ),
+                    );
+                  }).toList(),
             ),
           ),
         ),
         // Novel grid or error state
         Expanded(
-          child: _errorMessage != null
-              ? RefreshIndicator(
-                  onRefresh: () => _loadToplist(refresh: true),
-                  child: ListView(
-                    padding: const EdgeInsets.all(16),
-                    children: [
-                      SizedBox(
-                        height: MediaQuery.of(context).size.height - 100,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            const Icon(Icons.error_outline, size: 48, color: Colors.grey),
-                            const SizedBox(height: 16),
-                            Text(
-                              '加载失败 (下拉刷新)',
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              _errorMessage!,
-                              style: Theme.of(context).textTheme.bodyMedium,
-                              textAlign: TextAlign.start,
-                            ),
-                          ],
+          child:
+              _errorMessage != null
+                  ? RefreshIndicator(
+                    onRefresh: () => _loadToplist(refresh: true),
+                    child: ListView(
+                      padding: const EdgeInsets.all(16),
+                      children: [
+                        SizedBox(
+                          height: MediaQuery.of(context).size.height - 100,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              const Icon(
+                                Icons.error_outline,
+                                size: 48,
+                                color: Colors.grey,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                '加载失败 (下拉刷新)',
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                _errorMessage!,
+                                style: Theme.of(context).textTheme.bodyMedium,
+                                textAlign: TextAlign.start,
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                )
-              : _currentPage == null
+                      ],
+                    ),
+                  )
+                  : _currentPage == null
                   ? const Center(child: CircularProgressIndicator())
                   : NotificationListener<ScrollNotification>(
-                      onNotification: (notification) {
-                        if (notification is ScrollEndNotification &&
-                            notification.metrics.pixels >=
-                                notification.metrics.maxScrollExtent - 200 &&
-                            !_isLoading &&
-                            _currentPage!.currentPage < _currentPage!.maxPage) {
-                          _loadToplist();
+                    onNotification: (notification) {
+                      if (notification is ScrollEndNotification &&
+                          notification.metrics.pixels >=
+                              notification.metrics.maxScrollExtent - 200 &&
+                          !_isLoading &&
+                          _currentPage!.currentPage < _currentPage!.maxPage) {
+                        _loadToplist();
+                      }
+                      return true;
+                    },
+                    child: GridView.builder(
+                      padding: const EdgeInsets.all(8),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 3,
+                            childAspectRatio: 207 / 307,
+                            crossAxisSpacing: 8,
+                            mainAxisSpacing: 8,
+                          ),
+                      itemCount:
+                          _currentPage!.records.length +
+                          (_currentPage!.currentPage < _currentPage!.maxPage
+                              ? 1
+                              : 0),
+                      itemBuilder: (context, index) {
+                        if (index >= _currentPage!.records.length) {
+                          return const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(16.0),
+                              child: CircularProgressIndicator(),
+                            ),
+                          );
                         }
-                        return true;
+                        final novel =
+                            _currentPage!.records[index] as NovelCover;
+                        return _NovelCoverCard(novel: novel);
                       },
-                      child: GridView.builder(
-                        padding: const EdgeInsets.all(8),
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 3,
-                          childAspectRatio: 207 / 307,
-                          crossAxisSpacing: 8,
-                          mainAxisSpacing: 8,
-                        ),
-                        itemCount: _currentPage!.records.length +
-                            (_currentPage!.currentPage < _currentPage!.maxPage
-                                ? 1
-                                : 0),
-                        itemBuilder: (context, index) {
-                          if (index >= _currentPage!.records.length) {
-                            return const Center(
-                              child: Padding(
-                                padding: EdgeInsets.all(16.0),
-                                child: CircularProgressIndicator(),
-                              ),
-                            );
-                          }
-                          final novel = _currentPage!.records[index] as NovelCover;
-                          return _NovelCoverCard(novel: novel);
-                        },
-                      ),
                     ),
+                  ),
         ),
       ],
     );
@@ -712,9 +755,9 @@ class _ArticlelistPageState extends State<ArticlelistPage> {
     } catch (e) {
       setState(() => _isLoading = false);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('加载完结小说失败: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('加载完结小说失败: $e')));
       }
     }
   }
@@ -724,39 +767,40 @@ class _ArticlelistPageState extends State<ArticlelistPage> {
     return _currentPage == null
         ? const Center(child: CircularProgressIndicator())
         : NotificationListener<ScrollNotification>(
-            onNotification: (notification) {
-              if (notification is ScrollEndNotification &&
-                  notification.metrics.pixels >=
-                      notification.metrics.maxScrollExtent - 200 &&
-                  !_isLoading &&
-                  _currentPage!.currentPage < _currentPage!.maxPage) {
-                _loadArticlelist();
-              }
-              return true;
-            },
-            child: GridView.builder(
-              padding: const EdgeInsets.all(8),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                childAspectRatio: 207 / 307,
-                crossAxisSpacing: 8,
-                mainAxisSpacing: 8,
-              ),
-              itemCount: _currentPage!.records.length +
-                  (_currentPage!.currentPage < _currentPage!.maxPage ? 1 : 0),
-              itemBuilder: (context, index) {
-                if (index >= _currentPage!.records.length) {
-                  return const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(16.0),
-                      child: CircularProgressIndicator(),
-                    ),
-                  );
-                }
-                final novel = _currentPage!.records[index] as NovelCover;
-                return _NovelCoverCard(novel: novel);
-              },
+          onNotification: (notification) {
+            if (notification is ScrollEndNotification &&
+                notification.metrics.pixels >=
+                    notification.metrics.maxScrollExtent - 200 &&
+                !_isLoading &&
+                _currentPage!.currentPage < _currentPage!.maxPage) {
+              _loadArticlelist();
+            }
+            return true;
+          },
+          child: GridView.builder(
+            padding: const EdgeInsets.all(8),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              childAspectRatio: 207 / 307,
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 8,
             ),
-          );
+            itemCount:
+                _currentPage!.records.length +
+                (_currentPage!.currentPage < _currentPage!.maxPage ? 1 : 0),
+            itemBuilder: (context, index) {
+              if (index >= _currentPage!.records.length) {
+                return const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: CircularProgressIndicator(),
+                  ),
+                );
+              }
+              final novel = _currentPage!.records[index] as NovelCover;
+              return _NovelCoverCard(novel: novel);
+            },
+          ),
+        );
   }
 }
