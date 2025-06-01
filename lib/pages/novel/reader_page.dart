@@ -9,6 +9,8 @@ import 'package:wild/widgets/cached_image.dart';
 import '../../src/rust/wenku8/models.dart';
 import 'font_size_cubit.dart';
 import 'line_height_cubit.dart';
+import 'top_bar_height_cubit.dart';
+import 'bottom_bar_height_cubit.dart';
 
 class ReaderPage extends StatelessWidget {
   final String aid;
@@ -34,6 +36,8 @@ class ReaderPage extends StatelessWidget {
     final fontSizeCubit = context.read<FontSizeCubit>();
     final paragraphSpacingCubit = context.read<ParagraphSpacingCubit>();
     final lineHeightCubit = context.read<LineHeightCubit>();
+    final topBarHeightCubit = context.read<TopBarHeightCubit>();
+    final bottomBarHeightCubit = context.read<BottomBarHeightCubit>();
 
     return BlocProvider(
       create: (context) => ReaderCubit(
@@ -44,6 +48,8 @@ class ReaderPage extends StatelessWidget {
         fontSizeCubit: fontSizeCubit,
         paragraphSpacingCubit: paragraphSpacingCubit,
         lineHeightCubit: lineHeightCubit,
+        topBarHeightCubit: topBarHeightCubit,
+        bottomBarHeightCubit: bottomBarHeightCubit,
       )..loadChapter(initialPage: initialPage),
       child: BlocBuilder<ReaderCubit, ReaderState>(
         builder: (context, state) {
@@ -382,8 +388,8 @@ class _TextPage extends StatelessWidget {
         MediaQueryData.fromView(WidgetsBinding.instance.window).padding.top;
     final bottomPadding =
         MediaQueryData.fromView(WidgetsBinding.instance.window).padding.bottom;
-    final topBarHeight = 56.0;
-    final bottomBarHeight = 56.0;
+    final topBarHeight = context.read<TopBarHeightCubit>().state;
+    final bottomBarHeight = context.read<BottomBarHeightCubit>().state;
     final leftAndRightPadding = 32.0;
     final canvasWidth = screenWidth - leftAndRightPadding;
     final canvasHeight =
@@ -467,8 +473,8 @@ class _ImagePage extends StatelessWidget {
     final screenWidth = mediaQuery.size.width;
     final topPadding = mediaQuery.padding.top;
     final bottomPadding = mediaQuery.padding.bottom;
-    final topBarHeight = 56.0;
-    final bottomBarHeight = 56.0;
+    final topBarHeight = context.read<TopBarHeightCubit>().state;
+    final bottomBarHeight = context.read<BottomBarHeightCubit>().state;
     final availableHeight =
         screenHeight -
         topPadding -
@@ -713,6 +719,8 @@ class _ReaderSettingsState extends State<_ReaderSettings> {
   late final paragraphSpacingCubit = context.read<ParagraphSpacingCubit>();
   late final fontSizeCubit = context.read<FontSizeCubit>();
   late final lineHeightCubit = context.read<LineHeightCubit>();
+  late final topBarHeightCubit = context.read<TopBarHeightCubit>();
+  late final bottomBarHeightCubit = context.read<BottomBarHeightCubit>();
 
   void _showColorPicker(
     BuildContext context,
@@ -848,6 +856,54 @@ class _ReaderSettingsState extends State<_ReaderSettings> {
                         ),
                       ),
                       Text(lineHeight.toStringAsFixed(1), style: TextStyle()),
+                    ],
+                  );
+                },
+              ),
+              // 顶部间距设置
+              BlocBuilder<TopBarHeightCubit, double>(
+                builder: (context, height) {
+                  return Row(
+                    children: [
+                      Text('顶部间距'),
+                      Expanded(
+                        child: Slider(
+                          value: height,
+                          min: 0,
+                          max: 100,
+                          divisions: 20,
+                          label: height.round().toString(),
+                          onChanged: (value) async {
+                            await topBarHeightCubit.updateHeight(value);
+                            await widget.readerCubit.reloadCurrentPage();
+                          },
+                        ),
+                      ),
+                      Text('${height.round()}', style: TextStyle()),
+                    ],
+                  );
+                },
+              ),
+              // 底部间距设置
+              BlocBuilder<BottomBarHeightCubit, double>(
+                builder: (context, height) {
+                  return Row(
+                    children: [
+                      Text('底部间距'),
+                      Expanded(
+                        child: Slider(
+                          value: height,
+                          min: 0,
+                          max: 100,
+                          divisions: 20,
+                          label: height.round().toString(),
+                          onChanged: (value) async {
+                            await bottomBarHeightCubit.updateHeight(value);
+                            await widget.readerCubit.reloadCurrentPage();
+                          },
+                        ),
+                      ),
+                      Text('${height.round()}', style: TextStyle()),
                     ],
                   );
                 },

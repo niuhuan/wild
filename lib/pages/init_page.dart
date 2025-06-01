@@ -9,6 +9,8 @@ import 'package:wild/pages/novel/paragraph_spacing_cubit.dart';
 import 'package:wild/pages/novel/line_height_cubit.dart';
 import 'package:wild/pages/novel/theme_cubit.dart';
 import 'package:wild/src/rust/api/system.dart';
+import 'package:wild/pages/novel/top_bar_height_cubit.dart';
+import 'package:wild/pages/novel/bottom_bar_height_cubit.dart';
 
 import '../methods.dart';
 
@@ -38,6 +40,8 @@ class _InitPageState extends State<InitPage> {
     final lineHeightCubit = context.read<LineHeightCubit>();
     final themeCubit = context.read<ThemeCubit>();
     final authCubit = context.read<AuthCubit>();
+    final topBarHeightCubit = context.read<TopBarHeightCubit>();
+    final bottomBarHeightCubit = context.read<BottomBarHeightCubit>();
 
     // 等待所有 Cubit 初始化完成
     await Future.wait([
@@ -46,6 +50,8 @@ class _InitPageState extends State<InitPage> {
       lineHeightCubit.loadLineHeight(),
       themeCubit.loadTheme(),
       authCubit.init(),
+      topBarHeightCubit.loadHeight(),
+      bottomBarHeightCubit.loadHeight(),
     ]);
 
     if (authCubit.state.status == AuthStatus.authenticated) {

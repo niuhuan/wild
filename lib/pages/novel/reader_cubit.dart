@@ -7,6 +7,8 @@ import 'package:wild/src/rust/api/wenku8.dart';
 import 'package:wild/pages/novel/font_size_cubit.dart';
 import 'package:wild/pages/novel/paragraph_spacing_cubit.dart';
 import '../../src/rust/wenku8/models.dart';
+import 'package:wild/pages/novel/top_bar_height_cubit.dart';
+import 'package:wild/pages/novel/bottom_bar_height_cubit.dart';
 
 class ReaderCubit extends Cubit<ReaderState> {
   final NovelInfo novelInfo;
@@ -16,6 +18,8 @@ class ReaderCubit extends Cubit<ReaderState> {
   final FontSizeCubit fontSizeCubit;
   final ParagraphSpacingCubit paragraphSpacingCubit;
   final LineHeightCubit lineHeightCubit;
+  final TopBarHeightCubit topBarHeightCubit;
+  final BottomBarHeightCubit bottomBarHeightCubit;
 
   ReaderCubit({
     required this.novelInfo,
@@ -25,6 +29,8 @@ class ReaderCubit extends Cubit<ReaderState> {
     required this.fontSizeCubit,
     required this.paragraphSpacingCubit,
     required this.lineHeightCubit,
+    required this.topBarHeightCubit,
+    required this.bottomBarHeightCubit,
   }) : super(ReaderInitial());
 
   String _findChapterTitle(String aid, String cid) {
@@ -292,8 +298,8 @@ class ReaderCubit extends Cubit<ReaderState> {
         MediaQueryData.fromView(WidgetsBinding.instance.window).padding.top;
     final bottomPadding =
         MediaQueryData.fromView(WidgetsBinding.instance.window).padding.bottom;
-    final topBarHeight = 56.0;
-    final bottomBarHeight = 56.0;
+    final topBarHeight = topBarHeightCubit.state;
+    final bottomBarHeight = bottomBarHeightCubit.state;
     final leftAndRightPadding = 32.0;
     final canvasWidth = screenWidth - leftAndRightPadding;
     final canvasHeight =

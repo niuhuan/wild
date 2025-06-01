@@ -24,6 +24,8 @@ import 'package:wild/pages/home/about_page.dart';
 import 'package:wild/utils/app_info.dart';
 import 'package:wild/pages/update_cubit.dart';
 import 'package:wild/widgets/update_checker.dart';
+import 'package:wild/pages/novel/top_bar_height_cubit.dart';
+import 'package:wild/pages/novel/bottom_bar_height_cubit.dart';
 
 final lightTheme = ThemeData(
   colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
@@ -57,6 +59,8 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (context) => FontSizeCubit()),
         BlocProvider(create: (context) => LineHeightCubit()),
         BlocProvider(create: (context) => ParagraphSpacingCubit()),
+        BlocProvider(create: (context) => TopBarHeightCubit()),
+        BlocProvider(create: (context) => BottomBarHeightCubit()),
         BlocProvider(create: (context) => UpdateCubit()),
       ],
       child: YourApp(),
