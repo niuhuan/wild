@@ -26,23 +26,13 @@ class HtmlReaderPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider.value(value: context.read<FontSizeCubit>()),
-        BlocProvider.value(value: context.read<ParagraphSpacingCubit>()),
-        BlocProvider.value(value: context.read<LineHeightCubit>()),
-        BlocProvider.value(value: context.read<ThemeCubit>()),
-        BlocProvider.value(value: context.read<TopBarHeightCubit>()),
-        BlocProvider.value(value: context.read<BottomBarHeightCubit>()),
-        BlocProvider(
-          create: (context) => HtmlReaderCubit(
-            novelInfo: novelInfo,
-            initialAid: initialAid,
-            initialCid: initialCid,
-            initialVolumes: volumes,
-          )..loadChapter(),
-        ),
-      ],
+    return BlocProvider(
+      create: (context) => HtmlReaderCubit(
+        novelInfo: novelInfo,
+        initialAid: initialAid,
+        initialCid: initialCid,
+        initialVolumes: volumes,
+      )..loadChapter(),
       child: const _HtmlReaderView(),
     );
   }
@@ -64,79 +54,103 @@ class _HtmlReaderView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<HtmlReaderCubit>();
-    return Scaffold(
-      appBar: AppBar(
-        title: BlocBuilder<HtmlReaderCubit, HtmlReaderState>(
-          builder: (context, state) {
-            if (state is HtmlReaderLoaded) {
-              return Text(state.title);
-            }
-            return const Text('加载中...');
-          },
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () => _showSettings(context),
+    return BlocBuilder<ThemeCubit, ReaderTheme>(
+      builder: (context, theme) {
+        final mediaQuery = MediaQuery.of(context);
+        bool isDarkMode;
+        if (theme.themeMode == ReaderThemeMode.dark) {
+          isDarkMode = true;
+        } else if (theme.themeMode == ReaderThemeMode.light) {
+          isDarkMode = false;
+        } else {
+          isDarkMode = mediaQuery.platformBrightness == Brightness.dark;
+        }
+
+        final backgroundColor = isDarkMode
+            ? theme.darkBackgroundColor
+            : theme.lightBackgroundColor;
+        final textColor = isDarkMode
+            ? theme.darkTextColor
+            : theme.lightTextColor;
+
+        return Scaffold(
+          backgroundColor: backgroundColor,
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            title: BlocBuilder<HtmlReaderCubit, HtmlReaderState>(
+              builder: (context, state) {
+                if (state is HtmlReaderLoaded) {
+                  return Text(state.title);
+                }
+                return const Text('加载中...');
+              },
+            ),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.settings),
+                onPressed: () => _showSettings(context),
+              ),
+              IconButton(
+                icon: const Icon(Icons.menu),
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    builder: (context) => BlocProvider.value(
+                      value: cubit,
+                      child: _ChapterList(
+                        volumes: cubit.initialVolumes,
+                        currentAid: cubit.initialAid,
+                        currentCid: cubit.initialCid,
+                        onChapterSelected: (aid, cid) {
+                          cubit.loadChapter(aid: aid, cid: cid);
+                          Navigator.pop(context);
+                        },
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ],
           ),
-          IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: () {
-              showModalBottomSheet(
-                context: context,
-                builder: (context) => BlocProvider.value(
-                  value: cubit,
-                  child: _ChapterList(
-                    volumes: cubit.initialVolumes,
-                    currentAid: cubit.initialAid,
-                    currentCid: cubit.initialCid,
-                    onChapterSelected: (aid, cid) {
-                      cubit.loadChapter(aid: aid, cid: cid);
-                      Navigator.pop(context);
-                    },
+          body: BlocBuilder<HtmlReaderCubit, HtmlReaderState>(
+            builder: (context, state) {
+              if (state is HtmlReaderLoading) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (state is HtmlReaderError) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(state.error, style: TextStyle(color: textColor)),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () {
+                          context.read<HtmlReaderCubit>().loadChapter();
+                        },
+                        child: const Text('重试'),
+                      ),
+                    ],
                   ),
-                ),
-              );
+                );
+              }
+              if (state is HtmlReaderLoaded) {
+                return _ReaderContent(
+                  content: state.content,
+                  onPreviousChapter: () {
+                    context.read<HtmlReaderCubit>().goToPreviousChapter();
+                  },
+                  onNextChapter: () {
+                    context.read<HtmlReaderCubit>().goToNextChapter();
+                  },
+                );
+              }
+              return const SizedBox.shrink();
             },
           ),
-        ],
-      ),
-      body: BlocBuilder<HtmlReaderCubit, HtmlReaderState>(
-        builder: (context, state) {
-          if (state is HtmlReaderLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (state is HtmlReaderError) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(state.error),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () {
-                      context.read<HtmlReaderCubit>().loadChapter();
-                    },
-                    child: const Text('重试'),
-                  ),
-                ],
-              ),
-            );
-          }
-          if (state is HtmlReaderLoaded) {
-            return _ReaderContent(
-              content: state.content,
-              onPreviousChapter: () {
-                context.read<HtmlReaderCubit>().goToPreviousChapter();
-              },
-              onNextChapter: () {
-                context.read<HtmlReaderCubit>().goToNextChapter();
-              },
-            );
-          }
-          return const SizedBox.shrink();
-        },
-      ),
+        );
+      },
     );
   }
 }
@@ -154,79 +168,94 @@ class _ReaderContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final topBarHeight = context.read<TopBarHeightCubit>().state;
-    final bottomBarHeight = context.read<BottomBarHeightCubit>().state;
-    final fontSize = context.read<FontSizeCubit>().state;
-    final lineHeight = context.read<LineHeightCubit>().state;
-    final paragraphSpacing = context.read<ParagraphSpacingCubit>().state;
-    final themeCubit = context.read<ThemeCubit>();
+    return BlocBuilder<ThemeCubit, ReaderTheme>(
+      builder: (context, theme) {
+        final mediaQuery = MediaQuery.of(context);
+        bool isDarkMode;
+        if (theme.themeMode == ReaderThemeMode.dark) {
+          isDarkMode = true;
+        } else if (theme.themeMode == ReaderThemeMode.light) {
+          isDarkMode = false;
+        } else {
+          isDarkMode = mediaQuery.platformBrightness == Brightness.dark;
+        }
 
-    // 根据主题模式确定是否使用深色模式
-    final mediaQuery = MediaQuery.of(context);
-    bool isDarkMode;
-    if (themeCubit.state.themeMode == ReaderThemeMode.dark) {
-      isDarkMode = true;
-    } else if (themeCubit.state.themeMode == ReaderThemeMode.light) {
-      isDarkMode = false;
-    } else {
-      isDarkMode = mediaQuery.platformBrightness == Brightness.dark;
-    }
+        final backgroundColor = isDarkMode
+            ? theme.darkBackgroundColor
+            : theme.lightBackgroundColor;
+        final textColor = isDarkMode
+            ? theme.darkTextColor
+            : theme.lightTextColor;
 
-    // 获取当前主题的颜色
-    final backgroundColor = isDarkMode
-        ? themeCubit.state.darkBackgroundColor
-        : themeCubit.state.lightBackgroundColor;
-    final textColor = isDarkMode
-        ? themeCubit.state.darkTextColor
-        : themeCubit.state.lightTextColor;
+        return BlocBuilder<FontSizeCubit, double>(
+          builder: (context, fontSize) {
+            return BlocBuilder<LineHeightCubit, double>(
+              builder: (context, lineHeight) {
+                return BlocBuilder<ParagraphSpacingCubit, double>(
+                  builder: (context, paragraphSpacing) {
+                    return BlocBuilder<TopBarHeightCubit, double>(
+                      builder: (context, topBarHeight) {
+                        return BlocBuilder<BottomBarHeightCubit, double>(
+                          builder: (context, bottomBarHeight) {
+                            // 将内容按段落分割
+                            final paragraphs = content.split('\n').where((p) => p.trim().isNotEmpty).toList();
 
-    // 将内容按段落分割
-    final paragraphs = content.split('\n').where((p) => p.trim().isNotEmpty).toList();
-
-    return Container(
-      color: backgroundColor,
-      child: Column(
-        children: [
-          SizedBox(height: topBarHeight),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ...paragraphs.map((paragraph) => Padding(
-                    padding: EdgeInsets.only(bottom: paragraphSpacing),
-                    child: Text(
-                      paragraph,
-                      style: TextStyle(
-                        fontSize: fontSize,
-                        height: lineHeight,
-                        color: textColor,
-                      ),
-                    ),
-                  )).toList(),
-                  const SizedBox(height: 32),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      TextButton(
-                        onPressed: onPreviousChapter,
-                        child: Text('上一章', style: TextStyle(color: textColor)),
-                      ),
-                      TextButton(
-                        onPressed: onNextChapter,
-                        child: Text('下一章', style: TextStyle(color: textColor)),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 32),
-                ],
-              ),
-            ),
-          ),
-          SizedBox(height: bottomBarHeight),
-        ],
-      ),
+                            return Container(
+                              color: backgroundColor,
+                              child: Column(
+                                children: [
+                                  SizedBox(height: topBarHeight),
+                                  Expanded(
+                                    child: SingleChildScrollView(
+                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          ...paragraphs.map((paragraph) => Padding(
+                                            padding: EdgeInsets.only(bottom: paragraphSpacing),
+                                            child: Text(
+                                              paragraph,
+                                              style: TextStyle(
+                                                fontSize: fontSize,
+                                                height: lineHeight,
+                                                color: textColor,
+                                              ),
+                                            ),
+                                          )).toList(),
+                                          const SizedBox(height: 32),
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              TextButton(
+                                                onPressed: onPreviousChapter,
+                                                child: Text('上一章', style: TextStyle(color: textColor)),
+                                              ),
+                                              TextButton(
+                                                onPressed: onNextChapter,
+                                                child: Text('下一章', style: TextStyle(color: textColor)),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 32),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(height: bottomBarHeight),
+                                ],
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    );
+                  },
+                );
+              },
+            );
+          },
+        );
+      },
     );
   }
 }
