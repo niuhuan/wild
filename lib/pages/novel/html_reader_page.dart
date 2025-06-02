@@ -9,6 +9,7 @@ import 'package:wild/pages/novel/line_height_cubit.dart';
 import 'package:wild/pages/novel/paragraph_spacing_cubit.dart';
 import 'package:wild/pages/novel/theme_cubit.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:wild/widgets/cached_image.dart';
 
 class HtmlReaderPage extends StatelessWidget {
   final NovelInfo novelInfo;
@@ -166,6 +167,128 @@ class _ReaderContent extends StatelessWidget {
     required this.onNextChapter,
   });
 
+  List<Widget> _buildContentWidgets(BuildContext context, {
+    required double fontSize,
+    required double lineHeight,
+    required double paragraphSpacing,
+    required Color textColor,
+  }) {
+    final widgets = <Widget>[];
+    final paragraphs = content.split('\n');
+    
+    for (var paragraph in paragraphs) {
+      if (paragraph.trim().isEmpty) continue;
+      
+      // 检查是否包含图片标签
+      RegExp regex = RegExp("\<\!\-\-image\-\-\>([^\<]+)\<\!\-\-image\-\-\>");
+      if (regex.hasMatch(paragraph)) {
+        var currentText = paragraph;
+        while (regex.hasMatch(currentText)) {
+          var match = regex.firstMatch(currentText)!;
+          
+          // 处理图片前的文本
+          if (match.start > 0) {
+            var text = currentText.substring(0, match.start).trim();
+            if (text.isNotEmpty) {
+              widgets.add(
+                Padding(
+                  padding: EdgeInsets.only(bottom: paragraphSpacing),
+                  child: Text(
+                    text,
+                    style: TextStyle(
+                      fontSize: fontSize,
+                      height: lineHeight,
+                      color: textColor,
+                    ),
+                  ),
+                ),
+              );
+            }
+          }
+          
+          // 处理图片
+          final imageUrl = match.group(1)!;
+          widgets.add(
+            LayoutBuilder(
+              builder: (context, constraints) {
+                return Padding(
+                  padding: EdgeInsets.symmetric(vertical: paragraphSpacing),
+                  child: SizedBox(
+                    width: constraints.maxWidth,
+                    child: AspectRatio(
+                      aspectRatio: 4/3, // 默认图片比例
+                      child: Image(
+                        image: CachedImageProvider(imageUrl),
+                        width: constraints.maxWidth,
+                        fit: BoxFit.contain,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return Container(
+                            width: constraints.maxWidth,
+                            color: Colors.grey[200],
+                            child: const Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                          );
+                        },
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            width: constraints.maxWidth,
+                            color: Colors.grey[200],
+                            child: const Center(
+                              child: Text('图片加载失败'),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          );
+          
+          // 更新剩余文本
+          currentText = currentText.substring(match.end);
+        }
+        
+        // 处理最后剩余的文本
+        if (currentText.trim().isNotEmpty) {
+          widgets.add(
+            Padding(
+              padding: EdgeInsets.only(bottom: paragraphSpacing),
+              child: Text(
+                currentText.trim(),
+                style: TextStyle(
+                  fontSize: fontSize,
+                  height: lineHeight,
+                  color: textColor,
+                ),
+              ),
+            ),
+          );
+        }
+      } else {
+        // 普通文本段落
+        widgets.add(
+          Padding(
+            padding: EdgeInsets.only(bottom: paragraphSpacing),
+            child: Text(
+              paragraph,
+              style: TextStyle(
+                fontSize: fontSize,
+                height: lineHeight,
+                color: textColor,
+              ),
+            ),
+          ),
+        );
+      }
+    }
+    
+    return widgets;
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ThemeCubit, ReaderTheme>(
@@ -197,9 +320,6 @@ class _ReaderContent extends StatelessWidget {
                       builder: (context, topBarHeight) {
                         return BlocBuilder<BottomBarHeightCubit, double>(
                           builder: (context, bottomBarHeight) {
-                            // 将内容按段落分割
-                            final paragraphs = content.split('\n').where((p) => p.trim().isNotEmpty).toList();
-
                             return Container(
                               color: backgroundColor,
                               child: Column(
@@ -211,17 +331,13 @@ class _ReaderContent extends StatelessWidget {
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          ...paragraphs.map((paragraph) => Padding(
-                                            padding: EdgeInsets.only(bottom: paragraphSpacing),
-                                            child: Text(
-                                              paragraph,
-                                              style: TextStyle(
-                                                fontSize: fontSize,
-                                                height: lineHeight,
-                                                color: textColor,
-                                              ),
-                                            ),
-                                          )).toList(),
+                                          ..._buildContentWidgets(
+                                            context,
+                                            fontSize: fontSize,
+                                            lineHeight: lineHeight,
+                                            paragraphSpacing: paragraphSpacing,
+                                            textColor: textColor,
+                                          ),
                                           const SizedBox(height: 32),
                                           Row(
                                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
