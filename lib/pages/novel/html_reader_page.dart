@@ -5,6 +5,11 @@ import '../../src/rust/wenku8/models.dart';
 import 'html_reader_cubit.dart';
 import 'package:wild/pages/novel/top_bar_height_cubit.dart';
 import 'package:wild/pages/novel/bottom_bar_height_cubit.dart';
+import 'package:wild/pages/novel/font_size_cubit.dart';
+import 'package:wild/pages/novel/line_height_cubit.dart';
+import 'package:wild/pages/novel/paragraph_spacing_cubit.dart';
+import 'package:wild/pages/novel/theme_cubit.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
 class HtmlReaderPage extends StatelessWidget {
   final NovelInfo novelInfo;
@@ -22,13 +27,23 @@ class HtmlReaderPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => HtmlReaderCubit(
-        novelInfo: novelInfo,
-        initialAid: initialAid,
-        initialCid: initialCid,
-        initialVolumes: volumes,
-      )..loadChapter(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider.value(value: context.read<FontSizeCubit>()),
+        BlocProvider.value(value: context.read<ParagraphSpacingCubit>()),
+        BlocProvider.value(value: context.read<LineHeightCubit>()),
+        BlocProvider.value(value: context.read<ThemeCubit>()),
+        BlocProvider.value(value: context.read<TopBarHeightCubit>()),
+        BlocProvider.value(value: context.read<BottomBarHeightCubit>()),
+        BlocProvider(
+          create: (context) => HtmlReaderCubit(
+            novelInfo: novelInfo,
+            initialAid: initialAid,
+            initialCid: initialCid,
+            initialVolumes: volumes,
+          )..loadChapter(),
+        ),
+      ],
       child: const _HtmlReaderView(),
     );
   }
@@ -36,6 +51,16 @@ class HtmlReaderPage extends StatelessWidget {
 
 class _HtmlReaderView extends StatelessWidget {
   const _HtmlReaderView();
+
+  void _showSettings(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return _ReaderSettings();
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,6 +76,10 @@ class _HtmlReaderView extends StatelessWidget {
           },
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () => _showSettings(context),
+          ),
           IconButton(
             icon: const Icon(Icons.menu),
             onPressed: () {
@@ -128,50 +157,378 @@ class _ReaderContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final topBarHeight = context.read<TopBarHeightCubit>().state;
     final bottomBarHeight = context.read<BottomBarHeightCubit>().state;
+    final fontSize = context.read<FontSizeCubit>().state;
+    final lineHeight = context.read<LineHeightCubit>().state;
+    final paragraphSpacing = context.read<ParagraphSpacingCubit>().state;
+    final themeCubit = context.read<ThemeCubit>();
 
-    return Column(
-      children: [
-        SizedBox(height: topBarHeight),
-        Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Column(
-              children: [
-                Html(
-                  data: content,
-                  style: {
-                    'body': Style(
-                      fontSize: FontSize(16),
-                      lineHeight: LineHeight(1.8),
-                      margin: Margins.zero,
-                      padding: HtmlPaddings.zero,
-                    ),
-                    'p': Style(
-                      margin: Margins.only(bottom: 16),
-                    ),
-                  },
-                ),
-                const SizedBox(height: 32),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    TextButton(
-                      onPressed: onPreviousChapter,
-                      child: const Text('上一章'),
-                    ),
-                    TextButton(
-                      onPressed: onNextChapter,
-                      child: const Text('下一章'),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 32),
-              ],
+    // 根据主题模式确定是否使用深色模式
+    final mediaQuery = MediaQuery.of(context);
+    bool isDarkMode;
+    if (themeCubit.state.themeMode == ReaderThemeMode.dark) {
+      isDarkMode = true;
+    } else if (themeCubit.state.themeMode == ReaderThemeMode.light) {
+      isDarkMode = false;
+    } else {
+      isDarkMode = mediaQuery.platformBrightness == Brightness.dark;
+    }
+
+    // 获取当前主题的颜色
+    final backgroundColor = isDarkMode
+        ? themeCubit.state.darkBackgroundColor
+        : themeCubit.state.lightBackgroundColor;
+    final textColor = isDarkMode
+        ? themeCubit.state.darkTextColor
+        : themeCubit.state.lightTextColor;
+
+    return Container(
+      color: backgroundColor,
+      child: Column(
+        children: [
+          SizedBox(height: topBarHeight),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Column(
+                children: [
+                  Html(
+                    data: content,
+                    style: {
+                      'body': Style(
+                        fontSize: FontSize(fontSize),
+                        lineHeight: LineHeight(lineHeight),
+                        margin: Margins.zero,
+                        padding: HtmlPaddings.zero,
+                        color: textColor,
+                      ),
+                      'p': Style(
+                        margin: Margins.only(bottom: paragraphSpacing),
+                        color: textColor,
+                      ),
+                    },
+                  ),
+                  const SizedBox(height: 32),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      TextButton(
+                        onPressed: onPreviousChapter,
+                        child: Text('上一章', style: TextStyle(color: textColor)),
+                      ),
+                      TextButton(
+                        onPressed: onNextChapter,
+                        child: Text('下一章', style: TextStyle(color: textColor)),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 32),
+                ],
+              ),
             ),
           ),
-        ),
-        SizedBox(height: bottomBarHeight),
-      ],
+          SizedBox(height: bottomBarHeight),
+        ],
+      ),
+    );
+  }
+}
+
+class _ReaderSettings extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final fontSizeCubit = context.read<FontSizeCubit>();
+    final paragraphSpacingCubit = context.read<ParagraphSpacingCubit>();
+    final lineHeightCubit = context.read<LineHeightCubit>();
+    final themeCubit = context.read<ThemeCubit>();
+
+    void _showColorPicker(
+      BuildContext context,
+      Color initialColor,
+      Function(Color) onColorChanged,
+    ) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          Color pickerColor = initialColor;
+          return AlertDialog(
+            title: const Text('选择颜色'),
+            content: SingleChildScrollView(
+              child: ColorPicker(
+                pickerColor: pickerColor,
+                onColorChanged: (Color color) {
+                  pickerColor = color;
+                },
+                pickerAreaHeightPercent: 0.8,
+                enableAlpha: false,
+                labelTypes: const [],
+                displayThumbColor: true,
+                showLabel: false,
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('取消'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              TextButton(
+                child: const Text('确定'),
+                onPressed: () async {
+                  onColorChanged(pickerColor);
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
+
+    return BlocBuilder<ThemeCubit, ReaderTheme>(
+      builder: (context, theme) {
+        return Container(
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            top: 16,
+            bottom: MediaQuery.of(context).padding.bottom + 16,
+          ),
+          decoration: BoxDecoration(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '设置',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              // 字体大小设置
+              BlocBuilder<FontSizeCubit, double>(
+                builder: (context, fontSize) {
+                  return Row(
+                    children: [
+                      Text('字体大小'),
+                      Expanded(
+                        child: Slider(
+                          value: fontSize,
+                          min: 14,
+                          max: 24,
+                          divisions: 10,
+                          label: fontSize.round().toString(),
+                          onChanged: (value) {
+                            fontSizeCubit.updateFontSize(value);
+                          },
+                        ),
+                      ),
+                      Text('${fontSize.round()}', style: TextStyle()),
+                    ],
+                  );
+                },
+              ),
+              // 段落间距设置
+              BlocBuilder<ParagraphSpacingCubit, double>(
+                builder: (context, spacing) {
+                  return Row(
+                    children: [
+                      Text('段落间距'),
+                      Expanded(
+                        child: Slider(
+                          value: spacing,
+                          min: 16,
+                          max: 32,
+                          divisions: 8,
+                          label: spacing.round().toString(),
+                          onChanged: (value) {
+                            paragraphSpacingCubit.updateSpacing(value);
+                          },
+                        ),
+                      ),
+                      Text('${spacing.round()}', style: TextStyle()),
+                    ],
+                  );
+                },
+              ),
+              // 行高设置
+              BlocBuilder<LineHeightCubit, double>(
+                builder: (context, lineHeight) {
+                  return Row(
+                    children: [
+                      Text('行高'),
+                      Expanded(
+                        child: Slider(
+                          value: lineHeight,
+                          min: 1.0,
+                          max: 2.0,
+                          divisions: 20,
+                          label: lineHeight.toStringAsFixed(1),
+                          onChanged: (value) {
+                            lineHeightCubit.updateLineHeight(value);
+                          },
+                        ),
+                      ),
+                      Text(lineHeight.toStringAsFixed(1), style: TextStyle()),
+                    ],
+                  );
+                },
+              ),
+              const Divider(),
+              // 主题模式选择
+              Row(
+                children: [
+                  Text('主题模式'),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: SegmentedButton<ReaderThemeMode>(
+                      segments: const [
+                        ButtonSegment<ReaderThemeMode>(
+                          value: ReaderThemeMode.auto,
+                          label: Text('自动'),
+                          icon: Icon(Icons.brightness_auto),
+                        ),
+                        ButtonSegment<ReaderThemeMode>(
+                          value: ReaderThemeMode.light,
+                          label: Text('浅色'),
+                          icon: Icon(Icons.light_mode),
+                        ),
+                        ButtonSegment<ReaderThemeMode>(
+                          value: ReaderThemeMode.dark,
+                          label: Text('深色'),
+                          icon: Icon(Icons.dark_mode),
+                        ),
+                      ],
+                      selected: {theme.themeMode},
+                      onSelectionChanged: (Set<ReaderThemeMode> modes) {
+                        context.read<ThemeCubit>().setThemeMode(modes.first);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              // 浅色主题颜色设置
+              Row(
+                children: [
+                  Text('浅色主题', style: TextStyle(fontWeight: FontWeight.bold)),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      icon: Container(
+                        width: 24,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          color: theme.lightBackgroundColor,
+                          border: Border.all(color: Colors.grey),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      label: const Text('背景颜色'),
+                      onPressed: () => _showColorPicker(
+                        context,
+                        theme.lightBackgroundColor,
+                        (color) {
+                          context.read<ThemeCubit>().updateLightBackgroundColor(color);
+                        },
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      icon: Container(
+                        width: 24,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          color: theme.lightTextColor,
+                          border: Border.all(color: Colors.grey),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      label: const Text('文字颜色'),
+                      onPressed: () => _showColorPicker(
+                        context,
+                        theme.lightTextColor,
+                        (color) {
+                          context.read<ThemeCubit>().updateLightTextColor(color);
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              // 深色主题颜色设置
+              Row(
+                children: [
+                  Text('深色主题', style: TextStyle(fontWeight: FontWeight.bold)),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      icon: Container(
+                        width: 24,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          color: theme.darkBackgroundColor,
+                          border: Border.all(color: Colors.grey),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      label: const Text('背景颜色'),
+                      onPressed: () => _showColorPicker(
+                        context,
+                        theme.darkBackgroundColor,
+                        (color) {
+                          context.read<ThemeCubit>().updateDarkBackgroundColor(color);
+                        },
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      icon: Container(
+                        width: 24,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          color: theme.darkTextColor,
+                          border: Border.all(color: Colors.grey),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      label: const Text('文字颜色'),
+                      onPressed: () => _showColorPicker(
+                        context,
+                        theme.darkTextColor,
+                        (color) {
+                          context.read<ThemeCubit>().updateDarkTextColor(color);
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              // 重置按钮
+              TextButton(
+                onPressed: () {
+                  context.read<ThemeCubit>().resetToDefault();
+                },
+                child: const Text('重置为默认'),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
