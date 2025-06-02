@@ -11,6 +11,7 @@ import 'package:wild/pages/novel/reader_page.dart';
 import 'package:wild/pages/novel/font_size_cubit.dart';
 import 'package:wild/pages/novel/paragraph_spacing_cubit.dart';
 import 'package:wild/pages/novel/theme_cubit.dart';
+import 'package:wild/pages/novel/reader_type_cubit.dart';
 import 'package:wild/src/rust/frb_generated.dart';
 import 'package:wild/src/rust/wenku8/models.dart';
 import 'package:wild/pages/home/bookshelf_cubit.dart';
@@ -62,6 +63,7 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (context) => TopBarHeightCubit()),
         BlocProvider(create: (context) => BottomBarHeightCubit()),
         BlocProvider(create: (context) => UpdateCubit()),
+        BlocProvider(create: (context) => ReaderTypeCubit()..loadType()),
       ],
       child: YourApp(),
     );

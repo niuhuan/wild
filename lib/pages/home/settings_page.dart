@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wild/pages/novel/theme_cubit.dart';
+import 'package:wild/pages/novel/reader_type_cubit.dart';
 import 'package:wild/src/rust/api/wenku8.dart';
 
 class SettingsPage extends StatelessWidget {
@@ -17,6 +18,57 @@ class SettingsPage extends StatelessWidget {
           return ListView(
             children: [
               const SizedBox(height: 8),
+              // 阅读器设置
+              Card(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                      child: Text(
+                        '阅读器设置',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                    ),
+                    BlocBuilder<ReaderTypeCubit, ReaderType>(
+                      builder: (context, type) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('阅读器类型'),
+                              const SizedBox(height: 8),
+                              SegmentedButton<ReaderType>(
+                                segments: const [
+                                  ButtonSegment<ReaderType>(
+                                    value: ReaderType.normal,
+                                    label: Text('普通阅读器'),
+                                    icon: Icon(Icons.book),
+                                  ),
+                                  ButtonSegment<ReaderType>(
+                                    value: ReaderType.html,
+                                    label: Text('HTML阅读器'),
+                                    icon: Icon(Icons.html),
+                                  ),
+                                ],
+                                selected: {type},
+                                onSelectionChanged: (Set<ReaderType> types) async {
+                                  await context.read<ReaderTypeCubit>().updateType(types.first);
+                                },
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                ),
+              ),
               // 主题设置
               Card(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

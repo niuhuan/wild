@@ -11,6 +11,7 @@ import 'font_size_cubit.dart';
 import 'line_height_cubit.dart';
 import 'top_bar_height_cubit.dart';
 import 'bottom_bar_height_cubit.dart';
+import 'reader_type_cubit.dart';
 
 class ReaderPage extends StatelessWidget {
   final String aid;
@@ -38,19 +39,30 @@ class ReaderPage extends StatelessWidget {
     final lineHeightCubit = context.read<LineHeightCubit>();
     final topBarHeightCubit = context.read<TopBarHeightCubit>();
     final bottomBarHeightCubit = context.read<BottomBarHeightCubit>();
+    final readerTypeCubit = context.read<ReaderTypeCubit>();
 
-    return BlocProvider(
-      create: (context) => ReaderCubit(
-        novelInfo: novelInfo,
-        initialAid: aid,
-        initialCid: cid,
-        initialVolumes: volumes,
-        fontSizeCubit: fontSizeCubit,
-        paragraphSpacingCubit: paragraphSpacingCubit,
-        lineHeightCubit: lineHeightCubit,
-        topBarHeightCubit: topBarHeightCubit,
-        bottomBarHeightCubit: bottomBarHeightCubit,
-      )..loadChapter(initialPage: initialPage),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider.value(value: fontSizeCubit),
+        BlocProvider.value(value: paragraphSpacingCubit),
+        BlocProvider.value(value: lineHeightCubit),
+        BlocProvider.value(value: topBarHeightCubit),
+        BlocProvider.value(value: bottomBarHeightCubit),
+        BlocProvider.value(value: readerTypeCubit),
+        BlocProvider(
+          create: (context) => ReaderCubit(
+            novelInfo: novelInfo,
+            initialAid: aid,
+            initialCid: cid,
+            initialVolumes: volumes,
+            fontSizeCubit: fontSizeCubit,
+            paragraphSpacingCubit: paragraphSpacingCubit,
+            lineHeightCubit: lineHeightCubit,
+            topBarHeightCubit: topBarHeightCubit,
+            bottomBarHeightCubit: bottomBarHeightCubit,
+          )..loadChapter(initialPage: initialPage),
+        ),
+      ],
       child: BlocBuilder<ReaderCubit, ReaderState>(
         builder: (context, state) {
           if (state is ReaderLoading) {
@@ -721,6 +733,7 @@ class _ReaderSettingsState extends State<_ReaderSettings> {
   late final lineHeightCubit = context.read<LineHeightCubit>();
   late final topBarHeightCubit = context.read<TopBarHeightCubit>();
   late final bottomBarHeightCubit = context.read<BottomBarHeightCubit>();
+  late final readerTypeCubit = context.read<ReaderTypeCubit>();
 
   void _showColorPicker(
     BuildContext context,
@@ -788,6 +801,38 @@ class _ReaderSettingsState extends State<_ReaderSettings> {
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
+              // 阅读器类型设置
+              Row(
+                children: [
+                  Text('阅读器类型'),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: BlocBuilder<ReaderTypeCubit, ReaderType>(
+                      builder: (context, type) {
+                        return SegmentedButton<ReaderType>(
+                          segments: const [
+                            ButtonSegment<ReaderType>(
+                              value: ReaderType.normal,
+                              label: Text('普通阅读器'),
+                              icon: Icon(Icons.book),
+                            ),
+                            ButtonSegment<ReaderType>(
+                              value: ReaderType.html,
+                              label: Text('HTML阅读器'),
+                              icon: Icon(Icons.html),
+                            ),
+                          ],
+                          selected: {type},
+                          onSelectionChanged: (Set<ReaderType> types) async {
+                            await readerTypeCubit.updateType(types.first);
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const Divider(),
               // 字体大小设置
               BlocBuilder<FontSizeCubit, double>(
                 builder: (context, fontSize) {
