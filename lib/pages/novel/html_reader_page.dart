@@ -39,6 +39,7 @@ class _HtmlReaderView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cubit = context.read<HtmlReaderCubit>();
     return Scaffold(
       appBar: AppBar(
         title: BlocBuilder<HtmlReaderCubit, HtmlReaderState>(
@@ -55,14 +56,17 @@ class _HtmlReaderView extends StatelessWidget {
             onPressed: () {
               showModalBottomSheet(
                 context: context,
-                builder: (context) => _ChapterList(
-                  volumes: context.read<HtmlReaderCubit>().initialVolumes,
-                  currentAid: context.read<HtmlReaderCubit>().initialAid,
-                  currentCid: context.read<HtmlReaderCubit>().initialCid,
-                  onChapterSelected: (aid, cid) {
-                    context.read<HtmlReaderCubit>().loadChapter(aid: aid, cid: cid);
-                    Navigator.pop(context);
-                  },
+                builder: (context) => BlocProvider.value(
+                  value: cubit,
+                  child: _ChapterList(
+                    volumes: cubit.initialVolumes,
+                    currentAid: cubit.initialAid,
+                    currentCid: cubit.initialCid,
+                    onChapterSelected: (aid, cid) {
+                      cubit.loadChapter(aid: aid, cid: cid);
+                      Navigator.pop(context);
+                    },
+                  ),
                 ),
               );
             },
