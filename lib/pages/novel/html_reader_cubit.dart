@@ -75,6 +75,33 @@ class HtmlReaderCubit extends Cubit<HtmlReaderState> {
     required this.initialVolumes,
   }) : super(const HtmlReaderLoading());
 
+  Volume _findVolume(String aid, String cid) {
+    for (final volume in initialVolumes) {
+      for (final chapter in volume.chapters) {
+        if (chapter.aid == aid && chapter.cid == cid) {
+          return volume;
+        }
+      }
+    }
+    throw Exception('Volume not found');
+  }
+
+  Future<void> _updateHistory(String aid, String cid, String title) async {
+    final volume = _findVolume(aid, cid);
+    await w8.updateHistory(
+      novelId: aid,
+      novelName: novelInfo.title,
+      volumeId: volume.id,
+      volumeName: volume.title,
+      chapterId: cid,
+      chapterTitle: title,
+      progress: 0,
+      progressPage: 0,
+      cover: novelInfo.imgUrl,
+      author: novelInfo.author,
+    );
+  }
+
   Future<void> loadChapter({String? aid, String? cid}) async {
     try {
       emit(const HtmlReaderLoading());
@@ -100,6 +127,10 @@ class HtmlReaderCubit extends Cubit<HtmlReaderState> {
 
       // 加载章节内容
       final content = await w8.chapterContent(aid: targetAid, cid: targetCid);
+      
+      // 更新阅读历史
+      await _updateHistory(targetAid, targetCid, chapterTitle);
+
       emit(HtmlReaderLoaded(
         aid: targetAid,
         cid: targetCid,
