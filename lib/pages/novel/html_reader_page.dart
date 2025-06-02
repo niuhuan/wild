@@ -10,6 +10,7 @@ import 'package:wild/pages/novel/paragraph_spacing_cubit.dart';
 import 'package:wild/pages/novel/theme_cubit.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:wild/widgets/cached_image.dart';
+import 'package:wild/pages/novel/fullscreen_cubit.dart';
 
 class HtmlReaderPage extends StatelessWidget {
   final NovelInfo novelInfo;
@@ -27,14 +28,19 @@ class HtmlReaderPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create:
-          (context) => HtmlReaderCubit(
-            novelInfo: novelInfo,
-            initialAid: initialAid,
-            initialCid: initialCid,
-            initialVolumes: volumes,
-          )..loadChapter(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create:
+              (context) => HtmlReaderCubit(
+                novelInfo: novelInfo,
+                initialAid: initialAid,
+                initialCid: initialCid,
+                initialVolumes: volumes,
+              )..loadChapter(),
+        ),
+        BlocProvider(create: (context) => FullscreenCubit()),
+      ],
       child: const _HtmlReaderView(),
     );
   }
@@ -90,83 +96,110 @@ class _HtmlReaderView extends StatelessWidget {
         final textColor =
             isDarkMode ? theme.darkTextColor : theme.lightTextColor;
 
-        return Scaffold(
-          backgroundColor: backgroundColor,
-          appBar: AppBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            title: BlocBuilder<HtmlReaderCubit, HtmlReaderState>(
-              builder: (context, state) {
-                if (state is HtmlReaderLoaded) {
-                  return Text(state.title);
-                }
-                return const Text('加载中...');
-              },
-            ),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.settings),
-                onPressed: () => _showSettings(context),
-              ),
-              IconButton(
-                icon: const Icon(Icons.menu),
-                onPressed: () {
-                  showModalBottomSheet(
-                    context: context,
-                    builder:
-                        (context) => BlocProvider.value(
-                          value: cubit,
-                          child: _ChapterList(
-                            volumes: cubit.initialVolumes,
-                            currentAid: cubit.initialAid,
-                            currentCid: cubit.initialCid,
-                            onChapterSelected: (aid, cid) {
-                              cubit.loadChapter(aid: aid, cid: cid);
-                              Navigator.pop(context);
-                            },
+        return BlocBuilder<HtmlReaderCubit, HtmlReaderState>(
+          builder: (context, state) {
+            return BlocBuilder<FullscreenCubit, bool>(
+              builder: (context, isFullscreen) {
+                return Scaffold(
+                  backgroundColor: backgroundColor,
+                  extendBodyBehindAppBar: true,
+                  appBar:
+                      isFullscreen
+                          ? null
+                          : AppBar(
+                            backgroundColor: backgroundColor.withOpacity(0.8),
+                            elevation: 0,
+                            title:
+                                state is HtmlReaderLoaded
+                                    ? Text(state.title)
+                                    : const Text('加载中...'),
+                            actions: [
+                              IconButton(
+                                icon: const Icon(Icons.settings),
+                                onPressed: () => _showSettings(context),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.menu),
+                                onPressed: () {
+                                  showModalBottomSheet(
+                                    context: context,
+                                    builder:
+                                        (context) => BlocProvider.value(
+                                          value: cubit,
+                                          child: _ChapterList(
+                                            volumes: cubit.initialVolumes,
+                                            currentAid: cubit.initialAid,
+                                            currentCid: cubit.initialCid,
+                                            onChapterSelected: (aid, cid) {
+                                              cubit.loadChapter(
+                                                aid: aid,
+                                                cid: cid,
+                                              );
+                                              Navigator.pop(context);
+                                            },
+                                          ),
+                                        ),
+                                  );
+                                },
+                              ),
+                            ],
                           ),
-                        ),
-                  );
-                },
-              ),
-            ],
-          ),
-          body: BlocBuilder<HtmlReaderCubit, HtmlReaderState>(
-            builder: (context, state) {
-              if (state is HtmlReaderLoading) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              if (state is HtmlReaderError) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  body: Stack(
                     children: [
-                      Text(state.error, style: TextStyle(color: textColor)),
-                      const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: () {
-                          context.read<HtmlReaderCubit>().loadChapter();
+                      // 底层内容
+                      GestureDetector(
+                        onTap: () {
+                          context.read<FullscreenCubit>().toggle();
                         },
-                        child: const Text('重试'),
+                        child:
+                            state is HtmlReaderLoading
+                                ? const Center(
+                                  child: CircularProgressIndicator(),
+                                )
+                                : state is HtmlReaderError
+                                ? Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        state.error,
+                                        style: TextStyle(color: textColor),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      ElevatedButton(
+                                        onPressed: () {
+                                          context
+                                              .read<HtmlReaderCubit>()
+                                              .loadChapter();
+                                        },
+                                        child: const Text('重试'),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                                : state is HtmlReaderLoaded
+                                ? _ReaderContent(
+                                  content: state.content,
+                                  onPreviousChapter: () {
+                                    context
+                                        .read<HtmlReaderCubit>()
+                                        .goToPreviousChapter();
+                                  },
+                                  onNextChapter: () {
+                                    context
+                                        .read<HtmlReaderCubit>()
+                                        .goToNextChapter();
+                                  },
+                                )
+                                : const SizedBox.shrink(),
                       ),
+                      // 顶部和底部导航按钮（仅在隐藏 AppBar 时显示）
                     ],
                   ),
                 );
-              }
-              if (state is HtmlReaderLoaded) {
-                return _ReaderContent(
-                  content: state.content,
-                  onPreviousChapter: () {
-                    context.read<HtmlReaderCubit>().goToPreviousChapter();
-                  },
-                  onNextChapter: () {
-                    context.read<HtmlReaderCubit>().goToNextChapter();
-                  },
-                );
-              }
-              return const SizedBox.shrink();
-            },
-          ),
+              },
+            );
+          },
         );
       },
     );
@@ -334,58 +367,68 @@ class _ReaderContent extends StatelessWidget {
                       builder: (context, topBarHeight) {
                         return BlocBuilder<BottomBarHeightCubit, double>(
                           builder: (context, bottomBarHeight) {
-                            final topPad =
-                                MediaQueryData.fromView(
-                                  WidgetsBinding.instance.window,
-                                ).padding.top;
-                            final bottomPad =
-                                MediaQueryData.fromView(
-                                  WidgetsBinding.instance.window,
-                                ).padding.bottom;
+                            return BlocBuilder<FullscreenCubit, bool>(
+                              builder: (context, isFullscreen) {
+                                final topPad =
+                                    MediaQueryData.fromView(
+                                      WidgetsBinding.instance.window,
+                                    ).padding.top;
+                                final bottomPad =
+                                    MediaQueryData.fromView(
+                                      WidgetsBinding.instance.window,
+                                    ).padding.bottom;
 
-                            final col = Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                ..._buildContentWidgets(
-                                  context,
-                                  fontSize: fontSize,
-                                  lineHeight: lineHeight,
-                                  paragraphSpacing: paragraphSpacing,
-                                  textColor: textColor,
-                                ),
-                                const SizedBox(height: 32),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
+                                final col = Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    TextButton(
-                                      onPressed: onPreviousChapter,
-                                      child: Text(
-                                        '上一章',
-                                        style: TextStyle(color: textColor),
-                                      ),
+                                    ..._buildContentWidgets(
+                                      context,
+                                      fontSize: fontSize,
+                                      lineHeight: lineHeight,
+                                      paragraphSpacing: paragraphSpacing,
+                                      textColor: textColor,
                                     ),
-                                    TextButton(
-                                      onPressed: onNextChapter,
-                                      child: Text(
-                                        '下一章',
-                                        style: TextStyle(color: textColor),
+                                    ...[
+                                      const SizedBox(height: 32),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          TextButton(
+                                            onPressed: onPreviousChapter,
+                                            child: Text(
+                                              '上一章',
+                                              style: TextStyle(
+                                                color: textColor,
+                                              ),
+                                            ),
+                                          ),
+                                          TextButton(
+                                            onPressed: onNextChapter,
+                                            child: Text(
+                                              '下一章',
+                                              style: TextStyle(
+                                                color: textColor,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                    ),
+                                      const SizedBox(height: 32),
+                                    ],
                                   ],
-                                ),
-                                const SizedBox(height: 32),
-                              ],
-                            );
+                                );
 
-                            return SingleChildScrollView(
-                              padding: EdgeInsets.only(
-                                left: 16,
-                                right: 16,
-                                top: topBarHeight + topPad,
-                                bottom: bottomBarHeight + bottomPad,
-                              ),
-                              child: col,
+                                return SingleChildScrollView(
+                                  padding: EdgeInsets.only(
+                                    left: 16,
+                                    right: 16,
+                                    top: topBarHeight + topPad,
+                                    bottom: bottomBarHeight + bottomPad,
+                                  ),
+                                  child: col,
+                                );
+                              },
                             );
                           },
                         );
