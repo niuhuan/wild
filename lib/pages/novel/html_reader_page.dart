@@ -44,11 +44,28 @@ class _HtmlReaderView extends StatelessWidget {
   const _HtmlReaderView();
 
   void _showSettings(BuildContext context) {
+    final fontSizeCubit = context.read<FontSizeCubit>();
+    final lineHeightCubit = context.read<LineHeightCubit>();
+    final paragraphSpacingCubit = context.read<ParagraphSpacingCubit>();
+    final themeCubit = context.read<ThemeCubit>();
+    final topBarHeightCubit = context.read<TopBarHeightCubit>();
+    final bottomBarHeightCubit = context.read<BottomBarHeightCubit>();
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder: (BuildContext context) {
-        return _ReaderSettings();
+      builder: (BuildContext bottomSheetContext) {
+        return MultiBlocProvider(
+          providers: [
+            BlocProvider.value(value: fontSizeCubit),
+            BlocProvider.value(value: lineHeightCubit),
+            BlocProvider.value(value: paragraphSpacingCubit),
+            BlocProvider.value(value: themeCubit),
+            BlocProvider.value(value: topBarHeightCubit),
+            BlocProvider.value(value: bottomBarHeightCubit),
+          ],
+          child: _ReaderSettings(),
+        );
       },
     );
   }
@@ -392,6 +409,8 @@ class _ReaderSettings extends StatelessWidget {
     final paragraphSpacingCubit = context.read<ParagraphSpacingCubit>();
     final lineHeightCubit = context.read<LineHeightCubit>();
     final themeCubit = context.read<ThemeCubit>();
+    final topBarHeightCubit = context.read<TopBarHeightCubit>();
+    final bottomBarHeightCubit = context.read<BottomBarHeightCubit>();
 
     void _showColorPicker(
       BuildContext context,
@@ -523,6 +542,61 @@ class _ReaderSettings extends StatelessWidget {
                       ),
                       Text(lineHeight.toStringAsFixed(1), style: TextStyle()),
                     ],
+                  );
+                },
+              ),
+              // 边距设置
+              BlocBuilder<TopBarHeightCubit, double>(
+                builder: (context, topBarHeight) {
+                  return BlocBuilder<BottomBarHeightCubit, double>(
+                    builder: (context, bottomBarHeight) {
+                      return Column(
+                        children: [
+                          Row(
+                            children: [
+                              Text('顶部边距'),
+                              Expanded(
+                                child: Slider(
+                                  value: topBarHeight,
+                                  min: 0,
+                                  max: 100,
+                                  divisions: 20,
+                                  label: topBarHeight.round().toString(),
+                                  onChanged: (value) {
+                                    topBarHeightCubit.updateHeight(value);
+                                  },
+                                ),
+                              ),
+                              Text(
+                                '${topBarHeight.round()}',
+                                style: TextStyle(),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            children: [
+                              Text('底部边距'),
+                              Expanded(
+                                child: Slider(
+                                  value: bottomBarHeight,
+                                  min: 0,
+                                  max: 100,
+                                  divisions: 20,
+                                  label: bottomBarHeight.round().toString(),
+                                  onChanged: (value) {
+                                    bottomBarHeightCubit.updateHeight(value);
+                                  },
+                                ),
+                              ),
+                              Text(
+                                '${bottomBarHeight.round()}',
+                                style: TextStyle(),
+                              ),
+                            ],
+                          ),
+                        ],
+                      );
+                    },
                   );
                 },
               ),
@@ -696,8 +770,10 @@ class _ReaderSettings extends StatelessWidget {
               const SizedBox(height: 16),
               // 重置按钮
               TextButton(
-                onPressed: () {
-                  themeCubit.resetToDefault();
+                onPressed: () async {
+                  await themeCubit.resetToDefault();
+                  await topBarHeightCubit.updateHeight(56);
+                  await bottomBarHeightCubit.updateHeight(56);
                 },
                 child: const Text('重置为默认'),
               ),

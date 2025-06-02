@@ -910,7 +910,7 @@ class _ReaderSettingsState extends State<_ReaderSettings> {
                 builder: (context, height) {
                   return Row(
                     children: [
-                      Text('顶部间距'),
+                      Text('顶部边距'),
                       Expanded(
                         child: Slider(
                           value: height,
@@ -934,7 +934,7 @@ class _ReaderSettingsState extends State<_ReaderSettings> {
                 builder: (context, height) {
                   return Row(
                     children: [
-                      Text('底部间距'),
+                      Text('底部边距'),
                       Expanded(
                         child: Slider(
                           value: height,
@@ -1118,6 +1118,8 @@ class _ReaderSettingsState extends State<_ReaderSettings> {
               TextButton(
                 onPressed: () async {
                   await context.read<ThemeCubit>().resetToDefault();
+                  await topBarHeightCubit.updateHeight(56);
+                  await bottomBarHeightCubit.updateHeight(56);
                   await widget.readerCubit.reloadCurrentPage();
                 },
                 child: const Text('重置为默认'),
