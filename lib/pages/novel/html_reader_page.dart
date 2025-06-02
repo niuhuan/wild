@@ -28,12 +28,13 @@ class HtmlReaderPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => HtmlReaderCubit(
-        novelInfo: novelInfo,
-        initialAid: initialAid,
-        initialCid: initialCid,
-        initialVolumes: volumes,
-      )..loadChapter(),
+      create:
+          (context) => HtmlReaderCubit(
+            novelInfo: novelInfo,
+            initialAid: initialAid,
+            initialCid: initialCid,
+            initialVolumes: volumes,
+          )..loadChapter(),
       child: const _HtmlReaderView(),
     );
   }
@@ -67,12 +68,10 @@ class _HtmlReaderView extends StatelessWidget {
           isDarkMode = mediaQuery.platformBrightness == Brightness.dark;
         }
 
-        final backgroundColor = isDarkMode
-            ? theme.darkBackgroundColor
-            : theme.lightBackgroundColor;
-        final textColor = isDarkMode
-            ? theme.darkTextColor
-            : theme.lightTextColor;
+        final backgroundColor =
+            isDarkMode ? theme.darkBackgroundColor : theme.lightBackgroundColor;
+        final textColor =
+            isDarkMode ? theme.darkTextColor : theme.lightTextColor;
 
         return Scaffold(
           backgroundColor: backgroundColor,
@@ -97,18 +96,19 @@ class _HtmlReaderView extends StatelessWidget {
                 onPressed: () {
                   showModalBottomSheet(
                     context: context,
-                    builder: (context) => BlocProvider.value(
-                      value: cubit,
-                      child: _ChapterList(
-                        volumes: cubit.initialVolumes,
-                        currentAid: cubit.initialAid,
-                        currentCid: cubit.initialCid,
-                        onChapterSelected: (aid, cid) {
-                          cubit.loadChapter(aid: aid, cid: cid);
-                          Navigator.pop(context);
-                        },
-                      ),
-                    ),
+                    builder:
+                        (context) => BlocProvider.value(
+                          value: cubit,
+                          child: _ChapterList(
+                            volumes: cubit.initialVolumes,
+                            currentAid: cubit.initialAid,
+                            currentCid: cubit.initialCid,
+                            onChapterSelected: (aid, cid) {
+                              cubit.loadChapter(aid: aid, cid: cid);
+                              Navigator.pop(context);
+                            },
+                          ),
+                        ),
                   );
                 },
               ),
@@ -167,7 +167,8 @@ class _ReaderContent extends StatelessWidget {
     required this.onNextChapter,
   });
 
-  List<Widget> _buildContentWidgets(BuildContext context, {
+  List<Widget> _buildContentWidgets(
+    BuildContext context, {
     required double fontSize,
     required double lineHeight,
     required double paragraphSpacing,
@@ -175,17 +176,17 @@ class _ReaderContent extends StatelessWidget {
   }) {
     final widgets = <Widget>[];
     final paragraphs = content.split('\n');
-    
+
     for (var paragraph in paragraphs) {
       if (paragraph.trim().isEmpty) continue;
-      
+
       // 检查是否包含图片标签
       RegExp regex = RegExp("\<\!\-\-image\-\-\>([^\<]+)\<\!\-\-image\-\-\>");
       if (regex.hasMatch(paragraph)) {
         var currentText = paragraph;
         while (regex.hasMatch(currentText)) {
           var match = regex.firstMatch(currentText)!;
-          
+
           // 处理图片前的文本
           if (match.start > 0) {
             var text = currentText.substring(0, match.start).trim();
@@ -205,7 +206,7 @@ class _ReaderContent extends StatelessWidget {
               );
             }
           }
-          
+
           // 处理图片
           final imageUrl = match.group(1)!;
           widgets.add(
@@ -216,7 +217,7 @@ class _ReaderContent extends StatelessWidget {
                   child: SizedBox(
                     width: constraints.maxWidth,
                     child: AspectRatio(
-                      aspectRatio: 4/3, // 默认图片比例
+                      aspectRatio: 4 / 3, // 默认图片比例
                       child: Image(
                         image: CachedImageProvider(imageUrl),
                         width: constraints.maxWidth,
@@ -235,9 +236,7 @@ class _ReaderContent extends StatelessWidget {
                           return Container(
                             width: constraints.maxWidth,
                             color: Colors.grey[200],
-                            child: const Center(
-                              child: Text('图片加载失败'),
-                            ),
+                            child: const Center(child: Text('图片加载失败')),
                           );
                         },
                       ),
@@ -247,11 +246,11 @@ class _ReaderContent extends StatelessWidget {
               },
             ),
           );
-          
+
           // 更新剩余文本
           currentText = currentText.substring(match.end);
         }
-        
+
         // 处理最后剩余的文本
         if (currentText.trim().isNotEmpty) {
           widgets.add(
@@ -285,7 +284,7 @@ class _ReaderContent extends StatelessWidget {
         );
       }
     }
-    
+
     return widgets;
   }
 
@@ -303,12 +302,10 @@ class _ReaderContent extends StatelessWidget {
           isDarkMode = mediaQuery.platformBrightness == Brightness.dark;
         }
 
-        final backgroundColor = isDarkMode
-            ? theme.darkBackgroundColor
-            : theme.lightBackgroundColor;
-        final textColor = isDarkMode
-            ? theme.darkTextColor
-            : theme.lightTextColor;
+        final backgroundColor =
+            isDarkMode ? theme.darkBackgroundColor : theme.lightBackgroundColor;
+        final textColor =
+            isDarkMode ? theme.darkTextColor : theme.lightTextColor;
 
         return BlocBuilder<FontSizeCubit, double>(
           builder: (context, fontSize) {
@@ -320,46 +317,58 @@ class _ReaderContent extends StatelessWidget {
                       builder: (context, topBarHeight) {
                         return BlocBuilder<BottomBarHeightCubit, double>(
                           builder: (context, bottomBarHeight) {
-                            return Container(
-                              color: backgroundColor,
-                              child: Column(
-                                children: [
-                                  SizedBox(height: topBarHeight),
-                                  Expanded(
-                                    child: SingleChildScrollView(
-                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          ..._buildContentWidgets(
-                                            context,
-                                            fontSize: fontSize,
-                                            lineHeight: lineHeight,
-                                            paragraphSpacing: paragraphSpacing,
-                                            textColor: textColor,
-                                          ),
-                                          const SizedBox(height: 32),
-                                          Row(
-                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              TextButton(
-                                                onPressed: onPreviousChapter,
-                                                child: Text('上一章', style: TextStyle(color: textColor)),
-                                              ),
-                                              TextButton(
-                                                onPressed: onNextChapter,
-                                                child: Text('下一章', style: TextStyle(color: textColor)),
-                                              ),
-                                            ],
-                                          ),
-                                          const SizedBox(height: 32),
-                                        ],
+                            final topPad =
+                                MediaQueryData.fromView(
+                                  WidgetsBinding.instance.window,
+                                ).padding.top;
+                            final bottomPad =
+                                MediaQueryData.fromView(
+                                  WidgetsBinding.instance.window,
+                                ).padding.bottom;
+
+                            final col = Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                ..._buildContentWidgets(
+                                  context,
+                                  fontSize: fontSize,
+                                  lineHeight: lineHeight,
+                                  paragraphSpacing: paragraphSpacing,
+                                  textColor: textColor,
+                                ),
+                                const SizedBox(height: 32),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    TextButton(
+                                      onPressed: onPreviousChapter,
+                                      child: Text(
+                                        '上一章',
+                                        style: TextStyle(color: textColor),
                                       ),
                                     ),
-                                  ),
-                                  SizedBox(height: bottomBarHeight),
-                                ],
+                                    TextButton(
+                                      onPressed: onNextChapter,
+                                      child: Text(
+                                        '下一章',
+                                        style: TextStyle(color: textColor),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 32),
+                              ],
+                            );
+
+                            return SingleChildScrollView(
+                              padding: EdgeInsets.only(
+                                left: 16,
+                                right: 16,
+                                top: topBarHeight + topPad,
+                                bottom: bottomBarHeight + bottomPad,
                               ),
+                              child: col,
                             );
                           },
                         );
@@ -578,13 +587,14 @@ class _ReaderSettings extends StatelessWidget {
                             ),
                           ),
                           label: const Text('背景颜色'),
-                          onPressed: () => _showColorPicker(
-                            context,
-                            theme.lightBackgroundColor,
-                            (color) {
-                              themeCubit.updateLightBackgroundColor(color);
-                            },
-                          ),
+                          onPressed:
+                              () => _showColorPicker(
+                                context,
+                                theme.lightBackgroundColor,
+                                (color) {
+                                  themeCubit.updateLightBackgroundColor(color);
+                                },
+                              ),
                         );
                       },
                     ),
@@ -604,13 +614,14 @@ class _ReaderSettings extends StatelessWidget {
                             ),
                           ),
                           label: const Text('文字颜色'),
-                          onPressed: () => _showColorPicker(
-                            context,
-                            theme.lightTextColor,
-                            (color) {
-                              themeCubit.updateLightTextColor(color);
-                            },
-                          ),
+                          onPressed:
+                              () => _showColorPicker(
+                                context,
+                                theme.lightTextColor,
+                                (color) {
+                                  themeCubit.updateLightTextColor(color);
+                                },
+                              ),
                         );
                       },
                     ),
@@ -641,13 +652,14 @@ class _ReaderSettings extends StatelessWidget {
                             ),
                           ),
                           label: const Text('背景颜色'),
-                          onPressed: () => _showColorPicker(
-                            context,
-                            theme.darkBackgroundColor,
-                            (color) {
-                              themeCubit.updateDarkBackgroundColor(color);
-                            },
-                          ),
+                          onPressed:
+                              () => _showColorPicker(
+                                context,
+                                theme.darkBackgroundColor,
+                                (color) {
+                                  themeCubit.updateDarkBackgroundColor(color);
+                                },
+                              ),
                         );
                       },
                     ),
@@ -667,13 +679,14 @@ class _ReaderSettings extends StatelessWidget {
                             ),
                           ),
                           label: const Text('文字颜色'),
-                          onPressed: () => _showColorPicker(
-                            context,
-                            theme.darkTextColor,
-                            (color) {
-                              themeCubit.updateDarkTextColor(color);
-                            },
-                          ),
+                          onPressed:
+                              () => _showColorPicker(
+                                context,
+                                theme.darkTextColor,
+                                (color) {
+                                  themeCubit.updateDarkTextColor(color);
+                                },
+                              ),
                         );
                       },
                     ),
@@ -728,7 +741,9 @@ class _ChapterListState extends State<_ChapterList> {
         const estimatedVolumeTitleHeight = 48.0;
         const estimatedSpacing = 16.0;
 
-        double targetScroll = _currentChapterGlobalIndex * (estimatedItemHeight + estimatedSpacing);
+        double targetScroll =
+            _currentChapterGlobalIndex *
+            (estimatedItemHeight + estimatedSpacing);
         for (var i = 0; i < widget.volumes.length; i++) {
           if (i < _findCurrentVolumeIndex()) {
             targetScroll += estimatedVolumeTitleHeight + estimatedSpacing;
@@ -756,7 +771,9 @@ class _ChapterListState extends State<_ChapterList> {
     for (var i = 0; i < widget.volumes.length; i++) {
       final volume = widget.volumes[i];
       if (volume.chapters.any(
-        (chapter) => chapter.aid == widget.currentAid && chapter.cid == widget.currentCid,
+        (chapter) =>
+            chapter.aid == widget.currentAid &&
+            chapter.cid == widget.currentCid,
       )) {
         return i;
       }
@@ -768,7 +785,8 @@ class _ChapterListState extends State<_ChapterList> {
     int globalIndex = 0;
     for (var volume in widget.volumes) {
       for (var chapter in volume.chapters) {
-        if (chapter.aid == widget.currentAid && chapter.cid == widget.currentCid) {
+        if (chapter.aid == widget.currentAid &&
+            chapter.cid == widget.currentCid) {
           return globalIndex;
         }
         globalIndex++;
@@ -812,16 +830,25 @@ class _ChapterListState extends State<_ChapterList> {
                       ),
                     ),
                     ...volume.chapters.map((chapter) {
-                      final isSelected = chapter.aid == widget.currentAid && chapter.cid == widget.currentCid;
+                      final isSelected =
+                          chapter.aid == widget.currentAid &&
+                          chapter.cid == widget.currentCid;
                       return ListTile(
                         title: Text(
                           chapter.title,
                           style: TextStyle(
-                            color: isSelected ? Theme.of(context).colorScheme.primary : null,
+                            color:
+                                isSelected
+                                    ? Theme.of(context).colorScheme.primary
+                                    : null,
                           ),
                         ),
                         selected: isSelected,
-                        onTap: () => widget.onChapterSelected(chapter.aid, chapter.cid),
+                        onTap:
+                            () => widget.onChapterSelected(
+                              chapter.aid,
+                              chapter.cid,
+                            ),
                       );
                     }).toList(),
                   ],
@@ -833,4 +860,4 @@ class _ChapterListState extends State<_ChapterList> {
       ),
     );
   }
-} 
+}
