@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_html/flutter_html.dart';
 import '../../src/rust/wenku8/models.dart';
 import 'html_reader_cubit.dart';
 import 'package:wild/pages/novel/top_bar_height_cubit.dart';
@@ -181,6 +180,9 @@ class _ReaderContent extends StatelessWidget {
         ? themeCubit.state.darkTextColor
         : themeCubit.state.lightTextColor;
 
+    // 将内容按段落分割
+    final paragraphs = content.split('\n').where((p) => p.trim().isNotEmpty).toList();
+
     return Container(
       color: backgroundColor,
       child: Column(
@@ -190,23 +192,19 @@ class _ReaderContent extends StatelessWidget {
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Html(
-                    data: content,
-                    style: {
-                      'body': Style(
-                        fontSize: FontSize(fontSize),
-                        lineHeight: LineHeight(lineHeight),
-                        margin: Margins.zero,
-                        padding: HtmlPaddings.zero,
+                  ...paragraphs.map((paragraph) => Padding(
+                    padding: EdgeInsets.only(bottom: paragraphSpacing),
+                    child: Text(
+                      paragraph,
+                      style: TextStyle(
+                        fontSize: fontSize,
+                        height: lineHeight,
                         color: textColor,
                       ),
-                      'p': Style(
-                        margin: Margins.only(bottom: paragraphSpacing),
-                        color: textColor,
-                      ),
-                    },
-                  ),
+                    ),
+                  )).toList(),
                   const SizedBox(height: 32),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -381,27 +379,31 @@ class _ReaderSettings extends StatelessWidget {
                   Text('主题模式'),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: SegmentedButton<ReaderThemeMode>(
-                      segments: const [
-                        ButtonSegment<ReaderThemeMode>(
-                          value: ReaderThemeMode.auto,
-                          label: Text('自动'),
-                          icon: Icon(Icons.brightness_auto),
-                        ),
-                        ButtonSegment<ReaderThemeMode>(
-                          value: ReaderThemeMode.light,
-                          label: Text('浅色'),
-                          icon: Icon(Icons.light_mode),
-                        ),
-                        ButtonSegment<ReaderThemeMode>(
-                          value: ReaderThemeMode.dark,
-                          label: Text('深色'),
-                          icon: Icon(Icons.dark_mode),
-                        ),
-                      ],
-                      selected: {theme.themeMode},
-                      onSelectionChanged: (Set<ReaderThemeMode> modes) {
-                        context.read<ThemeCubit>().setThemeMode(modes.first);
+                    child: BlocBuilder<ThemeCubit, ReaderTheme>(
+                      builder: (context, theme) {
+                        return SegmentedButton<ReaderThemeMode>(
+                          segments: const [
+                            ButtonSegment<ReaderThemeMode>(
+                              value: ReaderThemeMode.auto,
+                              label: Text('自动'),
+                              icon: Icon(Icons.brightness_auto),
+                            ),
+                            ButtonSegment<ReaderThemeMode>(
+                              value: ReaderThemeMode.light,
+                              label: Text('浅色'),
+                              icon: Icon(Icons.light_mode),
+                            ),
+                            ButtonSegment<ReaderThemeMode>(
+                              value: ReaderThemeMode.dark,
+                              label: Text('深色'),
+                              icon: Icon(Icons.dark_mode),
+                            ),
+                          ],
+                          selected: {theme.themeMode},
+                          onSelectionChanged: (Set<ReaderThemeMode> modes) {
+                            themeCubit.setThemeMode(modes.first);
+                          },
+                        );
                       },
                     ),
                   ),
@@ -418,46 +420,54 @@ class _ReaderSettings extends StatelessWidget {
               Row(
                 children: [
                   Expanded(
-                    child: OutlinedButton.icon(
-                      icon: Container(
-                        width: 24,
-                        height: 24,
-                        decoration: BoxDecoration(
-                          color: theme.lightBackgroundColor,
-                          border: Border.all(color: Colors.grey),
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      label: const Text('背景颜色'),
-                      onPressed: () => _showColorPicker(
-                        context,
-                        theme.lightBackgroundColor,
-                        (color) {
-                          context.read<ThemeCubit>().updateLightBackgroundColor(color);
-                        },
-                      ),
+                    child: BlocBuilder<ThemeCubit, ReaderTheme>(
+                      builder: (context, theme) {
+                        return OutlinedButton.icon(
+                          icon: Container(
+                            width: 24,
+                            height: 24,
+                            decoration: BoxDecoration(
+                              color: theme.lightBackgroundColor,
+                              border: Border.all(color: Colors.grey),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          label: const Text('背景颜色'),
+                          onPressed: () => _showColorPicker(
+                            context,
+                            theme.lightBackgroundColor,
+                            (color) {
+                              themeCubit.updateLightBackgroundColor(color);
+                            },
+                          ),
+                        );
+                      },
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: OutlinedButton.icon(
-                      icon: Container(
-                        width: 24,
-                        height: 24,
-                        decoration: BoxDecoration(
-                          color: theme.lightTextColor,
-                          border: Border.all(color: Colors.grey),
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      label: const Text('文字颜色'),
-                      onPressed: () => _showColorPicker(
-                        context,
-                        theme.lightTextColor,
-                        (color) {
-                          context.read<ThemeCubit>().updateLightTextColor(color);
-                        },
-                      ),
+                    child: BlocBuilder<ThemeCubit, ReaderTheme>(
+                      builder: (context, theme) {
+                        return OutlinedButton.icon(
+                          icon: Container(
+                            width: 24,
+                            height: 24,
+                            decoration: BoxDecoration(
+                              color: theme.lightTextColor,
+                              border: Border.all(color: Colors.grey),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          label: const Text('文字颜色'),
+                          onPressed: () => _showColorPicker(
+                            context,
+                            theme.lightTextColor,
+                            (color) {
+                              themeCubit.updateLightTextColor(color);
+                            },
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ],
@@ -473,46 +483,54 @@ class _ReaderSettings extends StatelessWidget {
               Row(
                 children: [
                   Expanded(
-                    child: OutlinedButton.icon(
-                      icon: Container(
-                        width: 24,
-                        height: 24,
-                        decoration: BoxDecoration(
-                          color: theme.darkBackgroundColor,
-                          border: Border.all(color: Colors.grey),
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      label: const Text('背景颜色'),
-                      onPressed: () => _showColorPicker(
-                        context,
-                        theme.darkBackgroundColor,
-                        (color) {
-                          context.read<ThemeCubit>().updateDarkBackgroundColor(color);
-                        },
-                      ),
+                    child: BlocBuilder<ThemeCubit, ReaderTheme>(
+                      builder: (context, theme) {
+                        return OutlinedButton.icon(
+                          icon: Container(
+                            width: 24,
+                            height: 24,
+                            decoration: BoxDecoration(
+                              color: theme.darkBackgroundColor,
+                              border: Border.all(color: Colors.grey),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          label: const Text('背景颜色'),
+                          onPressed: () => _showColorPicker(
+                            context,
+                            theme.darkBackgroundColor,
+                            (color) {
+                              themeCubit.updateDarkBackgroundColor(color);
+                            },
+                          ),
+                        );
+                      },
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: OutlinedButton.icon(
-                      icon: Container(
-                        width: 24,
-                        height: 24,
-                        decoration: BoxDecoration(
-                          color: theme.darkTextColor,
-                          border: Border.all(color: Colors.grey),
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      label: const Text('文字颜色'),
-                      onPressed: () => _showColorPicker(
-                        context,
-                        theme.darkTextColor,
-                        (color) {
-                          context.read<ThemeCubit>().updateDarkTextColor(color);
-                        },
-                      ),
+                    child: BlocBuilder<ThemeCubit, ReaderTheme>(
+                      builder: (context, theme) {
+                        return OutlinedButton.icon(
+                          icon: Container(
+                            width: 24,
+                            height: 24,
+                            decoration: BoxDecoration(
+                              color: theme.darkTextColor,
+                              border: Border.all(color: Colors.grey),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          label: const Text('文字颜色'),
+                          onPressed: () => _showColorPicker(
+                            context,
+                            theme.darkTextColor,
+                            (color) {
+                              themeCubit.updateDarkTextColor(color);
+                            },
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ],
@@ -521,7 +539,7 @@ class _ReaderSettings extends StatelessWidget {
               // 重置按钮
               TextButton(
                 onPressed: () {
-                  context.read<ThemeCubit>().resetToDefault();
+                  themeCubit.resetToDefault();
                 },
                 child: const Text('重置为默认'),
               ),
