@@ -8,6 +8,7 @@ import 'package:wild/pages/novel/line_height_cubit.dart';
 import 'package:wild/pages/novel/novel_info_page.dart';
 import 'package:wild/pages/novel/novel_downloading_page.dart';
 import 'package:wild/pages/novel/reader_page.dart';
+import 'package:wild/pages/novel/html_reader_page.dart';
 import 'package:wild/pages/novel/font_size_cubit.dart';
 import 'package:wild/pages/novel/paragraph_spacing_cubit.dart';
 import 'package:wild/pages/novel/theme_cubit.dart';
@@ -112,27 +113,36 @@ class YourApp extends StatelessWidget {
               );
             },
             '/novel/reader': (context) {
-              final args =
-                  ModalRoute.of(context)!.settings.arguments
-                      as Map<String, dynamic>;
-              return MultiBlocProvider(
-                providers: [
-                  BlocProvider.value(value: context.read<FontSizeCubit>()),
-                  BlocProvider.value(
-                    value: context.read<ParagraphSpacingCubit>(),
-                  ),
-                  BlocProvider.value(value: context.read<LineHeightCubit>()),
-                  BlocProvider.value(value: context.read<ThemeCubit>()),
-                ],
-                child: ReaderPage(
-                  aid: args['novelId'] as String,
-                  cid: args['chapterId'] as String,
-                  initialTitle: args['title'] as String,
-                  volumes: (args['volumes'] as List).cast<Volume>(),
+              final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+              final readerType = context.read<ReaderTypeCubit>().state;
+              
+              if (readerType == ReaderType.html) {
+                return HtmlReaderPage(
                   novelInfo: args['novelInfo'] as NovelInfo,
-                  initialPage: args['initialPage'] as int?,
-                ),
-              );
+                  initialAid: args['novelId'] as String,
+                  initialCid: args['chapterId'] as String,
+                  volumes: (args['volumes'] as List).cast<Volume>(),
+                );
+              } else {
+                return MultiBlocProvider(
+                  providers: [
+                    BlocProvider.value(value: context.read<FontSizeCubit>()),
+                    BlocProvider.value(value: context.read<ParagraphSpacingCubit>()),
+                    BlocProvider.value(value: context.read<LineHeightCubit>()),
+                    BlocProvider.value(value: context.read<ThemeCubit>()),
+                    BlocProvider.value(value: context.read<TopBarHeightCubit>()),
+                    BlocProvider.value(value: context.read<BottomBarHeightCubit>()),
+                  ],
+                  child: ReaderPage(
+                    aid: args['novelId'] as String,
+                    cid: args['chapterId'] as String,
+                    initialTitle: args['title'] as String,
+                    volumes: (args['volumes'] as List).cast<Volume>(),
+                    novelInfo: args['novelInfo'] as NovelInfo,
+                    initialPage: args['initialPage'] as int?,
+                  ),
+                );
+              }
             },
             '/category': (context) => const CategoryPage(),
             '/articlelist': (context) => const ArticlelistPage(),
