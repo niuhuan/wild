@@ -169,7 +169,7 @@ async fn downloading_loop() -> Result<()> {
                         chapter_title = %chapter.title,
                         "Processing chapter"
                     );
-                    tokio::time::sleep(tokio::time::Duration::from_secs(1)).await; // 防止下载太快
+                    tokio::time::sleep(tokio::time::Duration::from_secs(5)).await; // 防止下载太快
 
                     if need_restart().await {
                         warn!(chapter_id = %chapter.id, "Download interrupted");

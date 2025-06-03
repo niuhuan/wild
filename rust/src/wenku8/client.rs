@@ -6,18 +6,27 @@ use rand::Rng;
 use reqwest::Client;
 use scraper::Node::Element;
 use scraper::{ElementRef, Html, Selector};
-use std::slice::SliceIndex;
+use tokio::sync::RwLock;
 
 const API_HOST: &str = "https://www.wenku8.net";
 const APP_HOST: &str = "http://app.wenku8.com";
-const USER_AGENT: &str =
-    "Dalvik/2.1.0 (Linux; U; Android 15; Android SDK built for arm64 Build/AE3A.240806.019)";
 
 pub struct Wenku8Client {
     pub client: Client,
+    pub user_agent: RwLock<String>,
 }
 
 impl Wenku8Client {
+    pub async fn load_user_agent(&self) -> String {
+        let user_agent = self.user_agent.read().await;
+        user_agent.clone()
+    }
+
+    pub async fn set_user_agent(&self, user_agent_value: String) {
+        let mut user_agent = self.user_agent.write().await;
+        *user_agent = user_agent_value;
+    }
+
     pub async fn checkcode(&self) -> Result<Vec<u8>> {
         let url = format!("{API_HOST}/checkcode.php");
         let params = [("random", rand::rng().random::<f64>().to_string())];
@@ -40,7 +49,7 @@ impl Wenku8Client {
             .client
             .post(url)
             .form(&params)
-            .header("User-Agent", USER_AGENT)
+            .header("User-Agent", self.load_user_agent().await)
             .send()
             .await?;
 
@@ -62,7 +71,7 @@ impl Wenku8Client {
         let response = self
             .client
             .get(url)
-            .header("User-Agent", USER_AGENT)
+            .header("User-Agent", self.load_user_agent().await)
             .send()
             .await?;
         if !response.status().is_success() {
@@ -150,7 +159,7 @@ impl Wenku8Client {
         let response = self
             .client
             .get(url)
-            .header("User-Agent", USER_AGENT)
+            .header("User-Agent", self.load_user_agent().await)
             .send()
             .await?;
         if !response.status().is_success() {
@@ -306,7 +315,7 @@ impl Wenku8Client {
         let resp = self
             .client
             .get(format!("{API_HOST}/index.php?charset=gbk"))
-            .header("User-Agent", USER_AGENT)
+            .header("User-Agent", self.load_user_agent().await)
             .send()
             .await?;
 
@@ -343,7 +352,6 @@ impl Wenku8Client {
                     .next()
                     .ok_or_else(|| anyhow!("Failed to find block title"))?;
 
-
                 // if exists first child  span class="txt" continue
                 if let Some(span) = block_title.first_child() {
                     if let Some(span) = ElementRef::wrap(span) {
@@ -353,7 +361,10 @@ impl Wenku8Client {
                     }
                 }
 
-                println!("block_title  classes: {:?}", block_title.value().classes().collect::<Vec<&str>>());
+                println!(
+                    "block_title  classes: {:?}",
+                    block_title.value().classes().collect::<Vec<&str>>()
+                );
                 let block_title = block_title.text().collect::<String>();
                 println!("block_title: {}", block_title);
                 if "文库Telegram群组".eq(&block_title) {
@@ -476,7 +487,7 @@ impl Wenku8Client {
         let resp = self
             .client
             .get(format!("{API_HOST}/modules/article/tags.php?charset=gbk"))
-            .header("User-Agent", USER_AGENT)
+            .header("User-Agent", self.load_user_agent().await)
             .send()
             .await?;
 
@@ -549,7 +560,7 @@ impl Wenku8Client {
         let response = self
             .client
             .get(url)
-            .header("User-Agent", USER_AGENT)
+            .header("User-Agent", self.load_user_agent().await)
             .send()
             .await?;
         if !response.status().is_success() {
@@ -771,7 +782,7 @@ impl Wenku8Client {
         let response = self
             .client
             .get(url)
-            .header("User-Agent", USER_AGENT)
+            .header("User-Agent", self.load_user_agent().await)
             .send()
             .await?;
         if !response.status().is_success() {
@@ -797,7 +808,7 @@ impl Wenku8Client {
         let response = self
             .client
             .post(url)
-            .header("User-Agent", USER_AGENT)
+            .header("User-Agent", self.load_user_agent().await)
             .form(&params)
             .send()
             .await?;
@@ -814,7 +825,7 @@ impl Wenku8Client {
         let response = self
             .client
             .get(url)
-            .header("User-Agent", USER_AGENT)
+            .header("User-Agent", self.load_user_agent().await)
             .send()
             .await?;
         if !response.status().is_success() {
@@ -837,7 +848,7 @@ impl Wenku8Client {
         let response = self
             .client
             .get(url)
-            .header("User-Agent", USER_AGENT)
+            .header("User-Agent", self.load_user_agent().await)
             .send()
             .await?;
         if !response.status().is_success() {
@@ -858,7 +869,7 @@ impl Wenku8Client {
         let response = self
             .client
             .get(url)
-            .header("User-Agent", USER_AGENT)
+            .header("User-Agent", self.load_user_agent().await)
             .send()
             .await?;
         if !response.status().is_success() {
@@ -879,7 +890,7 @@ impl Wenku8Client {
         let response = self
             .client
             .get(url)
-            .header("User-Agent", USER_AGENT)
+            .header("User-Agent", self.load_user_agent().await)
             .send()
             .await?;
         if !response.status().is_success() {
@@ -917,7 +928,7 @@ impl Wenku8Client {
         let response = self
             .client
             .get(url)
-            .header("User-Agent", USER_AGENT)
+            .header("User-Agent", self.load_user_agent().await)
             .send()
             .await?;
         if !response.status().is_success() {
@@ -1036,7 +1047,7 @@ impl Wenku8Client {
         let response = self
             .client
             .get(url)
-            .header("User-Agent", USER_AGENT)
+            .header("User-Agent", self.load_user_agent().await)
             .send()
             .await?;
         if !response.status().is_success() {
@@ -1072,7 +1083,7 @@ impl Wenku8Client {
         let response = self
             .client
             .post(url)
-            .header("User-Agent", USER_AGENT)
+            .header("User-Agent", self.load_user_agent().await)
             .form(&params)
             .send()
             .await?;
@@ -1099,7 +1110,7 @@ impl Wenku8Client {
         let response = self
             .client
             .get(url)
-            .header("User-Agent", USER_AGENT)
+            .header("User-Agent", self.load_user_agent().await)
             .send()
             .await?;
         if !response.status().is_success() {
@@ -1131,7 +1142,7 @@ impl Wenku8Client {
         let response = self
             .client
             .post(url)
-            .header("User-Agent", USER_AGENT)
+            .header("User-Agent", self.load_user_agent().await)
             .form(&params)
             .send()
             .await?;
