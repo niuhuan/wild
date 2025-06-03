@@ -506,11 +506,28 @@ class _ImagePage extends StatelessWidget {
                 maxHeight: availableHeight,
                 maxWidth: screenWidth - 32,
               ),
-              child: CachedImage(
-                url: imageUrl,
-                fit: BoxFit.contain,
+              child: Image(
+                image: CachedImageProvider(imageUrl),
                 width: screenWidth - 32,
                 height: availableHeight,
+                fit: BoxFit.contain,
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return Container(
+                    width: screenWidth - 32,
+                    color: Colors.grey[200],
+                    child: const Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  );
+                },
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    width: screenWidth - 32,
+                    color: Colors.grey[200],
+                    child: const Center(child: Text('图片加载失败')),
+                  );
+                },
               ),
             ),
           ),
