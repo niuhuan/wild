@@ -325,55 +325,48 @@ class _ReaderContent extends StatelessWidget {
                                       WidgetsBinding.instance.window,
                                     ).padding.bottom;
 
-                                final col = Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    ..._buildContentWidgets(
-                                      context,
-                                      fontSize: fontSize,
-                                      lineHeight: lineHeight,
-                                      paragraphSpacing: paragraphSpacing,
-                                      textColor: textColor,
+                                final col = [
+                                  ..._buildContentWidgets(
+                                    context,
+                                    fontSize: fontSize,
+                                    lineHeight: lineHeight,
+                                    paragraphSpacing: paragraphSpacing,
+                                    textColor: textColor,
+                                  ),
+                                  ...[
+                                    const SizedBox(height: 32),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        TextButton(
+                                          onPressed: onPreviousChapter,
+                                          child: Text(
+                                            '上一章',
+                                            style: TextStyle(color: textColor),
+                                          ),
+                                        ),
+                                        TextButton(
+                                          onPressed: onNextChapter,
+                                          child: Text(
+                                            '下一章',
+                                            style: TextStyle(color: textColor),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                    ...[
-                                      const SizedBox(height: 32),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          TextButton(
-                                            onPressed: onPreviousChapter,
-                                            child: Text(
-                                              '上一章',
-                                              style: TextStyle(
-                                                color: textColor,
-                                              ),
-                                            ),
-                                          ),
-                                          TextButton(
-                                            onPressed: onNextChapter,
-                                            child: Text(
-                                              '下一章',
-                                              style: TextStyle(
-                                                color: textColor,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 32),
-                                    ],
+                                    const SizedBox(height: 32),
                                   ],
-                                );
+                                ];
 
-                                return SingleChildScrollView(
+                                return ListView(
                                   padding: EdgeInsets.only(
                                     left: 16,
                                     right: 16,
                                     top: topBarHeight + topPad,
                                     bottom: bottomBarHeight + bottomPad,
                                   ),
-                                  child: col,
+                                  children: col,
                                 );
                               },
                             );
