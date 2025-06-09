@@ -179,7 +179,7 @@ class _HtmlReaderView extends StatelessWidget {
                                 )
                                 : state is HtmlReaderLoaded
                                 ? _ReaderContent(
-                                  content: state.content,
+                                  parsedContent: state.parsedContent,
                                   onPreviousChapter: () {
                                     context
                                         .read<HtmlReaderCubit>()
@@ -207,12 +207,12 @@ class _HtmlReaderView extends StatelessWidget {
 }
 
 class _ReaderContent extends StatelessWidget {
-  final String content;
+  final List<ParsedContent> parsedContent;
   final VoidCallback onPreviousChapter;
   final VoidCallback onNextChapter;
 
   const _ReaderContent({
-    required this.content,
+    required this.parsedContent,
     required this.onPreviousChapter,
     required this.onNextChapter,
   });
@@ -225,111 +225,58 @@ class _ReaderContent extends StatelessWidget {
     required Color textColor,
   }) {
     final widgets = <Widget>[];
-    final paragraphs = content.split('\n');
 
-    for (var paragraph in paragraphs) {
-      if (paragraph.trim().isEmpty) continue;
-
-      // 检查是否包含图片标签
-      RegExp regex = RegExp("\<\!\-\-image\-\-\>([^\<]+)\<\!\-\-image\-\-\>");
-      if (regex.hasMatch(paragraph)) {
-        var currentText = paragraph;
-        while (regex.hasMatch(currentText)) {
-          var match = regex.firstMatch(currentText)!;
-
-          // 处理图片前的文本
-          if (match.start > 0) {
-            var text = currentText.substring(0, match.start).trim();
-            if (text.isNotEmpty) {
-              widgets.add(
-                Padding(
-                  padding: EdgeInsets.only(bottom: paragraphSpacing),
-                  child: Text(
-                    text,
-                    style: TextStyle(
-                      fontSize: fontSize,
-                      height: lineHeight,
-                      color: textColor,
-                    ),
-                  ),
-                ),
-              );
-            }
-          }
-
-          // 处理图片
-          final imageUrl = match.group(1)!;
-          widgets.add(
-            LayoutBuilder(
-              builder: (context, constraints) {
-                return Padding(
-                  padding: EdgeInsets.symmetric(vertical: paragraphSpacing),
-                  child: SizedBox(
-                    width: constraints.maxWidth,
-                    child: AspectRatio(
-                      aspectRatio: 4 / 3, // 默认图片比例
-                      child: Image(
-                        image: CachedImageProvider(imageUrl),
-                        width: constraints.maxWidth,
-                        fit: BoxFit.contain,
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return Container(
-                            width: constraints.maxWidth,
-                            color: Colors.grey[200],
-                            child: const Center(
-                              child: CircularProgressIndicator(),
-                            ),
-                          );
-                        },
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            width: constraints.maxWidth,
-                            color: Colors.grey[200],
-                            child: const Center(child: Text('图片加载失败')),
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          );
-
-          // 更新剩余文本
-          currentText = currentText.substring(match.end);
-        }
-
-        // 处理最后剩余的文本
-        if (currentText.trim().isNotEmpty) {
-          widgets.add(
-            Padding(
-              padding: EdgeInsets.only(bottom: paragraphSpacing),
-              child: Text(
-                currentText.trim(),
-                style: TextStyle(
-                  fontSize: fontSize,
-                  height: lineHeight,
-                  color: textColor,
-                ),
-              ),
-            ),
-          );
-        }
-      } else {
-        // 普通文本段落
+    for (var content in parsedContent) {
+      if (content is ParsedText) {
         widgets.add(
           Padding(
             padding: EdgeInsets.only(bottom: paragraphSpacing),
             child: Text(
-              paragraph,
+              content.text,
               style: TextStyle(
                 fontSize: fontSize,
                 height: lineHeight,
                 color: textColor,
               ),
             ),
+          ),
+        );
+      } else if (content is ParsedImage) {
+        widgets.add(
+          LayoutBuilder(
+            builder: (context, constraints) {
+              return Padding(
+                padding: EdgeInsets.symmetric(vertical: paragraphSpacing),
+                child: SizedBox(
+                  width: constraints.maxWidth,
+                  child: AspectRatio(
+                    aspectRatio: 4 / 3, // 默认图片比例
+                    child: Image(
+                      image: CachedImageProvider(content.imageUrl),
+                      width: constraints.maxWidth,
+                      fit: BoxFit.contain,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Container(
+                          width: constraints.maxWidth,
+                          color: Colors.grey[200],
+                          child: const Center(
+                            child: CircularProgressIndicator(),
+                          ),
+                        );
+                      },
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          width: constraints.maxWidth,
+                          color: Colors.grey[200],
+                          child: const Center(child: Text('图片加载失败')),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              );
+            },
           ),
         );
       }

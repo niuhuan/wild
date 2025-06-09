@@ -26,19 +26,44 @@ class HtmlReaderError extends HtmlReaderState {
   List<Object?> get props => [error];
 }
 
+// 解析后的内容类型
+abstract class ParsedContent extends Equatable {
+  const ParsedContent();
+}
+
+class ParsedText extends ParsedContent {
+  final String text;
+
+  const ParsedText(this.text);
+
+  @override
+  List<Object?> get props => [text];
+}
+
+class ParsedImage extends ParsedContent {
+  final String imageUrl;
+
+  const ParsedImage(this.imageUrl);
+
+  @override
+  List<Object?> get props => [imageUrl];
+}
+
 // 加载完成状态
 class HtmlReaderLoaded extends HtmlReaderState {
   final String aid;
   final String cid;
   final String title;
-  final String content;
+  final String rawContent;
+  final List<ParsedContent> parsedContent;
   final List<Volume> volumes;
 
   const HtmlReaderLoaded({
     required this.aid,
     required this.cid,
     required this.title,
-    required this.content,
+    required this.rawContent,
+    required this.parsedContent,
     required this.volumes,
   });
 
@@ -46,20 +71,22 @@ class HtmlReaderLoaded extends HtmlReaderState {
     String? aid,
     String? cid,
     String? title,
-    String? content,
+    String? rawContent,
+    List<ParsedContent>? parsedContent,
     List<Volume>? volumes,
   }) {
     return HtmlReaderLoaded(
       aid: aid ?? this.aid,
       cid: cid ?? this.cid,
       title: title ?? this.title,
-      content: content ?? this.content,
+      rawContent: rawContent ?? this.rawContent,
+      parsedContent: parsedContent ?? this.parsedContent,
       volumes: volumes ?? this.volumes,
     );
   }
 
   @override
-  List<Object?> get props => [aid, cid, title, content, volumes];
+  List<Object?> get props => [aid, cid, title, rawContent, parsedContent, volumes];
 }
 
 class HtmlReaderCubit extends Cubit<HtmlReaderState> {
@@ -102,6 +129,49 @@ class HtmlReaderCubit extends Cubit<HtmlReaderState> {
     );
   }
 
+  List<ParsedContent> _parseContent(String content) {
+    final parsedContent = <ParsedContent>[];
+    final paragraphs = content.split('\n');
+
+    for (var paragraph in paragraphs) {
+      if (paragraph.trim().isEmpty) continue;
+
+      // 检查是否包含图片标签
+      RegExp regex = RegExp("\<\!\-\-image\-\-\>([^\<]+)\<\!\-\-image\-\-\>");
+      if (regex.hasMatch(paragraph)) {
+        var currentText = paragraph;
+        while (regex.hasMatch(currentText)) {
+          var match = regex.firstMatch(currentText)!;
+
+          // 处理图片前的文本
+          if (match.start > 0) {
+            var text = currentText.substring(0, match.start).trim();
+            if (text.isNotEmpty) {
+              parsedContent.add(ParsedText(text));
+            }
+          }
+
+          // 处理图片
+          final imageUrl = match.group(1)!;
+          parsedContent.add(ParsedImage(imageUrl));
+
+          // 更新剩余文本
+          currentText = currentText.substring(match.end);
+        }
+
+        // 处理最后剩余的文本
+        if (currentText.trim().isNotEmpty) {
+          parsedContent.add(ParsedText(currentText.trim()));
+        }
+      } else {
+        // 普通文本段落
+        parsedContent.add(ParsedText(paragraph));
+      }
+    }
+
+    return parsedContent;
+  }
+
   Future<void> loadChapter({String? aid, String? cid}) async {
     try {
       emit(const HtmlReaderLoading());
@@ -126,7 +196,8 @@ class HtmlReaderCubit extends Cubit<HtmlReaderState> {
       }
 
       // 加载章节内容
-      final content = await w8.chapterContent(aid: targetAid, cid: targetCid);
+      final rawContent = await w8.chapterContent(aid: targetAid, cid: targetCid);
+      final parsedContent = _parseContent(rawContent);
       
       // 更新阅读历史
       await _updateHistory(targetAid, targetCid, chapterTitle);
@@ -135,7 +206,8 @@ class HtmlReaderCubit extends Cubit<HtmlReaderState> {
         aid: targetAid,
         cid: targetCid,
         title: chapterTitle,
-        content: content,
+        rawContent: rawContent,
+        parsedContent: parsedContent,
         volumes: initialVolumes,
       ));
     } catch (e) {
