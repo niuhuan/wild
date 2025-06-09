@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:wild/pages/auth_cubit.dart';
+import 'package:wild/pages/novel/font_size_cubit.dart';
+import 'package:wild/pages/novel/line_height_cubit.dart';
+import 'package:wild/pages/novel/paragraph_spacing_cubit.dart';
 import 'package:wild/pages/novel/theme_cubit.dart';
+import 'package:wild/pages/novel/top_bar_height_cubit.dart';
+import 'package:wild/pages/novel/bottom_bar_height_cubit.dart';
 import 'package:wild/pages/novel/reader_type_cubit.dart';
 import 'package:wild/src/rust/api/wenku8.dart';
 
@@ -205,8 +211,12 @@ class SettingsPage extends StatelessWidget {
                             onPressed: () async {
                               Navigator.pop(context);
                               await logout();
-                              // 退出程序
-                              Navigator.of(context).popUntil((route) => false);
+                              if (context.mounted) {
+                                // 更新 AuthCubit 状态
+                                context.read<AuthCubit>().logout();
+                                // 清空导航栈并跳转到登录页
+                                Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+                              }
                             },
                             child: const Text('确定'),
                           ),
