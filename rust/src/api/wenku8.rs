@@ -146,6 +146,11 @@ pub async fn delete_all_history() -> anyhow::Result<()> {
     Ok(())
 }
 
+pub async fn delete_history_by_novel_id(novel_id: String) -> anyhow::Result<()> {
+    ReadingHistoryEntity::delete_by_novel_id(novel_id.as_str()).await?;
+    Ok(())
+}
+
 pub struct ReadingHistory {
     pub novel_id: String,
     pub novel_name: String,

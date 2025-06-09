@@ -1,7 +1,11 @@
-use sea_orm::{prelude::*, sea_query::{Index, SqliteQueryBuilder}, Order, QueryOrder, QuerySelect, Schema, Set, Statement};
+use flutter_rust_bridge::frb;
+use sea_orm::{
+    prelude::*,
+    sea_query::{Index, SqliteQueryBuilder},
+    Order, QueryOrder, QuerySelect, Schema, Set, Statement,
+};
 use serde::{Deserialize, Serialize};
 use std::ops::Deref;
-use flutter_rust_bridge::frb;
 
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "reading_history")]
@@ -179,7 +183,6 @@ pub(super) mod migrations {
         }
     }
 
-
     pub(crate) mod m000003_create_table_reading_histories_cover_author {
         use sea_orm::sea_query::{Index, Table};
         use sea_orm::{ColumnTrait, ConnectionTrait, EntityName, IdenStatic, Schema};
@@ -283,11 +286,13 @@ pub(super) mod migrations {
                         .alter_table(
                             Table::alter()
                                 .table(super::super::Entity.table_ref())
-                                .add_column(schema.get_column_def::<super::super::Entity>(
-                                    super::super::Column::ProgressPage,
-                                ).default(
-                                    sea_orm::Value::Int(Some(0)),
-                                ))
+                                .add_column(
+                                    schema
+                                        .get_column_def::<super::super::Entity>(
+                                            super::super::Column::ProgressPage,
+                                        )
+                                        .default(sea_orm::Value::Int(Some(0))),
+                                )
                                 .to_owned(),
                         )
                         .await?;
@@ -316,7 +321,7 @@ impl Entity {
             .await?;
         Ok(records)
     }
-    
+
     /// 获取指定小说最新的阅读记录
     pub async fn find_latest_by_novel_id(novel_id: &str) -> crate::Result<Option<Model>> {
         let db = super::get_connect().await;
@@ -394,6 +399,12 @@ impl Entity {
     pub async fn delete_all() -> crate::Result<()> {
         let db = super::get_connect().await;
         Entity::delete_many().exec(db.deref()).await?;
+        Ok(())
+    }
+
+    pub async fn delete_by_novel_id(novel_id: &str) -> crate::Result<()> {
+        let db = super::get_connect().await;
+        Entity::delete_by_id(novel_id).exec(db.deref()).await?;
         Ok(())
     }
 }
