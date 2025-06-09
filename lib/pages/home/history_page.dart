@@ -87,6 +87,7 @@ class _HistoryItem extends StatelessWidget {
     final dateFormat = DateFormat('yyyy-MM-dd HH:mm');
     final lastReadAt = DateTime.fromMillisecondsSinceEpoch(history.lastReadAt);
     final colorScheme = Theme.of(context).colorScheme;
+    final historyCubit = context.read<HistoryCubit>();
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -97,7 +98,51 @@ class _HistoryItem extends StatelessWidget {
             '/novel/info',
             arguments: history.novelId,
           );
-          context.read<HistoryCubit>().load();
+          if (context.mounted) {
+            historyCubit.load();
+          }
+        },
+        onLongPress: () {
+          showDialog(
+            context: context,
+            builder: (dialogContext) => AlertDialog(
+              title: const Text('删除历史记录'),
+              content: Text('确定要删除《${history.novelName}》的阅读历史吗？'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: const Text('取消'),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    Navigator.pop(dialogContext);
+                    try {
+                      await historyCubit.deleteHistory(history.novelId);
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('已删除阅读历史'),
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      print("$e");
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('删除失败: $e'),
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      }
+                    }
+                  },
+                  child: const Text('确定'),
+                ),
+              ],
+            ),
+          );
         },
         child: Padding(
           padding: const EdgeInsets.all(12),
@@ -158,7 +203,7 @@ class _HistoryItem extends StatelessWidget {
                           );
                           // 返回后更新历史记录
                           if (context.mounted) {
-                            context.read<HistoryCubit>().load();
+                            historyCubit.load();
                           }
                         } catch (e) {
                           if (!context.mounted) return;
