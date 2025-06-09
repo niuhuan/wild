@@ -40,9 +40,9 @@ class NovelInfoPage extends StatelessWidget {
       } catch (e) {
         print('获取下载信息失败: $e');
         if (!context.mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('获取下载信息失败: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('获取下载信息失败: $e')));
       }
     }
 
@@ -78,7 +78,10 @@ class NovelInfoPage extends StatelessWidget {
                 return IconButton(
                   icon: Icon(
                     isInBookshelf ? Icons.bookmark : Icons.bookmark_border,
-                    color: isInBookshelf ? Theme.of(context).colorScheme.primary : null,
+                    color:
+                        isInBookshelf
+                            ? Theme.of(context).colorScheme.primary
+                            : null,
                   ),
                   onPressed: () async {
                     try {
@@ -89,9 +92,9 @@ class NovelInfoPage extends StatelessWidget {
                       }
                     } catch (e) {
                       if (!context.mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('操作失败: $e')),
-                      );
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(SnackBar(content: Text('操作失败: $e')));
                     }
                   },
                 );
@@ -248,6 +251,10 @@ class _NovelInfoContent extends StatelessWidget {
             );
           }, childCount: volumes.length),
         ),
+
+        SliverToBoxAdapter(
+          child: SafeArea(top: false, child: Container()),
+        ),
       ],
     );
   }
@@ -397,11 +404,21 @@ class _NovelTags extends StatelessWidget {
         runSpacing: 8,
         children:
             tags.map((tag) {
-              return Chip(
-                label: Text(tag),
-                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                labelStyle: TextStyle(
-                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+              return InkWell(
+                onTap: () {
+                  Navigator.pushNamed(
+                    context,
+                    '/category',
+                    arguments: {'tag': tag},
+                  );
+                },
+                child: Chip(
+                  label: Text(tag),
+                  backgroundColor:
+                      Theme.of(context).colorScheme.primaryContainer,
+                  labelStyle: TextStyle(
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  ),
                 ),
               );
             }).toList(),

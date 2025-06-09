@@ -17,7 +17,7 @@ import 'package:wild/src/rust/frb_generated.dart';
 import 'package:wild/src/rust/wenku8/models.dart';
 import 'package:wild/pages/home/bookshelf_cubit.dart';
 import 'package:wild/pages/home/history_cubit.dart';
-import 'package:wild/pages/category/category_page.dart';
+import 'package:wild/pages/home/category_page.dart';
 import 'package:wild/pages/articlelist/articlelist_page.dart';
 import 'package:wild/pages/recommend/recommend_page.dart';
 import 'package:wild/pages/home/more_page.dart';
@@ -81,14 +81,9 @@ class YourApp extends StatelessWidget {
         return MaterialApp(
           title: '轻小说文库',
           theme:
-          theme.themeMode == ReaderThemeMode.dark
-                  ? darkTheme
-                  : lightTheme,
+              theme.themeMode == ReaderThemeMode.dark ? darkTheme : lightTheme,
           darkTheme:
-              theme.themeMode ==
-                      ReaderThemeMode.light
-                  ? lightTheme
-                  : darkTheme,
+              theme.themeMode == ReaderThemeMode.light ? lightTheme : darkTheme,
           initialRoute: '/init',
           routes: {
             '/init': (context) => const InitPage(),
@@ -97,14 +92,14 @@ class YourApp extends StatelessWidget {
             '/novel/info': (context) {
               final args = ModalRoute.of(context)!.settings.arguments;
               if (args is Map<String, dynamic>) {
-                return NovelInfoPage(
-                  novelId: args['novelId'] as String,
-                );
+                return NovelInfoPage(novelId: args['novelId'] as String);
               }
               return NovelInfoPage(novelId: args as String);
             },
             '/novel/downloading': (context) {
-              final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+              final args =
+                  ModalRoute.of(context)!.settings.arguments
+                      as Map<String, dynamic>;
               return NovelDownloadingPage(
                 novelId: args['novelId'] as String,
                 existsDownload: args['existsDownload'],
@@ -113,9 +108,11 @@ class YourApp extends StatelessWidget {
               );
             },
             '/novel/reader': (context) {
-              final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+              final args =
+                  ModalRoute.of(context)!.settings.arguments
+                      as Map<String, dynamic>;
               final readerType = context.read<ReaderTypeCubit>().state;
-              
+
               if (readerType == ReaderType.html) {
                 return HtmlReaderPage(
                   novelInfo: args['novelInfo'] as NovelInfo,
@@ -127,11 +124,17 @@ class YourApp extends StatelessWidget {
                 return MultiBlocProvider(
                   providers: [
                     BlocProvider.value(value: context.read<FontSizeCubit>()),
-                    BlocProvider.value(value: context.read<ParagraphSpacingCubit>()),
+                    BlocProvider.value(
+                      value: context.read<ParagraphSpacingCubit>(),
+                    ),
                     BlocProvider.value(value: context.read<LineHeightCubit>()),
                     BlocProvider.value(value: context.read<ThemeCubit>()),
-                    BlocProvider.value(value: context.read<TopBarHeightCubit>()),
-                    BlocProvider.value(value: context.read<BottomBarHeightCubit>()),
+                    BlocProvider.value(
+                      value: context.read<TopBarHeightCubit>(),
+                    ),
+                    BlocProvider.value(
+                      value: context.read<BottomBarHeightCubit>(),
+                    ),
                   ],
                   child: ReaderPage(
                     aid: args['novelId'] as String,
@@ -144,7 +147,16 @@ class YourApp extends StatelessWidget {
                 );
               }
             },
-            '/category': (context) => const CategoryPage(),
+            '/category': (context) {
+              final args = ModalRoute.of(context)!.settings.arguments;
+              if (args is Map<String, dynamic> && args.containsKey('tag')) {
+                return Scaffold(
+                  appBar: AppBar(title: Text("分类" q)),
+                  body: CategoryPage(initialTag: args['tag'] as String),
+                );
+              }
+              return const CategoryPage();
+            },
             '/articlelist': (context) => const ArticlelistPage(),
             '/recommend': (context) => const RecommendPage(),
             '/more': (context) => const MorePage(),

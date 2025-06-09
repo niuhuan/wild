@@ -5,7 +5,9 @@ import 'package:wild/src/rust/wenku8/models.dart';
 import 'package:wild/widgets/novel_cover_card.dart';
 
 class CategoryPage extends StatefulWidget {
-  const CategoryPage({super.key});
+  final String? initialTag;
+  
+  const CategoryPage({super.key, this.initialTag});
 
   @override
   State<CategoryPage> createState() => _CategoryPageState();
@@ -24,18 +26,23 @@ class _CategoryPageState extends State<CategoryPage> {
   @override
   void initState() {
     super.initState();
+    _selectedTag = widget.initialTag;
     _loadSavedState();
     _loadTags();
   }
 
   Future<void> _loadSavedState() async {
     try {
-      final savedTag = await loadProperty(key: _keyTag);
+      if (_selectedTag == null) {
+        final savedTag = await loadProperty(key: _keyTag);
+        if (savedTag.isNotEmpty) {
+          setState(() {
+            _selectedTag = savedTag;
+          });
+        }
+      }
       final savedViewMode = await loadProperty(key: _keyViewMode);
       setState(() {
-        if (savedTag.isNotEmpty) {
-          _selectedTag = savedTag;
-        }
         if (savedViewMode.isNotEmpty) {
           _viewMode = savedViewMode;
         }
