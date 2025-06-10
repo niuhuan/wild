@@ -135,3 +135,9 @@ pub struct BookcaseItem {
     pub cid: String,
     pub chapter_name: String,
 }
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub struct BookcaseDto {
+    pub items: Vec<BookcaseItem>,
+    pub tip: String,
+}

@@ -24,6 +24,24 @@ class Bookcase {
           title == other.title;
 }
 
+class BookcaseDto {
+  final List<BookcaseItem> items;
+  final String tip;
+
+  const BookcaseDto({required this.items, required this.tip});
+
+  @override
+  int get hashCode => items.hashCode ^ tip.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is BookcaseDto &&
+          runtimeType == other.runtimeType &&
+          items == other.items &&
+          tip == other.tip;
+}
+
 class BookcaseItem {
   final String aid;
   final String bid;

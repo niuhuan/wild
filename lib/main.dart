@@ -151,7 +151,7 @@ class YourApp extends StatelessWidget {
               final args = ModalRoute.of(context)!.settings.arguments;
               if (args is Map<String, dynamic> && args.containsKey('tag')) {
                 return Scaffold(
-                  appBar: AppBar(title: Text("分类" q)),
+                  appBar: AppBar(title: Text("分类")),
                   body: CategoryPage(initialTag: args['tag'] as String),
                 );
               }

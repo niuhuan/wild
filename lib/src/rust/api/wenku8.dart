@@ -122,7 +122,7 @@ Future<void> deleteBookcase({required String bid}) =>
 Future<List<Bookcase>> bookcaseList() =>
     RustLib.instance.api.crateApiWenku8BookcaseList();
 
-Future<List<BookcaseItem>> bookInCase({required String caseId}) =>
+Future<BookcaseDto> bookInCase({required String caseId}) =>
     RustLib.instance.api.crateApiWenku8BookInCase(caseId: caseId);
 
 Future<void> moveBookcase({

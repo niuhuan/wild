@@ -34,6 +34,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   Bookcase dco_decode_bookcase(dynamic raw);
 
   @protected
+  BookcaseDto dco_decode_bookcase_dto(dynamic raw);
+
+  @protected
   BookcaseItem dco_decode_bookcase_item(dynamic raw);
 
   @protected
@@ -166,6 +169,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   Bookcase sse_decode_bookcase(SseDeserializer deserializer);
+
+  @protected
+  BookcaseDto sse_decode_bookcase_dto(SseDeserializer deserializer);
 
   @protected
   BookcaseItem sse_decode_bookcase_item(SseDeserializer deserializer);
@@ -329,6 +335,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
 
   @protected
   void sse_encode_bookcase(Bookcase self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_bookcase_dto(BookcaseDto self, SseSerializer serializer);
 
   @protected
   void sse_encode_bookcase_item(BookcaseItem self, SseSerializer serializer);

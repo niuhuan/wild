@@ -85,6 +85,12 @@ class BookshelfPage extends StatelessWidget {
                   onPressed: () => context.read<BookshelfCubit>().toggleSelectMode(),
                 ),
               ] else ...[
+                if (state.tip.isNotEmpty) ...[
+                  IconButton(
+                    icon: const Icon(Icons.info_outline),
+                    onPressed: () => _showTipDialog(context, state.tip),
+                  ),
+                ],
                 IconButton(
                   icon: const Icon(Icons.select_all),
                   onPressed: () => context.read<BookshelfCubit>().toggleSelectMode(),
@@ -159,6 +165,16 @@ class BookshelfPage extends StatelessWidget {
             child: const Text('删除'),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showTipDialog(BuildContext context, String tip) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('书架容量'),
+        content: Text(tip),
       ),
     );
   }

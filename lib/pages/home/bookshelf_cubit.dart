@@ -6,6 +6,7 @@ import 'package:wild/src/rust/wenku8/models.dart';
 enum BookshelfStatus { initial, loading, success, error }
 
 class BookshelfState {
+  final String tip;
   final BookshelfStatus status;
   final List<Bookcase> bookcases;
   final String? currentCaseId;
@@ -15,6 +16,7 @@ class BookshelfState {
   final bool isSelecting; // 是否处于多选模式
 
   BookshelfState({
+    required this.tip,
     required this.status,
     required this.bookcases,
     this.currentCaseId,
@@ -25,6 +27,7 @@ class BookshelfState {
   });
 
   BookshelfState copyWith({
+    String? tip,
     BookshelfStatus? status,
     List<Bookcase>? bookcases,
     String? currentCaseId,
@@ -34,6 +37,7 @@ class BookshelfState {
     bool? isSelecting,
   }) {
     return BookshelfState(
+      tip: tip ?? this.tip,
       status: status ?? this.status,
       bookcases: bookcases ?? this.bookcases,
       currentCaseId: currentCaseId ?? this.currentCaseId,
@@ -83,6 +87,7 @@ class BookshelfState {
 
 class BookshelfCubit extends Cubit<BookshelfState> {
   BookshelfCubit() : super(BookshelfState(
+    tip: '',
     status: BookshelfStatus.initial,
     bookcases: const [],
     bookcaseContents: const {},
@@ -101,12 +106,16 @@ class BookshelfCubit extends Cubit<BookshelfState> {
         return;
       }
 
+      var tip = '';
       final contents = <String, List<BookcaseItem>>{};
       for (final bookcase in bookcases) {
-        contents[bookcase.id] = await bookInCase(caseId: bookcase.id);
+        final bk = await bookInCase(caseId: bookcase.id);
+        contents[bookcase.id] = bk.items;
+        tip = bk.tip;
       }
 
       emit(state.copyWith(
+        tip: tip,
         status: BookshelfStatus.success,
         bookcases: bookcases,
         currentCaseId: bookcases.first.id,
@@ -154,15 +163,17 @@ class BookshelfCubit extends Cubit<BookshelfState> {
       // 刷新源书架
       final fromBooks = await bookInCase(caseId: state.currentCaseId!);
       final newContents = Map<String, List<BookcaseItem>>.from(state.bookcaseContents);
-      newContents[state.currentCaseId!] = fromBooks;
+      newContents[state.currentCaseId!] = fromBooks.items;
+      var tip = fromBooks.tip;
 
       // 如果目标不是删除（-1），则刷新目标书架
       if (toBookcaseId != '-1') {
         final toBooks = await bookInCase(caseId: toBookcaseId);
-        newContents[toBookcaseId] = toBooks;
+        newContents[toBookcaseId] = toBooks.items;
       }
 
       emit(state.copyWith(
+        tip: tip,
         bookcaseContents: newContents,
         selectedBids: {},
         isSelecting: false,
@@ -182,9 +193,10 @@ class BookshelfCubit extends Cubit<BookshelfState> {
       if (state.bookcases.isNotEmpty) {
         final firstCaseId = state.bookcases.first.id;
         final books = await bookInCase(caseId: firstCaseId);
+        var tip = books.tip;
         final newContents = Map<String, List<BookcaseItem>>.from(state.bookcaseContents);
-        newContents[firstCaseId] = books;
-        emit(state.copyWith(bookcaseContents: newContents));
+        newContents[firstCaseId] = books.items;
+        emit(state.copyWith(bookcaseContents: newContents, tip: tip));
       }
     } catch (e) {
       emit(state.copyWith(
@@ -202,10 +214,13 @@ class BookshelfCubit extends Cubit<BookshelfState> {
       await deleteBookcase(bid: bid);
       // 重新加载所有书架内容
       final contents = <String, List<BookcaseItem>>{};
+      var tip = '';
       for (final bookcase in state.bookcases) {
-        contents[bookcase.id] = await bookInCase(caseId: bookcase.id);
+        final bk = await bookInCase(caseId: bookcase.id);
+        contents[bookcase.id] = bk.items;
+        tip = bk.tip;
       }
-      emit(state.copyWith(bookcaseContents: contents));
+      emit(state.copyWith(bookcaseContents: contents, tip: tip));
     } catch (e) {
       emit(state.copyWith(
         status: BookshelfStatus.error,
@@ -213,4 +228,4 @@ class BookshelfCubit extends Cubit<BookshelfState> {
       ));
     }
   }
-} 
+}

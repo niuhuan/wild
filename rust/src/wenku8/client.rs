@@ -3,6 +3,7 @@ use anyhow::{anyhow, Context, Result};
 use base64::Engine;
 use encoding_rs::GBK;
 use rand::Rng;
+use regex::Regex;
 use reqwest::Client;
 use scraper::Node::Element;
 use scraper::{ElementRef, Html, Selector};
@@ -923,7 +924,7 @@ impl Wenku8Client {
         Ok(bookcase_list)
     }
 
-    pub async fn book_in_case(&self, case_id: &str) -> Result<Vec<BookcaseItem>> {
+    pub async fn book_in_case(&self, case_id: &str) -> Result<BookcaseDto> {
         let url = format!("{API_HOST}/modules/article/bookcase.php?classid={case_id}&charset=gbk");
         let response = self
             .client
@@ -940,7 +941,7 @@ impl Wenku8Client {
         Self::parse_book_in_case(text.as_str())
     }
 
-    pub(crate) fn parse_book_in_case(text: &str) -> Result<Vec<BookcaseItem>> {
+    pub(crate) fn parse_book_in_case(text: &str) -> Result<BookcaseDto> {
         let mut novels = Vec::new();
 
         let checkbox_selector = Selector::parse("td.odd>input[type=checkbox]").unwrap();
@@ -1039,7 +1040,18 @@ impl Wenku8Client {
             }
         }
 
-        Ok(novels)
+        let mut tip: &str = "";
+
+        // 您的书架可收藏 300 本，已收藏 7 本 regex
+        let re = Regex::new(r"您的书架可收藏 (\d+) 本，已收藏 (\d+) 本").unwrap();
+        if let Some(caps) = re.captures(text) {
+            tip = caps.get(0).unwrap().as_str();
+        }
+
+        Ok(BookcaseDto {
+            items: novels,
+            tip: tip.to_string(),
+        })
     }
 
     pub async fn delete_bookcase(&self, delid: &str) -> Result<()> {

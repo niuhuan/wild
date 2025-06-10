@@ -90,7 +90,7 @@ abstract class RustLibApi extends BaseApi {
 
   Future<bool> crateApiWenku8AutoSign();
 
-  Future<List<BookcaseItem>> crateApiWenku8BookInCase({required String caseId});
+  Future<BookcaseDto> crateApiWenku8BookInCase({required String caseId});
 
   Future<List<Bookcase>> crateApiWenku8BookcaseList();
 
@@ -336,9 +336,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "auto_sign", argNames: []);
 
   @override
-  Future<List<BookcaseItem>> crateApiWenku8BookInCase({
-    required String caseId,
-  }) {
+  Future<BookcaseDto> crateApiWenku8BookInCase({required String caseId}) {
     return handler.executeNormal(
       NormalTask(
         callFfi: (port_) {
@@ -352,7 +350,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_list_bookcase_item,
+          decodeSuccessData: sse_decode_bookcase_dto,
           decodeErrorData: sse_decode_AnyhowException,
         ),
         constMeta: kCrateApiWenku8BookInCaseConstMeta,
@@ -1500,6 +1498,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  BookcaseDto dco_decode_bookcase_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 2)
+      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    return BookcaseDto(
+      items: dco_decode_list_bookcase_item(arr[0]),
+      tip: dco_decode_String(arr[1]),
+    );
+  }
+
+  @protected
   BookcaseItem dco_decode_bookcase_item(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
@@ -1948,6 +1958,14 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     var var_id = sse_decode_String(deserializer);
     var var_title = sse_decode_String(deserializer);
     return Bookcase(id: var_id, title: var_title);
+  }
+
+  @protected
+  BookcaseDto sse_decode_bookcase_dto(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_items = sse_decode_list_bookcase_item(deserializer);
+    var var_tip = sse_decode_String(deserializer);
+    return BookcaseDto(items: var_items, tip: var_tip);
   }
 
   @protected
@@ -2559,6 +2577,13 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.id, serializer);
     sse_encode_String(self.title, serializer);
+  }
+
+  @protected
+  void sse_encode_bookcase_dto(BookcaseDto self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_list_bookcase_item(self.items, serializer);
+    sse_encode_String(self.tip, serializer);
   }
 
   @protected

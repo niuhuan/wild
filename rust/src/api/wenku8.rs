@@ -2,7 +2,7 @@ use crate::{database::entities::{
     active::{
         novel_download, novel_download_chapter, novel_download_volume, DOWNLOAD_STATUS_DELETING, DOWNLOAD_STATUS_NOT_DOWNLOAD
     }, CookieEntity, ReadingHistoryEntity, SignLogEntity
-}, downloading};
+}, downloading, wenku8::BookcaseDto};
 use crate::wenku8::{
     Bookcase, BookcaseItem, BookshelfItem, HomeBlock, Novel, NovelCover, NovelInfo, PageStats,
     TagGroup, UserDetail, Volume,
@@ -281,7 +281,7 @@ pub async fn bookcase_list() -> anyhow::Result<Vec<Bookcase>> {
     CLIENT.bookcase_list().await
 }
 
-pub async fn book_in_case(case_id: String) -> anyhow::Result<Vec<BookcaseItem>> {
+pub async fn book_in_case(case_id: String) -> anyhow::Result<BookcaseDto> {
     CLIENT.book_in_case(&case_id).await
 }
 
