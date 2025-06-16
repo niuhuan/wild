@@ -121,6 +121,7 @@ class _HtmlReaderViewWrapperState extends State<_HtmlReaderViewWrapper> {
   }
 
   void _startAutoScroll() {
+    setKeepScreenUpOnScroll(true);
     _autoScrollTimer?.cancel();
     _autoScrollTimer = Timer.periodic(const Duration(milliseconds: 16), (timer) {
       if (!mounted) {
@@ -145,6 +146,7 @@ class _HtmlReaderViewWrapperState extends State<_HtmlReaderViewWrapper> {
   }
 
   void _stopAutoScroll() {
+    setKeepScreenUpOnScroll(false);
     _autoScrollTimer?.cancel();
     _autoScrollTimer = null;
   }
