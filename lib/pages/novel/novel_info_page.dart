@@ -5,6 +5,7 @@ import 'package:wild/src/rust/frb_generated.dart';
 import 'package:wild/widgets/cached_image.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:wild/pages/home/bookshelf_cubit.dart';
+import 'package:wild/pages/novel/reviews_page.dart';
 
 import '../../src/rust/wenku8/models.dart';
 import 'novel_info_cubit.dart';
@@ -192,7 +193,17 @@ class _NovelInfoContent extends StatelessWidget {
                   label: '更新',
                   value: novelInfo.finUpdate,
                 ),
-                _StatItem(icon: Icons.comment, label: '评论', value: ''),
+                _StatItem(
+                  icon: Icons.comment,
+                  label: '评论',
+                  value: '',
+                  onTap: () {
+                    Navigator.of(context).pushNamed(
+                      '/novel/reviews',
+                      arguments: { 'aid': novelId, 'title': novelInfo.title },
+                    );
+                  },
+                ),
                 // _StatItem(
                 //   icon: Icons.local_fire_department,
                 //   label: '热度',
@@ -336,28 +347,37 @@ class _StatItem extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
+  final VoidCallback? onTap;
 
   const _StatItem({
     required this.icon,
     required this.label,
     required this.value,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    final row = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Icon(icon, size: 16, color: Theme.of(context).colorScheme.primary),
         const SizedBox(width: 4),
         value != ''
             ? Text(
-              '$label: $value',
-              style: Theme.of(context).textTheme.bodySmall,
-            )
+                '$label: $value',
+                style: Theme.of(context).textTheme.bodySmall,
+              )
             : Text(label, style: Theme.of(context).textTheme.bodySmall),
       ],
     );
+    if (onTap != null) {
+      return InkWell(
+        onTap: onTap,
+        child: row,
+      );
+    }
+    return row;
   }
 }
 

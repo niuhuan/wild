@@ -165,3 +165,12 @@ async fn test_tag_page() -> anyhow::Result<()> {
     Ok(())
 }
 
+#[tokio::test(flavor = "multi_thread")]
+async fn test_reviews() -> anyhow::Result<()> {
+    init_context().await?;
+    let response = CLIENT.reviews("2441", 1).await?;
+    println!("response : {}", serde_json::to_string_pretty(&response)?);
+    Ok(())
+}
+
+1

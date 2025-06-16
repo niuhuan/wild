@@ -1166,7 +1166,7 @@ impl Wenku8Client {
     }
 
     pub async fn reviews(&self, aid: &str, page_number: i32) -> Result<PageStats<Review>> {
-        let url = format!("{API_HOST}/modules/article/modules/article/reviews.php?aid={aid}&page={page_number}&charset=gbk");
+        let url = format!("{API_HOST}/modules/article/reviews.php?aid={aid}&page={page_number}&charset=gbk");
         let response = self
             .client
             .get(url)

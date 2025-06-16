@@ -28,6 +28,7 @@ import 'package:wild/pages/update_cubit.dart';
 import 'package:wild/widgets/update_checker.dart';
 import 'package:wild/pages/novel/top_bar_height_cubit.dart';
 import 'package:wild/pages/novel/bottom_bar_height_cubit.dart';
+import 'package:wild/pages/novel/reviews_page.dart';
 
 final lightTheme = ThemeData(
   colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
@@ -95,6 +96,13 @@ class YourApp extends StatelessWidget {
                 return NovelInfoPage(novelId: args['novelId'] as String);
               }
               return NovelInfoPage(novelId: args as String);
+            },
+            '/novel/reviews': (context) {
+              final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+              return ReviewsPage(
+                aid: args['aid'] as String,
+                title: args['title'] as String,
+              );
             },
             '/novel/downloading': (context) {
               final args =
