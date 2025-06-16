@@ -142,7 +142,7 @@ pub struct BookcaseDto {
     pub tip: String,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct Review {
     pub rid: String,
     pub content: String,
