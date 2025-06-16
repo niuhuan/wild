@@ -13,6 +13,7 @@ import 'package:wild/widgets/cached_image.dart';
 import 'package:wild/pages/novel/fullscreen_cubit.dart';
 import 'package:wild/cubits/screen_keep_on.dart';
 import 'package:wild/pages/novel/auto_scroll_cubit.dart';
+import 'package:wild/pages/novel/auto_scroll_config_cubit.dart';
 import 'dart:async';
 
 class HtmlReaderPage extends StatelessWidget {
@@ -43,6 +44,7 @@ class HtmlReaderPage extends StatelessWidget {
         ),
         BlocProvider(create: (context) => FullscreenCubit()),
         BlocProvider(create: (context) => AutoScrollCubit()),
+        BlocProvider(create: (context) => AutoScrollConfigCubit()..loadConfig()),
       ],
       child: const _HtmlReaderViewWrapper(),
     );
@@ -59,7 +61,6 @@ class _HtmlReaderViewWrapper extends StatefulWidget {
 class _HtmlReaderViewWrapperState extends State<_HtmlReaderViewWrapper> {
   late final ScrollController _scrollController;
   Timer? _autoScrollTimer;
-  static const _scrollSpeed = 1.0; // pixels per frame
 
   @override
   void initState() {
@@ -84,6 +85,7 @@ class _HtmlReaderViewWrapperState extends State<_HtmlReaderViewWrapper> {
     final themeCubit = context.read<ThemeCubit>();
     final topBarHeightCubit = context.read<TopBarHeightCubit>();
     final bottomBarHeightCubit = context.read<BottomBarHeightCubit>();
+    final autoScrollConfigCubit = context.read<AutoScrollConfigCubit>();
 
     showModalBottomSheet(
       context: context,
@@ -97,6 +99,7 @@ class _HtmlReaderViewWrapperState extends State<_HtmlReaderViewWrapper> {
             BlocProvider.value(value: themeCubit),
             BlocProvider.value(value: topBarHeightCubit),
             BlocProvider.value(value: bottomBarHeightCubit),
+            BlocProvider.value(value: autoScrollConfigCubit),
           ],
           child: _ReaderSettings(),
         );
@@ -123,26 +126,31 @@ class _HtmlReaderViewWrapperState extends State<_HtmlReaderViewWrapper> {
   void _startAutoScroll() {
     setKeepScreenUpOnScroll(true);
     _autoScrollTimer?.cancel();
-    _autoScrollTimer = Timer.periodic(const Duration(milliseconds: 16), (timer) {
-      if (!mounted) {
-        timer.cancel();
-        return;
-      }
-      
-      if (_scrollController.hasClients) {
-        final maxScroll = _scrollController.position.maxScrollExtent;
-        final currentScroll = _scrollController.offset;
-        
-        if (currentScroll >= maxScroll) {
-          // Reached the end, stop auto-scroll
-          context.read<AutoScrollCubit>().stop();
-          _stopAutoScroll();
+    
+    final config = context.read<AutoScrollConfigCubit>().state;
+    _autoScrollTimer = Timer.periodic(
+      Duration(milliseconds: config.scrollInterval),
+      (timer) {
+        if (!mounted) {
+          timer.cancel();
           return;
         }
         
-        _scrollController.jumpTo(currentScroll + _scrollSpeed);
-      }
-    });
+        if (_scrollController.hasClients) {
+          final maxScroll = _scrollController.position.maxScrollExtent;
+          final currentScroll = _scrollController.offset;
+          
+          if (currentScroll >= maxScroll) {
+            // Reached the end, stop auto-scroll
+            context.read<AutoScrollCubit>().stop();
+            _stopAutoScroll();
+            return;
+          }
+          
+          _scrollController.jumpTo(currentScroll + config.scrollSpeed);
+        }
+      },
+    );
   }
 
   void _stopAutoScroll() {
@@ -492,6 +500,7 @@ class _ReaderSettings extends StatelessWidget {
     final themeCubit = context.read<ThemeCubit>();
     final topBarHeightCubit = context.read<TopBarHeightCubit>();
     final bottomBarHeightCubit = context.read<BottomBarHeightCubit>();
+    final autoScrollConfigCubit = context.read<AutoScrollConfigCubit>();
 
     void _showColorPicker(
       BuildContext context,
@@ -847,6 +856,66 @@ class _ReaderSettings extends StatelessWidget {
                     ),
                   ),
                 ],
+              ),
+              const SizedBox(height: 16),
+              // 自动滚动设置
+              Row(
+                children: [
+                  Text('自动滚动设置', style: TextStyle(fontWeight: FontWeight.bold)),
+                ],
+              ),
+              const SizedBox(height: 8),
+              // 滚动速度设置
+              BlocBuilder<AutoScrollConfigCubit, AutoScrollConfig>(
+                builder: (context, config) {
+                  return Row(
+                    children: [
+                      Text('滚动速度'),
+                      Expanded(
+                        child: Slider(
+                          value: config.scrollSpeed,
+                          min: 0.5,
+                          max: 3.0,
+                          divisions: 10,
+                          label: config.scrollSpeed.toStringAsFixed(1),
+                          onChanged: (value) {
+                            autoScrollConfigCubit.updateScrollSpeed(value);
+                          },
+                        ),
+                      ),
+                      Text(
+                        config.scrollSpeed.toStringAsFixed(1),
+                        style: TextStyle(),
+                      ),
+                    ],
+                  );
+                },
+              ),
+              // 滚动间隔设置
+              BlocBuilder<AutoScrollConfigCubit, AutoScrollConfig>(
+                builder: (context, config) {
+                  return Row(
+                    children: [
+                      Text('滚动间隔'),
+                      Expanded(
+                        child: Slider(
+                          value: config.scrollInterval.toDouble(),
+                          min: 8,
+                          max: 32,
+                          divisions: 6,
+                          label: '${config.scrollInterval}ms',
+                          onChanged: (value) {
+                            autoScrollConfigCubit.updateScrollInterval(value.toInt());
+                          },
+                        ),
+                      ),
+                      Text(
+                        '${config.scrollInterval}ms',
+                        style: TextStyle(),
+                      ),
+                    ],
+                  );
+                },
               ),
               const SizedBox(height: 16),
               // 重置按钮
