@@ -192,16 +192,17 @@ class _NovelInfoContent extends StatelessWidget {
                   label: '更新',
                   value: novelInfo.finUpdate,
                 ),
-                _StatItem(
-                  icon: Icons.local_fire_department,
-                  label: '热度',
-                  value: novelInfo.heat,
-                ),
-                _StatItem(
-                  icon: Icons.trending_up,
-                  label: '趋势',
-                  value: novelInfo.trending,
-                ),
+                _StatItem(icon: Icons.comment, label: '评论', value: ''),
+                // _StatItem(
+                //   icon: Icons.local_fire_department,
+                //   label: '热度',
+                //   value: novelInfo.heat,
+                // ),
+                // _StatItem(
+                //   icon: Icons.trending_up,
+                //   label: '趋势',
+                //   value: novelInfo.trending,
+                // ),
               ],
             ),
           ),
@@ -252,9 +253,7 @@ class _NovelInfoContent extends StatelessWidget {
           }, childCount: volumes.length),
         ),
 
-        SliverToBoxAdapter(
-          child: SafeArea(top: false, child: Container()),
-        ),
+        SliverToBoxAdapter(child: SafeArea(top: false, child: Container())),
       ],
     );
   }
@@ -351,7 +350,12 @@ class _StatItem extends StatelessWidget {
       children: [
         Icon(icon, size: 16, color: Theme.of(context).colorScheme.primary),
         const SizedBox(width: 4),
-        Text('$label: $value', style: Theme.of(context).textTheme.bodySmall),
+        value != ''
+            ? Text(
+              '$label: $value',
+              style: Theme.of(context).textTheme.bodySmall,
+            )
+            : Text(label, style: Theme.of(context).textTheme.bodySmall),
       ],
     );
   }
