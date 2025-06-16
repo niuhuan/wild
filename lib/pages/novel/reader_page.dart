@@ -5,6 +5,7 @@ import 'package:wild/pages/novel/reader_cubit.dart';
 import 'package:wild/pages/novel/theme_cubit.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:wild/widgets/cached_image.dart';
+import 'package:wild/cubits/screen_keep_on.dart';
 
 import '../../src/rust/wenku8/models.dart';
 import 'font_size_cubit.dart';
@@ -118,11 +119,14 @@ class _ReaderViewState extends State<_ReaderView> {
     _pageController = PageController(
       initialPage: widget.state.currentPageIndex,
     );
+    setKeepScreenUpOnReading(true);
   }
 
   @override
   void dispose() {
     _pageController.dispose();
+    setKeepScreenUpOnReading(false);
+    setKeepScreenUpOnScroll(false);
     super.dispose();
   }
 

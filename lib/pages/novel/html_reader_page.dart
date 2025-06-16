@@ -11,6 +11,7 @@ import 'package:wild/pages/novel/theme_cubit.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:wild/widgets/cached_image.dart';
 import 'package:wild/pages/novel/fullscreen_cubit.dart';
+import 'package:wild/cubits/screen_keep_on.dart';
 
 class HtmlReaderPage extends StatelessWidget {
   final NovelInfo novelInfo;
@@ -31,18 +32,44 @@ class HtmlReaderPage extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(
-          create:
-              (context) => HtmlReaderCubit(
-                novelInfo: novelInfo,
-                initialAid: initialAid,
-                initialCid: initialCid,
-                initialVolumes: volumes,
-              )..loadChapter(),
+          create: (context) => HtmlReaderCubit(
+            novelInfo: novelInfo,
+            initialAid: initialAid,
+            initialCid: initialCid,
+            initialVolumes: volumes,
+          )..loadChapter(),
         ),
         BlocProvider(create: (context) => FullscreenCubit()),
       ],
-      child: const _HtmlReaderView(),
+      child: const _HtmlReaderViewWrapper(),
     );
+  }
+}
+
+class _HtmlReaderViewWrapper extends StatefulWidget {
+  const _HtmlReaderViewWrapper();
+
+  @override
+  State<_HtmlReaderViewWrapper> createState() => _HtmlReaderViewWrapperState();
+}
+
+class _HtmlReaderViewWrapperState extends State<_HtmlReaderViewWrapper> {
+  @override
+  void initState() {
+    super.initState();
+    setKeepScreenUpOnReading(true);
+  }
+
+  @override
+  void dispose() {
+    setKeepScreenUpOnReading(false);
+    setKeepScreenUpOnScroll(false);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return const _HtmlReaderView();
   }
 }
 

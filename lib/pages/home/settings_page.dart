@@ -1,5 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:wild/cubits/screen_up_on_reading_property.dart';
+import 'package:wild/cubits/screen_up_on_scroll_property.dart';
 import 'package:wild/pages/auth_cubit.dart';
 import 'package:wild/pages/novel/font_size_cubit.dart';
 import 'package:wild/pages/novel/line_height_cubit.dart';
@@ -16,9 +20,7 @@ class SettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('设置'),
-      ),
+      appBar: AppBar(title: const Text('设置')),
       body: BlocBuilder<ThemeCubit, ReaderTheme>(
         builder: (context, theme) {
           return ListView(
@@ -34,9 +36,8 @@ class SettingsPage extends StatelessWidget {
                       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                       child: Text(
                         '阅读器设置',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                     ),
                     BlocBuilder<ReaderTypeCubit, ReaderType>(
@@ -62,8 +63,12 @@ class SettingsPage extends StatelessWidget {
                                   ),
                                 ],
                                 selected: {type},
-                                onSelectionChanged: (Set<ReaderType> types) async {
-                                  await context.read<ReaderTypeCubit>().updateType(types.first);
+                                onSelectionChanged: (
+                                  Set<ReaderType> types,
+                                ) async {
+                                  await context
+                                      .read<ReaderTypeCubit>()
+                                      .updateType(types.first);
                                 },
                               ),
                             ],
@@ -72,6 +77,11 @@ class SettingsPage extends StatelessWidget {
                       },
                     ),
                     const SizedBox(height: 16),
+                    if (Platform.isAndroid || Platform.isIOS) ...[
+                      screenUpOnReadingSetting(),
+                      screenUpOnScrollSetting(),
+                      const SizedBox(height: 16),
+                    ],
                   ],
                 ),
               ),
@@ -85,9 +95,8 @@ class SettingsPage extends StatelessWidget {
                       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                       child: Text(
                         '主题设置',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                     ),
                     RadioListTile<ReaderThemeMode>(
@@ -133,9 +142,8 @@ class SettingsPage extends StatelessWidget {
                       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                       child: Text(
                         '缓存设置',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                     ),
                     ListTile(
@@ -145,42 +153,49 @@ class SettingsPage extends StatelessWidget {
                       onTap: () {
                         showDialog(
                           context: context,
-                          builder: (context) => AlertDialog(
-                            title: const Text('清除缓存'),
-                            content: const Text('确定要清除所有接口缓存吗？'),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(context),
-                                child: const Text('取消'),
+                          builder:
+                              (context) => AlertDialog(
+                                title: const Text('清除缓存'),
+                                content: const Text('确定要清除所有接口缓存吗？'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: const Text('取消'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () async {
+                                      Navigator.pop(context);
+                                      try {
+                                        await cleanAllWebCache();
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            const SnackBar(
+                                              content: Text('缓存已清除'),
+                                              duration: Duration(seconds: 2),
+                                            ),
+                                          );
+                                        }
+                                      } catch (e) {
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text('清除缓存失败: $e'),
+                                              duration: const Duration(
+                                                seconds: 2,
+                                              ),
+                                            ),
+                                          );
+                                        }
+                                      }
+                                    },
+                                    child: const Text('确定'),
+                                  ),
+                                ],
                               ),
-                              TextButton(
-                                onPressed: () async {
-                                  Navigator.pop(context);
-                                  try {
-                                    await cleanAllWebCache();
-                                    if (context.mounted) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(
-                                          content: Text('缓存已清除'),
-                                          duration: Duration(seconds: 2),
-                                        ),
-                                      );
-                                    }
-                                  } catch (e) {
-                                    if (context.mounted) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(
-                                          content: Text('清除缓存失败: $e'),
-                                          duration: const Duration(seconds: 2),
-                                        ),
-                                      );
-                                    }
-                                  }
-                                },
-                                child: const Text('确定'),
-                              ),
-                            ],
-                          ),
                         );
                       },
                     ),
@@ -199,29 +214,35 @@ class SettingsPage extends StatelessWidget {
                   onTap: () {
                     showDialog(
                       context: context,
-                      builder: (context) => AlertDialog(
-                        title: const Text('退出登录'),
-                        content: const Text('确定要退出登录吗？'),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context),
-                            child: const Text('取消'),
+                      builder:
+                          (context) => AlertDialog(
+                            title: const Text('退出登录'),
+                            content: const Text('确定要退出登录吗？'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text('取消'),
+                              ),
+                              TextButton(
+                                onPressed: () async {
+                                  Navigator.pop(context);
+                                  await logout();
+                                  if (context.mounted) {
+                                    // 更新 AuthCubit 状态
+                                    context.read<AuthCubit>().logout();
+                                    // 清空导航栈并跳转到登录页
+                                    Navigator.of(
+                                      context,
+                                    ).pushNamedAndRemoveUntil(
+                                      '/login',
+                                      (route) => false,
+                                    );
+                                  }
+                                },
+                                child: const Text('确定'),
+                              ),
+                            ],
                           ),
-                          TextButton(
-                            onPressed: () async {
-                              Navigator.pop(context);
-                              await logout();
-                              if (context.mounted) {
-                                // 更新 AuthCubit 状态
-                                context.read<AuthCubit>().logout();
-                                // 清空导航栈并跳转到登录页
-                                Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
-                              }
-                            },
-                            child: const Text('确定'),
-                          ),
-                        ],
-                      ),
                     );
                   },
                 ),
@@ -232,4 +253,4 @@ class SettingsPage extends StatelessWidget {
       ),
     );
   }
-} 
+}
