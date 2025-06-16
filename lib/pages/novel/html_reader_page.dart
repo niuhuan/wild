@@ -54,27 +54,22 @@ class _HtmlReaderViewWrapper extends StatefulWidget {
 }
 
 class _HtmlReaderViewWrapperState extends State<_HtmlReaderViewWrapper> {
+  late final ScrollController _scrollController;
+
   @override
   void initState() {
     super.initState();
     setKeepScreenUpOnReading(true);
+    _scrollController = ScrollController();
   }
 
   @override
   void dispose() {
     setKeepScreenUpOnReading(false);
     setKeepScreenUpOnScroll(false);
+    _scrollController.dispose();
     super.dispose();
   }
-
-  @override
-  Widget build(BuildContext context) {
-    return const _HtmlReaderView();
-  }
-}
-
-class _HtmlReaderView extends StatelessWidget {
-  const _HtmlReaderView();
 
   void _showSettings(BuildContext context) {
     final fontSizeCubit = context.read<FontSizeCubit>();
@@ -217,6 +212,7 @@ class _HtmlReaderView extends StatelessWidget {
                                         .read<HtmlReaderCubit>()
                                         .goToNextChapter();
                                   },
+                                  scrollController: _scrollController,
                                 )
                                 : const SizedBox.shrink(),
                       ),
@@ -237,11 +233,13 @@ class _ReaderContent extends StatelessWidget {
   final List<ParsedContent> parsedContent;
   final VoidCallback onPreviousChapter;
   final VoidCallback onNextChapter;
+  final ScrollController scrollController;
 
   const _ReaderContent({
     required this.parsedContent,
     required this.onPreviousChapter,
     required this.onNextChapter,
+    required this.scrollController,
   });
 
   List<Widget> _buildContentWidgets(
@@ -387,6 +385,7 @@ class _ReaderContent extends StatelessWidget {
                                 ];
 
                                 return ListView(
+                                  controller: scrollController,
                                   padding: EdgeInsets.only(
                                     left: 16,
                                     right: 16,
