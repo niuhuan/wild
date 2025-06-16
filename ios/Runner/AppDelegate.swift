@@ -19,6 +19,16 @@ import UIKit
                 result(applicationSupportsPath)
             } else if call.method == "documentRoot" {
                result(documentsPath)
+            } else if call.method == "getKeepScreenOn" {
+                result(application.isIdleTimerDisabled)
+            }
+            else if call.method == "setKeepScreenOn" {
+                if let args = call.arguments as? Bool {
+                    DispatchQueue.main.async { () -> Void in
+                        application.isIdleTimerDisabled = args
+                    }
+                }
+                result(nil)
             } else {
                 result(FlutterMethodNotImplemented)
             }

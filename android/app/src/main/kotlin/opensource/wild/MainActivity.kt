@@ -2,6 +2,7 @@ package opensource.wild
 
 import android.os.Handler
 import android.os.Looper
+import android.view.WindowManager
 import androidx.annotation.NonNull
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -35,6 +36,8 @@ class MainActivity : FlutterActivity() {
                     "dataRoot" -> {
                         androidDataLocal()
                     }
+                    "getKeepScreenOn" -> getKeepScreenOn()
+                    "setKeepScreenOn" -> setKeepScreenOn(call.arguments as Boolean)
                     else -> {
                         null
                     }
@@ -79,4 +82,16 @@ class MainActivity : FlutterActivity() {
         }
         return context!!.filesDir.absolutePath
     }
+
+    private fun getKeepScreenOn() =
+        WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON.and(window.attributes.flags) > 0
+
+    private fun setKeepScreenOn(value: Boolean) =
+        uiThreadHandler.post {
+            if (value)
+                window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            else
+                window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+    }
+
 }
