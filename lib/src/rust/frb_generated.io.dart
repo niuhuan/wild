@@ -103,6 +103,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   List<ReadingHistory> dco_decode_list_reading_history(dynamic raw);
 
   @protected
+  List<Review> dco_decode_list_review(dynamic raw);
+
+  @protected
   List<SearchHistory> dco_decode_list_search_history(dynamic raw);
 
   @protected
@@ -139,7 +142,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   PageStatsNovelCover dco_decode_page_stats_novel_cover(dynamic raw);
 
   @protected
+  PageStatsReviews dco_decode_page_stats_reviews(dynamic raw);
+
+  @protected
   ReadingHistory dco_decode_reading_history(dynamic raw);
+
+  @protected
+  Review dco_decode_review(dynamic raw);
 
   @protected
   SearchHistory dco_decode_search_history(dynamic raw);
@@ -254,6 +263,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  List<Review> sse_decode_list_review(SseDeserializer deserializer);
+
+  @protected
   List<SearchHistory> sse_decode_list_search_history(
     SseDeserializer deserializer,
   );
@@ -302,7 +314,13 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  PageStatsReviews sse_decode_page_stats_reviews(SseDeserializer deserializer);
+
+  @protected
   ReadingHistory sse_decode_reading_history(SseDeserializer deserializer);
+
+  @protected
+  Review sse_decode_review(SseDeserializer deserializer);
 
   @protected
   SearchHistory sse_decode_search_history(SseDeserializer deserializer);
@@ -440,6 +458,9 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_list_review(List<Review> self, SseSerializer serializer);
+
+  @protected
   void sse_encode_list_search_history(
     List<SearchHistory> self,
     SseSerializer serializer,
@@ -494,10 +515,19 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   );
 
   @protected
+  void sse_encode_page_stats_reviews(
+    PageStatsReviews self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_reading_history(
     ReadingHistory self,
     SseSerializer serializer,
   );
+
+  @protected
+  void sse_encode_review(Review self, SseSerializer serializer);
 
   @protected
   void sse_encode_search_history(SearchHistory self, SseSerializer serializer);

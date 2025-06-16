@@ -68,7 +68,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.9.0';
 
   @override
-  int get rustContentHash => -946644052;
+  int get rustContentHash => -1647227067;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -160,6 +160,11 @@ abstract class RustLibApi extends BaseApi {
   Future<bool> crateApiWenku8PreLoginState();
 
   Future<void> crateApiWenku8ResetFailDownloads();
+
+  Future<PageStatsReviews> crateApiWenku8Reviews({
+    required String aid,
+    required int pageNumber,
+  });
 
   Future<void> crateApiDatabaseSaveProperty({
     required String key,
@@ -1118,6 +1123,40 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "reset_fail_downloads", argNames: []);
 
   @override
+  Future<PageStatsReviews> crateApiWenku8Reviews({
+    required String aid,
+    required int pageNumber,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(aid, serializer);
+          sse_encode_i_32(pageNumber, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 32,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_page_stats_reviews,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiWenku8ReviewsConstMeta,
+        argValues: [aid, pageNumber],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiWenku8ReviewsConstMeta => const TaskConstMeta(
+    debugName: "reviews",
+    argNames: ["aid", "pageNumber"],
+  );
+
+  @override
   Future<void> crateApiDatabaseSaveProperty({
     required String key,
     required String value,
@@ -1131,7 +1170,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 32,
+            funcId: 33,
             port: port_,
           );
         },
@@ -1168,7 +1207,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 33,
+            funcId: 34,
             port: port_,
           );
         },
@@ -1197,7 +1236,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 34,
+            funcId: 35,
             port: port_,
           );
         },
@@ -1231,7 +1270,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 35,
+            funcId: 36,
             port: port_,
           );
         },
@@ -1260,7 +1299,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 36,
+            funcId: 37,
             port: port_,
           );
         },
@@ -1292,7 +1331,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 37,
+            funcId: 38,
             port: port_,
           );
         },
@@ -1340,7 +1379,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 38,
+            funcId: 39,
             port: port_,
           );
         },
@@ -1392,7 +1431,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 39,
+            funcId: 40,
             port: port_,
           );
         },
@@ -1419,7 +1458,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 40,
+            funcId: 41,
             port: port_,
           );
         },
@@ -1453,7 +1492,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 41,
+            funcId: 42,
             port: port_,
           );
         },
@@ -1685,6 +1724,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<Review> dco_decode_list_review(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_review).toList();
+  }
+
+  @protected
   List<SearchHistory> dco_decode_list_search_history(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return (raw as List<dynamic>).map(dco_decode_search_history).toList();
@@ -1838,6 +1883,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  PageStatsReviews dco_decode_page_stats_reviews(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return PageStatsReviews(
+      currentPage: dco_decode_i_32(arr[0]),
+      maxPage: dco_decode_i_32(arr[1]),
+      records: dco_decode_list_review(arr[2]),
+    );
+  }
+
+  @protected
   ReadingHistory dco_decode_reading_history(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
@@ -1855,6 +1913,22 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       progressPage: dco_decode_i_32(arr[8]),
       cover: dco_decode_String(arr[9]),
       author: dco_decode_String(arr[10]),
+    );
+  }
+
+  @protected
+  Review dco_decode_review(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 6)
+      throw Exception('unexpected arr length: expect 6 but see ${arr.length}');
+    return Review(
+      rid: dco_decode_String(arr[0]),
+      content: dco_decode_String(arr[1]),
+      replyCount: dco_decode_i_32(arr[2]),
+      uid: dco_decode_String(arr[3]),
+      uname: dco_decode_String(arr[4]),
+      time: dco_decode_String(arr[5]),
     );
   }
 
@@ -2216,6 +2290,18 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  List<Review> sse_decode_list_review(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <Review>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_review(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
   List<SearchHistory> sse_decode_list_search_history(
     SseDeserializer deserializer,
   ) {
@@ -2441,6 +2527,19 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  PageStatsReviews sse_decode_page_stats_reviews(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_currentPage = sse_decode_i_32(deserializer);
+    var var_maxPage = sse_decode_i_32(deserializer);
+    var var_records = sse_decode_list_review(deserializer);
+    return PageStatsReviews(
+      currentPage: var_currentPage,
+      maxPage: var_maxPage,
+      records: var_records,
+    );
+  }
+
+  @protected
   ReadingHistory sse_decode_reading_history(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_novelId = sse_decode_String(deserializer);
@@ -2466,6 +2565,25 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       progressPage: var_progressPage,
       cover: var_cover,
       author: var_author,
+    );
+  }
+
+  @protected
+  Review sse_decode_review(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_rid = sse_decode_String(deserializer);
+    var var_content = sse_decode_String(deserializer);
+    var var_replyCount = sse_decode_i_32(deserializer);
+    var var_uid = sse_decode_String(deserializer);
+    var var_uname = sse_decode_String(deserializer);
+    var var_time = sse_decode_String(deserializer);
+    return Review(
+      rid: var_rid,
+      content: var_content,
+      replyCount: var_replyCount,
+      uid: var_uid,
+      uname: var_uname,
+      time: var_time,
     );
   }
 
@@ -2804,6 +2922,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_list_review(List<Review> self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_review(item, serializer);
+    }
+  }
+
+  @protected
   void sse_encode_list_search_history(
     List<SearchHistory> self,
     SseSerializer serializer,
@@ -2960,6 +3087,17 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   }
 
   @protected
+  void sse_encode_page_stats_reviews(
+    PageStatsReviews self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.currentPage, serializer);
+    sse_encode_i_32(self.maxPage, serializer);
+    sse_encode_list_review(self.records, serializer);
+  }
+
+  @protected
   void sse_encode_reading_history(
     ReadingHistory self,
     SseSerializer serializer,
@@ -2976,6 +3114,17 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     sse_encode_i_32(self.progressPage, serializer);
     sse_encode_String(self.cover, serializer);
     sse_encode_String(self.author, serializer);
+  }
+
+  @protected
+  void sse_encode_review(Review self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.rid, serializer);
+    sse_encode_String(self.content, serializer);
+    sse_encode_i_32(self.replyCount, serializer);
+    sse_encode_String(self.uid, serializer);
+    sse_encode_String(self.uname, serializer);
+    sse_encode_String(self.time, serializer);
   }
 
   @protected

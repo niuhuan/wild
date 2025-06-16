@@ -7,7 +7,7 @@ import '../frb_generated.dart';
 import '../wenku8/models.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `assert_receiver_is_total_eq`, `clone`, `clone`, `clone`, `clone`, `clone`, `eq`, `eq`, `eq`, `eq`, `eq`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`, `fmt`
 
 Future<void> wenku8Login({
   required String username,
@@ -172,6 +172,14 @@ Future<void> cleanAllWebCache() =>
 
 Future<void> resetFailDownloads() =>
     RustLib.instance.api.crateApiWenku8ResetFailDownloads();
+
+Future<PageStatsReviews> reviews({
+  required String aid,
+  required int pageNumber,
+}) => RustLib.instance.api.crateApiWenku8Reviews(
+  aid: aid,
+  pageNumber: pageNumber,
+);
 
 class ExistsDownload {
   final NovelDownload novelDownload;
@@ -387,6 +395,31 @@ class PageStatsNovelCover {
   bool operator ==(Object other) =>
       identical(this, other) ||
       other is PageStatsNovelCover &&
+          runtimeType == other.runtimeType &&
+          currentPage == other.currentPage &&
+          maxPage == other.maxPage &&
+          records == other.records;
+}
+
+class PageStatsReviews {
+  final int currentPage;
+  final int maxPage;
+  final List<Review> records;
+
+  const PageStatsReviews({
+    required this.currentPage,
+    required this.maxPage,
+    required this.records,
+  });
+
+  @override
+  int get hashCode =>
+      currentPage.hashCode ^ maxPage.hashCode ^ records.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PageStatsReviews &&
           runtimeType == other.runtimeType &&
           currentPage == other.currentPage &&
           maxPage == other.maxPage &&

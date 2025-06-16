@@ -118,6 +118,14 @@ fn test_parse_book_in_case() -> anyhow::Result<()> {
 }
 
 #[test]
+fn test_parse_reviews() -> anyhow::Result<()> {
+    let text = std::fs::read_to_string("target/rv.txt")?;
+    let tags = Wenku8Client::parse_reviews(text.as_str())?;
+    println!("{}", serde_json::to_string_pretty(&tags)?);
+    Ok(())
+}
+
+#[test]
 fn parse_search() -> anyhow::Result<()> {
     let text = std::fs::read_to_string("target/search.txt")?;
     let tags = Wenku8Client::parse_search(text.as_str())?;

@@ -1164,6 +1164,96 @@ impl Wenku8Client {
         let text = response.text().await?;
         Ok(text)
     }
+
+    pub async fn reviews(&self, aid: &str, page_number: i32) -> Result<PageStats<Review>> {
+        let url = format!("{API_HOST}/modules/article/modules/article/reviews.php?aid={aid}&page={page_number}&charset=gbk");
+        let response = self
+            .client
+            .get(url)
+            .header("User-Agent", self.load_user_agent().await)
+            .send()
+            .await?;
+        if !response.status().is_success() {
+            return Err(anyhow!("Failed to delete bookcase: {}", response.status()));
+        }
+
+        let code = response.status();
+        let text = response.bytes().await?;
+        let text = decode_gbk(text)?;
+        if code.is_success() {
+            Self::parse_reviews(text.as_str())
+        } else {
+            Err(anyhow!("Failed to load reviews: {}", text))
+        }
+    }
+
+    pub fn parse_reviews(text: &str) -> Result<PageStats<Review>> {
+        let html = Html::parse_document(text);
+        let table_selector = Selector::parse("#content table.grid").unwrap();
+        let tr_selector = Selector::parse("tr").unwrap();
+        let td_selector: Selector = Selector::parse("td").unwrap();
+        let a_selector: Selector = Selector::parse("a").unwrap();
+
+        let mut reviews = Vec::new();
+
+        let table = html.select(&table_selector);
+        for table in table {
+            for tr in table.select(&tr_selector).into_iter().skip(2) {
+                let mut review = Review::default();
+                let tds = tr.select(&td_selector);
+                let mut l = 0;
+                for td in tds {
+                    match l {
+                        0 => {
+                            for a in td.select(&a_selector) {
+                                if let Some(href) = a.attr("href") {
+                                    if let Some(find) = href.find("=") {
+                                        review.rid = href[find + 1..].to_string();
+                                    }
+                                }
+                                review.content = a.inner_html();
+                            }
+                        }
+                        1 => {
+                            let regex = regex::Regex::new(r#"(\d+)/"#).unwrap();
+                            let t = td.inner_html();
+                            if let Some(caps) = regex.captures(t.as_str()) {
+                                if let Some(matched) = caps.get(1) {
+                                    if let Ok(i) = matched.as_str().parse() {
+                                        review.reply_count = i;
+                                    }
+                                }
+                            }
+                        }
+                        2 => {
+                            for a in td.select(&a_selector) {
+                                if let Some(href) = a.attr("href") {
+                                    if let Some(find) = href.find("=") {
+                                        review.uid = href[find + 1..].to_string();
+                                    }
+                                }
+                                review.uname = a.inner_html();
+                            }
+                        }
+                        3 => {
+                            review.time = td.inner_html().replace("<!---->", "").to_string();
+                        }
+                        _ => {}
+                    }
+                    l += 1;
+                }
+                reviews.push(review);
+            }
+            break;
+        }
+
+        let (current_page, max_page) = Self::parse_page_stats(&html)?;
+        Ok(PageStats {
+            current_page,
+            max_page,
+            records: reviews,
+        })
+    }
 }
 
 fn decode_gbk(bytes: bytes::Bytes) -> Result<String> {

@@ -141,3 +141,13 @@ pub struct BookcaseDto {
     pub items: Vec<BookcaseItem>,
     pub tip: String,
 }
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Review {
+    pub rid: String,
+    pub content: String,
+    pub reply_count: i32,
+    pub uid: String,
+    pub uname: String,
+    pub time: String,
+}

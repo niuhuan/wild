@@ -37,7 +37,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.9.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -946644052;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1647227067;
 
 // Section: executor
 
@@ -1155,6 +1155,44 @@ fn wire__crate__api__wenku8__reset_fail_downloads_impl(
         },
     )
 }
+fn wire__crate__api__wenku8__reviews_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_async::<flutter_rust_bridge::for_generated::SseCodec, _, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "reviews",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(
+                    ptr_,
+                    rust_vec_len_,
+                    data_len_,
+                )
+            };
+            let mut deserializer =
+                flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_aid = <String>::sse_decode(&mut deserializer);
+            let api_page_number = <i32>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| async move {
+                transform_result_sse::<_, flutter_rust_bridge::for_generated::anyhow::Error>(
+                    (move || async move {
+                        let output_ok =
+                            crate::api::wenku8::reviews(api_aid, api_page_number).await?;
+                        Ok(output_ok)
+                    })()
+                    .await,
+                )
+            }
+        },
+    )
+}
 fn wire__crate__api__database__save_property_impl(
     port_: flutter_rust_bridge::for_generated::MessagePort,
     ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
@@ -1847,6 +1885,18 @@ impl SseDecode for Vec<crate::api::wenku8::ReadingHistory> {
     }
 }
 
+impl SseDecode for Vec<crate::wenku8::models::Review> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut len_ = <i32>::sse_decode(deserializer);
+        let mut ans_ = vec![];
+        for idx_ in 0..len_ {
+            ans_.push(<crate::wenku8::models::Review>::sse_decode(deserializer));
+        }
+        return ans_;
+    }
+}
+
 impl SseDecode for Vec<crate::api::wenku8::SearchHistory> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -2073,6 +2123,20 @@ impl SseDecode for crate::api::wenku8::PageStatsNovelCover {
     }
 }
 
+impl SseDecode for crate::api::wenku8::PageStatsReviews {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_currentPage = <i32>::sse_decode(deserializer);
+        let mut var_maxPage = <i32>::sse_decode(deserializer);
+        let mut var_records = <Vec<crate::wenku8::models::Review>>::sse_decode(deserializer);
+        return crate::api::wenku8::PageStatsReviews {
+            current_page: var_currentPage,
+            max_page: var_maxPage,
+            records: var_records,
+        };
+    }
+}
+
 impl SseDecode for crate::api::wenku8::ReadingHistory {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -2099,6 +2163,26 @@ impl SseDecode for crate::api::wenku8::ReadingHistory {
             progress_page: var_progressPage,
             cover: var_cover,
             author: var_author,
+        };
+    }
+}
+
+impl SseDecode for crate::wenku8::models::Review {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_rid = <String>::sse_decode(deserializer);
+        let mut var_content = <String>::sse_decode(deserializer);
+        let mut var_replyCount = <i32>::sse_decode(deserializer);
+        let mut var_uid = <String>::sse_decode(deserializer);
+        let mut var_uname = <String>::sse_decode(deserializer);
+        let mut var_time = <String>::sse_decode(deserializer);
+        return crate::wenku8::models::Review {
+            rid: var_rid,
+            content: var_content,
+            reply_count: var_replyCount,
+            uid: var_uid,
+            uname: var_uname,
+            time: var_time,
         };
     }
 }
@@ -2256,18 +2340,19 @@ fn pde_ffi_dispatcher_primary_impl(
         31 => {
             wire__crate__api__wenku8__reset_fail_downloads_impl(port, ptr, rust_vec_len, data_len)
         }
-        32 => wire__crate__api__database__save_property_impl(port, ptr, rust_vec_len, data_len),
-        33 => wire__crate__api__wenku8__search_impl(port, ptr, rust_vec_len, data_len),
-        34 => wire__crate__api__wenku8__search_histories_impl(port, ptr, rust_vec_len, data_len),
-        35 => wire__crate__api__wenku8__tag_page_impl(port, ptr, rust_vec_len, data_len),
-        36 => wire__crate__api__wenku8__tags_impl(port, ptr, rust_vec_len, data_len),
-        37 => wire__crate__api__wenku8__toplist_impl(port, ptr, rust_vec_len, data_len),
-        38 => wire__crate__api__wenku8__update_history_impl(port, ptr, rust_vec_len, data_len),
-        39 => wire__crate__api__wenku8__user_detail_impl(port, ptr, rust_vec_len, data_len),
-        40 => {
+        32 => wire__crate__api__wenku8__reviews_impl(port, ptr, rust_vec_len, data_len),
+        33 => wire__crate__api__database__save_property_impl(port, ptr, rust_vec_len, data_len),
+        34 => wire__crate__api__wenku8__search_impl(port, ptr, rust_vec_len, data_len),
+        35 => wire__crate__api__wenku8__search_histories_impl(port, ptr, rust_vec_len, data_len),
+        36 => wire__crate__api__wenku8__tag_page_impl(port, ptr, rust_vec_len, data_len),
+        37 => wire__crate__api__wenku8__tags_impl(port, ptr, rust_vec_len, data_len),
+        38 => wire__crate__api__wenku8__toplist_impl(port, ptr, rust_vec_len, data_len),
+        39 => wire__crate__api__wenku8__update_history_impl(port, ptr, rust_vec_len, data_len),
+        40 => wire__crate__api__wenku8__user_detail_impl(port, ptr, rust_vec_len, data_len),
+        41 => {
             wire__crate__api__wenku8__wenku8_get_bookshelf_impl(port, ptr, rust_vec_len, data_len)
         }
-        41 => wire__crate__api__wenku8__wenku8_login_impl(port, ptr, rust_vec_len, data_len),
+        42 => wire__crate__api__wenku8__wenku8_login_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -2625,6 +2710,28 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::wenku8::PageStatsNovelCover>
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::api::wenku8::PageStatsReviews {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.current_page.into_into_dart().into_dart(),
+            self.max_page.into_into_dart().into_dart(),
+            self.records.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive
+    for crate::api::wenku8::PageStatsReviews
+{
+}
+impl flutter_rust_bridge::IntoIntoDart<crate::api::wenku8::PageStatsReviews>
+    for crate::api::wenku8::PageStatsReviews
+{
+    fn into_into_dart(self) -> crate::api::wenku8::PageStatsReviews {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for crate::api::wenku8::ReadingHistory {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
@@ -2651,6 +2758,28 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::wenku8::ReadingHistory>
     for crate::api::wenku8::ReadingHistory
 {
     fn into_into_dart(self) -> crate::api::wenku8::ReadingHistory {
+        self
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for crate::wenku8::models::Review {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.rid.into_into_dart().into_dart(),
+            self.content.into_into_dart().into_dart(),
+            self.reply_count.into_into_dart().into_dart(),
+            self.uid.into_into_dart().into_dart(),
+            self.uname.into_into_dart().into_dart(),
+            self.time.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive for crate::wenku8::models::Review {}
+impl flutter_rust_bridge::IntoIntoDart<crate::wenku8::models::Review>
+    for crate::wenku8::models::Review
+{
+    fn into_into_dart(self) -> crate::wenku8::models::Review {
         self
     }
 }
@@ -2982,6 +3111,16 @@ impl SseEncode for Vec<crate::api::wenku8::ReadingHistory> {
     }
 }
 
+impl SseEncode for Vec<crate::wenku8::models::Review> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.len() as _, serializer);
+        for item in self {
+            <crate::wenku8::models::Review>::sse_encode(item, serializer);
+        }
+    }
+}
+
 impl SseEncode for Vec<crate::api::wenku8::SearchHistory> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -3127,6 +3266,15 @@ impl SseEncode for crate::api::wenku8::PageStatsNovelCover {
     }
 }
 
+impl SseEncode for crate::api::wenku8::PageStatsReviews {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <i32>::sse_encode(self.current_page, serializer);
+        <i32>::sse_encode(self.max_page, serializer);
+        <Vec<crate::wenku8::models::Review>>::sse_encode(self.records, serializer);
+    }
+}
+
 impl SseEncode for crate::api::wenku8::ReadingHistory {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -3141,6 +3289,18 @@ impl SseEncode for crate::api::wenku8::ReadingHistory {
         <i32>::sse_encode(self.progress_page, serializer);
         <String>::sse_encode(self.cover, serializer);
         <String>::sse_encode(self.author, serializer);
+    }
+}
+
+impl SseEncode for crate::wenku8::models::Review {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <String>::sse_encode(self.rid, serializer);
+        <String>::sse_encode(self.content, serializer);
+        <i32>::sse_encode(self.reply_count, serializer);
+        <String>::sse_encode(self.uid, serializer);
+        <String>::sse_encode(self.uname, serializer);
+        <String>::sse_encode(self.time, serializer);
     }
 }
 

@@ -267,6 +267,45 @@ class NovelInfo {
           isAnimated == other.isAnimated;
 }
 
+class Review {
+  final String rid;
+  final String content;
+  final int replyCount;
+  final String uid;
+  final String uname;
+  final String time;
+
+  const Review({
+    required this.rid,
+    required this.content,
+    required this.replyCount,
+    required this.uid,
+    required this.uname,
+    required this.time,
+  });
+
+  @override
+  int get hashCode =>
+      rid.hashCode ^
+      content.hashCode ^
+      replyCount.hashCode ^
+      uid.hashCode ^
+      uname.hashCode ^
+      time.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Review &&
+          runtimeType == other.runtimeType &&
+          rid == other.rid &&
+          content == other.content &&
+          replyCount == other.replyCount &&
+          uid == other.uid &&
+          uname == other.uname &&
+          time == other.time;
+}
+
 class TagGroup {
   final String title;
   final List<String> tags;

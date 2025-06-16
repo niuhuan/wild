@@ -1,19 +1,25 @@
-use crate::{database::entities::{
-    active::{
-        novel_download, novel_download_chapter, novel_download_volume, DOWNLOAD_STATUS_DELETING, DOWNLOAD_STATUS_NOT_DOWNLOAD
-    }, CookieEntity, ReadingHistoryEntity, SignLogEntity
-}, downloading, wenku8::BookcaseDto};
+use crate::downloading::RESTART_FLAG;
 use crate::wenku8::{
     Bookcase, BookcaseItem, BookshelfItem, HomeBlock, Novel, NovelCover, NovelInfo, PageStats,
     TagGroup, UserDetail, Volume,
 };
 use crate::Result;
 use crate::CLIENT;
+use crate::{
+    database::entities::{
+        active::{
+            novel_download, novel_download_chapter, novel_download_volume,
+            DOWNLOAD_STATUS_DELETING, DOWNLOAD_STATUS_NOT_DOWNLOAD,
+        },
+        CookieEntity, ReadingHistoryEntity, SignLogEntity,
+    },
+    downloading,
+    wenku8::{BookcaseDto, Review},
+};
 use anyhow::Ok;
-use sea_orm::{EntityTrait, ColumnTrait, QueryOrder};
+use sea_orm::{ColumnTrait, EntityTrait, QueryOrder};
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
-use crate::downloading::RESTART_FLAG;
 
 #[flutter_rust_bridge::frb]
 pub async fn wenku8_login(username: String, password: String, checkcode: String) -> Result<()> {
@@ -354,7 +360,10 @@ pub async fn download_novel(aid: String, cid_list: Vec<String>) -> anyhow::Resul
     let volumes = novel_reader(aid.clone()).await?;
     let mut cid_list = cid_list;
     if cid_list.is_empty() {
-        cid_list = volumes.iter().flat_map(|v| v.chapters.iter().map(|c| c.cid.clone())).collect();
+        cid_list = volumes
+            .iter()
+            .flat_map(|v| v.chapters.iter().map(|c| c.cid.clone()))
+            .collect();
     }
 
     // 1. 先处理章节信息
@@ -362,11 +371,13 @@ pub async fn download_novel(aid: String, cid_list: Vec<String>) -> anyhow::Resul
         let volume_id = volume.id.clone();
         for chapter in &volume.chapters {
             let chapter_id = chapter.cid.clone();
-            
+
             // 检查章节是否在下载列表中
             if cid_list.contains(&chapter_id) {
                 // 检查章节是否已存在
-                if let Some(existing_chapter) = novel_download_chapter::Entity::find_by_id(&chapter_id).await? {
+                if let Some(existing_chapter) =
+                    novel_download_chapter::Entity::find_by_id(&chapter_id).await?
+                {
                     // 如果章节已存在，跳过
                     continue;
                 }
@@ -374,7 +385,11 @@ pub async fn download_novel(aid: String, cid_list: Vec<String>) -> anyhow::Resul
                 // 章节不存在，插入新章节
                 let chapter_title = chapter.title.clone();
                 let chapter_url = chapter.url.clone();
-                let chapter_idx = volume.chapters.iter().position(|c| c.cid == chapter.cid).unwrap_or(0) as i32;
+                let chapter_idx = volume
+                    .chapters
+                    .iter()
+                    .position(|c| c.cid == chapter.cid)
+                    .unwrap_or(0) as i32;
 
                 novel_download_chapter::Entity::upsert(
                     &chapter_id,
@@ -385,7 +400,8 @@ pub async fn download_novel(aid: String, cid_list: Vec<String>) -> anyhow::Resul
                     DOWNLOAD_STATUS_NOT_DOWNLOAD,
                     0, // 总图片数初始为0
                     chapter_idx,
-                ).await?;
+                )
+                .await?;
             }
         }
     }
@@ -393,14 +409,16 @@ pub async fn download_novel(aid: String, cid_list: Vec<String>) -> anyhow::Resul
     // 2. 处理卷信息
     for (volume_idx, volume) in volumes.iter().enumerate() {
         let volume_id = volume.id.clone();
-        
+
         // 检查卷是否已存在
-        if let Some(existing_volume) = novel_download_volume::Entity::find_by_id(&volume_id).await? {
+        if let Some(existing_volume) = novel_download_volume::Entity::find_by_id(&volume_id).await?
+        {
             // 如果卷已存在，重置下载状态
             novel_download_volume::Entity::update_download_status(
                 &volume_id,
                 DOWNLOAD_STATUS_NOT_DOWNLOAD,
-            ).await?;
+            )
+            .await?;
         } else {
             // 卷不存在，插入新卷
             let volume_title = volume.title.clone();
@@ -410,13 +428,14 @@ pub async fn download_novel(aid: String, cid_list: Vec<String>) -> anyhow::Resul
                 volume_idx as i32,
                 &volume_title,
                 DOWNLOAD_STATUS_NOT_DOWNLOAD,
-            ).await?;
+            )
+            .await?;
         }
     }
 
     // 3. 最后处理小说本体
     let novel_id = aid.clone();
-    
+
     // 检查小说是否已存在
     if let Some(existing_novel) = novel_download::Entity::find_by_novel_id(&novel_id).await? {
         // 如果小说已存在，更新信息并重置下载状态
@@ -446,7 +465,8 @@ pub async fn download_novel(aid: String, cid_list: Vec<String>) -> anyhow::Resul
             is_animated,
             &fin_update,
             &status,
-        ).await?;
+        )
+        .await?;
     } else {
         // 小说不存在，插入新小说
         let novel_name = novel_detail.title.clone();
@@ -475,43 +495,49 @@ pub async fn download_novel(aid: String, cid_list: Vec<String>) -> anyhow::Resul
             is_animated,
             &fin_update,
             &status,
-        ).await?;
+        )
+        .await?;
     }
-
 
     // 设置重启标志
     let mut restart_flag = RESTART_FLAG.lock().await;
     *restart_flag = true;
-    
+
     Ok(())
 }
 
 pub async fn all_downloads() -> anyhow::Result<Vec<NovelDownload>> {
-    let db = &*crate::database::ACTIVE_DB_CONNECT.get().unwrap().lock().await;
+    let db = &*crate::database::ACTIVE_DB_CONNECT
+        .get()
+        .unwrap()
+        .lock()
+        .await;
     let downloads = novel_download::Entity::find_all_ordered_by_create_time(db).await?;
 
-    Ok(downloads.into_iter().map(|model| NovelDownload {
-        novel_id: model.novel_id,
-        novel_name: model.novel_name,
-        download_status: model.download_status,
-        cover_url: model.cover_url,
-        cover_download_status: model.cover_download_status,
-        author: model.author,
-        tags: model.tags,
-        choose_chapter_count: model.choose_chapter_count,
-        download_chapter_count: model.download_chapter_count,
-        create_time: model.create_time,
-        download_time: model.download_time,
-        introduce: model.introduce,
-        trending: model.trending,
-        is_animated: model.is_animated,
-        fin_update: model.fin_update,
-        status: model.status,
-    }).collect())
+    Ok(downloads
+        .into_iter()
+        .map(|model| NovelDownload {
+            novel_id: model.novel_id,
+            novel_name: model.novel_name,
+            download_status: model.download_status,
+            cover_url: model.cover_url,
+            cover_download_status: model.cover_download_status,
+            author: model.author,
+            tags: model.tags,
+            choose_chapter_count: model.choose_chapter_count,
+            download_chapter_count: model.download_chapter_count,
+            create_time: model.create_time,
+            download_time: model.download_time,
+            introduce: model.introduce,
+            trending: model.trending,
+            is_animated: model.is_animated,
+            fin_update: model.fin_update,
+            status: model.status,
+        })
+        .collect())
 }
 
 pub async fn exists_download(novel_id: String) -> anyhow::Result<Option<ExistsDownload>> {
-    
     // 1. 获取小说本体信息
     let novel = match novel_download::Entity::find_by_novel_id(&novel_id).await? {
         Some(novel) => novel,
@@ -625,11 +651,11 @@ pub struct NovelDownloadChapter {
 pub async fn delete_download(novel_id: String) -> anyhow::Result<()> {
     // 设置小说下载状态为删除中
     novel_download::Entity::update_status(&novel_id, DOWNLOAD_STATUS_DELETING).await?;
-    
+
     // 设置重启标志
     let mut restart_flag = RESTART_FLAG.lock().await;
     *restart_flag = true;
-    
+
     Ok(())
 }
 
@@ -641,4 +667,26 @@ pub async fn clean_all_web_cache() -> anyhow::Result<()> {
 pub async fn reset_fail_downloads() -> Result<()> {
     downloading::reset_fail_downloads().await?;
     Ok(())
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct PageStatsReviews {
+    pub current_page: i32,
+    pub max_page: i32,
+    pub records: Vec<Review>,
+}
+
+pub async fn reviews(aid: String, page_number: i32) -> Result<PageStatsReviews> {
+    let key = format!("reviews${}${}", aid, page_number);
+    let data = crate::cache_first(
+        key,
+        Duration::from_secs(60 * 60),
+        Box::pin(async move { CLIENT.reviews(aid.as_str(), page_number).await }),
+    )
+    .await?;
+    Ok(PageStatsReviews {
+        current_page: data.current_page,
+        max_page: data.max_page,
+        records: data.records,
+    })
 }
