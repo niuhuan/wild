@@ -12,6 +12,8 @@ import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:wild/widgets/cached_image.dart';
 import 'package:wild/pages/novel/fullscreen_cubit.dart';
 import 'package:wild/cubits/screen_keep_on.dart';
+import 'package:wild/pages/novel/auto_scroll_cubit.dart';
+import 'dart:async';
 
 class HtmlReaderPage extends StatelessWidget {
   final NovelInfo novelInfo;
@@ -40,6 +42,7 @@ class HtmlReaderPage extends StatelessWidget {
           )..loadChapter(),
         ),
         BlocProvider(create: (context) => FullscreenCubit()),
+        BlocProvider(create: (context) => AutoScrollCubit()),
       ],
       child: const _HtmlReaderViewWrapper(),
     );
@@ -55,6 +58,8 @@ class _HtmlReaderViewWrapper extends StatefulWidget {
 
 class _HtmlReaderViewWrapperState extends State<_HtmlReaderViewWrapper> {
   late final ScrollController _scrollController;
+  Timer? _autoScrollTimer;
+  static const _scrollSpeed = 1.0; // pixels per frame
 
   @override
   void initState() {
@@ -68,6 +73,7 @@ class _HtmlReaderViewWrapperState extends State<_HtmlReaderViewWrapper> {
     setKeepScreenUpOnReading(false);
     setKeepScreenUpOnScroll(false);
     _scrollController.dispose();
+    _autoScrollTimer?.cancel();
     super.dispose();
   }
 
@@ -98,6 +104,51 @@ class _HtmlReaderViewWrapperState extends State<_HtmlReaderViewWrapper> {
     );
   }
 
+  void _toggleAutoScroll(BuildContext context) {
+    final autoScrollCubit = context.read<AutoScrollCubit>();
+    final fullscreenCubit = context.read<FullscreenCubit>();
+    
+    if (!autoScrollCubit.state) {
+      // Start auto-scroll
+      fullscreenCubit.toggle();
+      autoScrollCubit.start();
+      _startAutoScroll();
+    } else {
+      // Stop auto-scroll
+      autoScrollCubit.stop();
+      _stopAutoScroll();
+    }
+  }
+
+  void _startAutoScroll() {
+    _autoScrollTimer?.cancel();
+    _autoScrollTimer = Timer.periodic(const Duration(milliseconds: 16), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      
+      if (_scrollController.hasClients) {
+        final maxScroll = _scrollController.position.maxScrollExtent;
+        final currentScroll = _scrollController.offset;
+        
+        if (currentScroll >= maxScroll) {
+          // Reached the end, stop auto-scroll
+          context.read<AutoScrollCubit>().stop();
+          _stopAutoScroll();
+          return;
+        }
+        
+        _scrollController.jumpTo(currentScroll + _scrollSpeed);
+      }
+    });
+  }
+
+  void _stopAutoScroll() {
+    _autoScrollTimer?.cancel();
+    _autoScrollTimer = null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<HtmlReaderCubit>();
@@ -122,20 +173,38 @@ class _HtmlReaderViewWrapperState extends State<_HtmlReaderViewWrapper> {
           builder: (context, state) {
             return BlocBuilder<FullscreenCubit, bool>(
               builder: (context, isFullscreen) {
-                return Scaffold(
-                  backgroundColor: backgroundColor,
-                  extendBodyBehindAppBar: true,
-                  appBar:
-                      isFullscreen
-                          ? null
-                          : AppBar(
+                return BlocListener<FullscreenCubit, bool>(
+                  listener: (context, isFullscreen) {
+                    if (!isFullscreen) {
+                      // Exit fullscreen, stop auto-scroll
+                      context.read<AutoScrollCubit>().stop();
+                      _stopAutoScroll();
+                    }
+                  },
+                  child: Scaffold(
+                    backgroundColor: backgroundColor,
+                    extendBodyBehindAppBar: true,
+                    appBar: isFullscreen
+                        ? null
+                        : AppBar(
                             backgroundColor: backgroundColor.withOpacity(0.8),
                             elevation: 0,
-                            title:
-                                state is HtmlReaderLoaded
-                                    ? Text(state.title)
-                                    : const Text('加载中...'),
+                            title: state is HtmlReaderLoaded
+                                ? Text(state.title)
+                                : const Text('加载中...'),
                             actions: [
+                              BlocBuilder<AutoScrollCubit, bool>(
+                                builder: (context, isAutoScrolling) {
+                                  return IconButton(
+                                    icon: Icon(
+                                      isAutoScrolling
+                                          ? Icons.pause
+                                          : Icons.play_arrow,
+                                    ),
+                                    onPressed: () => _toggleAutoScroll(context),
+                                  );
+                                },
+                              ),
                               IconButton(
                                 icon: const Icon(Icons.settings),
                                 onPressed: () => _showSettings(context),
@@ -166,58 +235,59 @@ class _HtmlReaderViewWrapperState extends State<_HtmlReaderViewWrapper> {
                               ),
                             ],
                           ),
-                  body: Stack(
-                    children: [
-                      // 底层内容
-                      GestureDetector(
-                        onTap: () {
-                          context.read<FullscreenCubit>().toggle();
-                        },
-                        child:
-                            state is HtmlReaderLoading
-                                ? const Center(
-                                  child: CircularProgressIndicator(),
-                                )
-                                : state is HtmlReaderError
-                                ? Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        state.error,
-                                        style: TextStyle(color: textColor),
+                    body: Stack(
+                      children: [
+                        // 底层内容
+                        GestureDetector(
+                          onTap: () {
+                            context.read<FullscreenCubit>().toggle();
+                          },
+                          child:
+                              state is HtmlReaderLoading
+                                  ? const Center(
+                                      child: CircularProgressIndicator(),
+                                    )
+                                  : state is HtmlReaderError
+                                  ? Center(
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            state.error,
+                                            style: TextStyle(color: textColor),
+                                          ),
+                                          const SizedBox(height: 16),
+                                          ElevatedButton(
+                                            onPressed: () {
+                                              context
+                                                  .read<HtmlReaderCubit>()
+                                                  .loadChapter();
+                                            },
+                                            child: const Text('重试'),
+                                          ),
+                                        ],
                                       ),
-                                      const SizedBox(height: 16),
-                                      ElevatedButton(
-                                        onPressed: () {
-                                          context
-                                              .read<HtmlReaderCubit>()
-                                              .loadChapter();
-                                        },
-                                        child: const Text('重试'),
-                                      ),
-                                    ],
-                                  ),
-                                )
-                                : state is HtmlReaderLoaded
-                                ? _ReaderContent(
-                                  parsedContent: state.parsedContent,
-                                  onPreviousChapter: () {
-                                    context
-                                        .read<HtmlReaderCubit>()
-                                        .goToPreviousChapter();
-                                  },
-                                  onNextChapter: () {
-                                    context
-                                        .read<HtmlReaderCubit>()
-                                        .goToNextChapter();
-                                  },
-                                  scrollController: _scrollController,
-                                )
-                                : const SizedBox.shrink(),
-                      ),
-                      // 顶部和底部导航按钮（仅在隐藏 AppBar 时显示）
-                    ],
+                                    )
+                                  : state is HtmlReaderLoaded
+                                  ? _ReaderContent(
+                                      parsedContent: state.parsedContent,
+                                      onPreviousChapter: () {
+                                        context
+                                            .read<HtmlReaderCubit>()
+                                            .goToPreviousChapter();
+                                      },
+                                      onNextChapter: () {
+                                        context
+                                            .read<HtmlReaderCubit>()
+                                            .goToNextChapter();
+                                      },
+                                      scrollController: _scrollController,
+                                    )
+                                  : const SizedBox.shrink(),
+                        ),
+                        // 顶部和底部导航按钮（仅在隐藏 AppBar 时显示）
+                      ],
+                    ),
                   ),
                 );
               },
