@@ -12,7 +12,7 @@
 
 一个使用 Flutter 开发的轻小说文库客户端，提供流畅的阅读体验和丰富的功能。
 
-
+- 源仓库地址 [https://github.com/niuhuan/wild](https://github.com/niuhuan/wild)
 
 ## 截图
 
