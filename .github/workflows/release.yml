@@ -96,7 +96,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.check-assets.outputs.matrix) }}
-    runs-on: ${{ matrix.platform == 'windows-x64' && 'windows-latest' || matrix.platform == 'macos' && 'macos-latest' || matrix.platform == 'ios' && 'macos-latest' || 'ubuntu-latest' }}
+    runs-on: ${{ matrix.platform == 'windows-x64' && 'windows-latest' || matrix.platform == 'macos' && 'macos-14' || matrix.platform == 'ios' && 'macos-14' || 'ubuntu-latest' }}
     steps:
       - uses: actions/checkout@v4
 
