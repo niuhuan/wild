@@ -4,7 +4,7 @@ use base64::Engine;
 use encoding_rs::GBK;
 use rand::Rng;
 use regex::Regex;
-use reqwest::Client;
+use reqwest::{header::{HeaderMap, HeaderValue, ACCEPT, ACCEPT_LANGUAGE, CONNECTION, REFERER, USER_AGENT, CONTENT_TYPE},Client};
 use scraper::Node::Element;
 use scraper::{ElementRef, Html, Selector};
 use tokio::sync::RwLock;
@@ -28,14 +28,99 @@ impl Wenku8Client {
         *user_agent = user_agent_value;
     }
 
+    // 👇 新增：統一產生常用標頭（帶 User-Agent / Referer / Accept 等）
+    fn default_headers_sync(ua: &str) -> HeaderMap {
+        let mut headers = HeaderMap::new();
+        headers.insert(
+            USER_AGENT,
+            HeaderValue::from_str(if ua.is_empty() {
+                // 後備 UA（避免空字串）
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+            } else {
+                ua
+            }).unwrap_or(HeaderValue::from_static("Mozilla/5.0")),
+        );
+        headers.insert(
+            ACCEPT,
+            HeaderValue::from_static("image/avif,image/webp,image/apng,image/*,*/*;q=0.8"),
+        );
+        headers.insert(ACCEPT_LANGUAGE, HeaderValue::from_static("zh-TW,zh;q=0.9,en;q=0.8"));
+        headers.insert(REFERER, HeaderValue::from_static("https://www.wenku8.net/login.php"));
+        headers.insert(CONNECTION, HeaderValue::from_static("keep-alive"));
+        headers
+    }
+
+    // 👇 新增：先打 login.php，讓伺服器種初始 Cookie
+    pub async fn init_session(&self) -> Result<()> {
+        let url = format!("{API_HOST}/login.php");
+        let ua = self.load_user_agent().await;
+        let headers = Self::default_headers_sync(&ua);
+
+        let _ = self
+            .client
+            .get(url)
+            .headers(headers)
+            .send()
+            .await
+            .context("init_session: GET login.php failed")?;
+        Ok(())
+    }
+
+    // 👇 修改：checkcode 先 init，再抓圖；若回 HTML（CF 挑戰）就回傳 cf_challenge
     pub async fn checkcode(&self) -> Result<Vec<u8>> {
+        // 1) 先建立 Session（拿初始 Cookie）
+        self.init_session().await?;
+
+        // 2) 準備 URL + 標頭
         let url = format!("{API_HOST}/checkcode.php");
         let params = [("random", rand::rng().random::<f64>().to_string())];
         let url = reqwest::Url::parse_with_params(url.as_str(), &params)?;
-        let buffer = self.client.get(url).send().await?.bytes().await?.to_vec();
-        Ok(buffer)
+        let ua = self.load_user_agent().await;
+        let headers = Self::default_headers_sync(&ua);
+
+        // 3) 取驗證碼
+        let resp = self
+            .client
+            .get(url)
+            .headers(headers)
+            .send()
+            .await
+            .context("checkcode: GET failed")?;
+
+        let status = resp.status();
+        let ct: String = resp
+            .headers()
+            .get(CONTENT_TYPE)
+            .and_then(|v| v.to_str().ok())
+            .unwrap_or("")
+            .to_string(); // <-- 這裡變成 String，不再借用 resp
+
+        // 現在再讀取 body（會移動 resp）
+        let bytes = resp.bytes().await?.to_vec();
+
+        // 4) 判斷是否為圖片
+        if status.is_success() && ct.starts_with("image/") {
+            return Ok(bytes);
+        }
+
+        // 5) 若被 Cloudflare 擋，會回 text/html 的挑戰頁
+        if ct.contains("text/html") {
+            let snippet = String::from_utf8_lossy(&bytes);
+            let looks_cf = snippet.contains("__cf_chl_")
+                || snippet.contains("Just a moment")
+                || snippet.contains("Enable JavaScript and cookies");
+            if looks_cf {
+                return Err(anyhow!("cf_challenge")); // ← 前端可據此觸發 WebView2 fallback
+            }
+        }
+
+        Err(anyhow!(format!(
+            "captcha_fetch_failed status={} content_type={}",
+            status, ct
+        )))
     }
 
+    // 輕微調整：login 也帶上 Referer/Accept（提高通過率）
     pub async fn login(&self, username: &str, password: &str, checkcode: &str) -> Result<()> {
         let url = format!("{API_HOST}/login.php");
         let params = [
@@ -46,11 +131,19 @@ impl Wenku8Client {
             ("action", "login"),
         ];
 
+        let ua = self.load_user_agent().await;
+        let mut headers = Self::default_headers_sync(&ua);
+        // login 是 form，覆蓋 Accept 比較中性
+        headers.insert(
+            ACCEPT,
+            HeaderValue::from_static("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"),
+        );
+
         let resp = self
             .client
             .post(url)
+            .headers(headers)
             .form(&params)
-            .header("User-Agent", self.load_user_agent().await)
             .send()
             .await?;
 

@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wild/pages/auth_cubit.dart';
@@ -43,6 +44,7 @@ final darkTheme = ThemeData(
 );
 
 Future<void> main() async {
+  HttpOverrides.global = _LoggingHttpOverrides();  // ← 新增這行
   WidgetsFlutterBinding.ensureInitialized();
   await AppInfo.init();
   await RustLib.init();
@@ -185,3 +187,51 @@ class YourApp extends StatelessWidget {
     );
   }
 }
+
+class _LoggingHttpOverrides extends HttpOverrides {
+  @override
+  HttpClient createHttpClient(SecurityContext? context) {
+    final base = super.createHttpClient(context);
+    return _LoggingHttpClient(base);
+  }
+}
+
+class _LoggingHttpClient implements HttpClient {
+  final HttpClient _inner;
+  _LoggingHttpClient(this._inner);
+
+  @override
+  Future<HttpClientRequest> openUrl(String method, Uri url) async {
+    final startedAt = DateTime.now();
+    print('[HTTP][$method] $url');
+    try {
+      final req = await _inner.openUrl(method, url);
+      return _LoggingHttpClientRequest(req, url, method, startedAt);
+    } catch (e) {
+      print('[HTTP][ERR][$method] $url -> $e');
+      rethrow;
+    }
+  }
+
+  // 其他方法交給原本的 client
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _LoggingHttpClientRequest implements HttpClientRequest {
+  final HttpClientRequest _inner;
+  final Uri url;
+  final String method;
+  final DateTime startedAt;
+  _LoggingHttpClientRequest(this._inner, this.url, this.method, this.startedAt);
+
+  @override
+  Future<HttpClientResponse> close() async {
+    final resp = await _inner.close();
+    final ms = DateTime.now().difference(startedAt).inMilliseconds;
+    print('[HTTP][RESP ${resp.statusCode}] $method $url (${ms}ms)');
+    return resp;
+  }
+
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
