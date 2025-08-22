@@ -85,7 +85,15 @@ class _HistoryItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dateFormat = DateFormat('yyyy-MM-dd HH:mm');
-    final lastReadAt = DateTime.fromMillisecondsSinceEpoch(history.lastReadAt);
+    int _asMsInt(Object? v) {
+      if (v == null) return 0;
+      if (v is int) return v;
+      if (v is BigInt) return v.toInt();     // 轉成 int 給 DateTime 用
+      if (v is String) return int.parse(v);  // 以防是字串
+      throw ArgumentError('Unsupported type for timestamp: ${v.runtimeType}');
+    }
+
+    final lastReadAt = DateTime.fromMillisecondsSinceEpoch(_asMsInt(history.lastReadAt));
     final colorScheme = Theme.of(context).colorScheme;
     final historyCubit = context.read<HistoryCubit>();
 
