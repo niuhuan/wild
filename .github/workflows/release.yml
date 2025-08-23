@@ -121,7 +121,7 @@ jobs:
           packages: 'platform-tools platforms;android-34 build-tools;34.0.0 ndk;27.0.12077973 cmake;3.22.1'
 
       - name: Install Linux Dependencies
-        if: matrix.platform == 'linux-x86_64'
+        if: matrix.platform == 'linux-x86_64' || 'linux-aarch64'
         run: |
           sudo apt-get update
           sudo apt-get install -y locate libgtk-3-dev libgl1-mesa-dev xorg-dev ninja-build
@@ -150,7 +150,7 @@ jobs:
           cd build/windows/x64/runner/Release
           7z a -tzip ../../../../../wild-${{ needs.check-version.outputs.version }}-windows-x64.zip *
 
-      - name: Build Linux
+      - name: Build Linux x64
         if: matrix.platform == 'linux-x86_64'
         run: |
           flutter build linux --release
@@ -162,7 +162,7 @@ jobs:
           ./appimagetool-x86_64.AppImage build/linux/x64/release/bundle/
           mv wild-x86_64.AppImage wild-${{ needs.check-version.outputs.version }}-linux-x86_64.AppImage
 
-      - name: Build Linux
+      - name: Build Linux arm64
         if: matrix.platform == 'linux-aarch64'
         run: |
           flutter build linux --release
