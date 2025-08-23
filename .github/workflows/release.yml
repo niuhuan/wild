@@ -121,7 +121,7 @@ jobs:
           packages: 'platform-tools platforms;android-34 build-tools;34.0.0 ndk;27.0.12077973 cmake;3.22.1'
 
       - name: Install Linux Dependencies
-        if: matrix.platform == 'linux-x86_64' || 'linux-aarch64'
+        if: matrix.platform == 'linux-x86_64' || matrix.platform == 'linux-aarch64'
         run: |
           sudo apt-get update
           sudo apt-get install -y locate libgtk-3-dev libgl1-mesa-dev xorg-dev ninja-build
