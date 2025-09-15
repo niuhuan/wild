@@ -36,7 +36,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   rust_lib_wild:
     path: rust_builder
-  flutter_rust_bridge: 2.11.1
+  flutter_rust_bridge: 2.9.0
   flutter_bloc: ^8.1.4
   equatable: ^2.0.5
   flutter_html: ^3.0.0
