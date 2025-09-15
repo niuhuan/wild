@@ -38,6 +38,7 @@ pub(crate) static CLIENT: Lazy<Wenku8Client> = Lazy::new(|| {
     Wenku8Client {
         client,
         user_agent: RwLock::new("".to_string()),
+        api_host: RwLock::new("".to_string()),
     }
 });
 
@@ -99,12 +100,27 @@ pub async fn init(root: String) -> Result<()> {
     cleanup_expired_web_cache().await?;
 
     init_user_agent().await?;
+    init_api_host().await?;
 
     downloading::start_downloading().await?;
 
     // 标记初始化完成
     let _ = INIT_DONE.set(());
 
+    Ok(())
+}
+
+async fn init_api_host() -> Result<()> {
+    let mut property_api_host = load_property("api_host".to_string()).await?;
+    if !property_api_host.is_empty() {
+        CLIENT.set_api_host(property_api_host).await;
+    }
+    Ok(())
+}
+
+pub async fn set_api_host(api_host: String) -> Result<()> {
+    save_property("api_host".to_string(), api_host.clone()).await?;
+    CLIENT.set_api_host(api_host).await;
     Ok(())
 }
 

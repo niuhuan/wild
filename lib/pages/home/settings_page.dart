@@ -5,14 +5,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wild/cubits/screen_up_on_reading_property.dart';
 import 'package:wild/cubits/screen_up_on_scroll_property.dart';
 import 'package:wild/pages/auth_cubit.dart';
-import 'package:wild/pages/novel/font_size_cubit.dart';
-import 'package:wild/pages/novel/line_height_cubit.dart';
-import 'package:wild/pages/novel/paragraph_spacing_cubit.dart';
 import 'package:wild/pages/novel/theme_cubit.dart';
-import 'package:wild/pages/novel/top_bar_height_cubit.dart';
-import 'package:wild/pages/novel/bottom_bar_height_cubit.dart';
 import 'package:wild/pages/novel/reader_type_cubit.dart';
 import 'package:wild/src/rust/api/wenku8.dart';
+import 'package:wild/cubits/api_host_cubit.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -129,6 +125,101 @@ class SettingsPage extends StatelessWidget {
                         }
                       },
                     ),
+                  ],
+                ),
+              ),
+              // API Host 设置
+              Card(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                      child: Text(
+                        'API Host 设置',
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    BlocBuilder<ApiHostCubit, String>(
+                      builder: (context, apiHost) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('API 主机地址'),
+                              const SizedBox(height: 8),
+                              TextField(
+                                controller: TextEditingController(text: apiHost),
+                                decoration: const InputDecoration(
+                                  hintText: '留空使用默认地址',
+                                  border: OutlineInputBorder(),
+                                  prefixIcon: Icon(Icons.link),
+                                ),
+                                onSubmitted: (value) async {
+                                  try {
+                                    await context.read<ApiHostCubit>().updateApiHost(value);
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                          content: Text('API Host 已更新'),
+                                          duration: Duration(seconds: 2),
+                                        ),
+                                      );
+                                    }
+                                  } catch (e) {
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text('更新失败: $e'),
+                                          duration: const Duration(seconds: 2),
+                                        ),
+                                      );
+                                    }
+                                  }
+                                },
+                              ),
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: OutlinedButton.icon(
+                                      onPressed: () async {
+                                        try {
+                                          await context.read<ApiHostCubit>().resetToDefault();
+                                          if (context.mounted) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              const SnackBar(
+                                                content: Text('已重置为默认地址'),
+                                                duration: Duration(seconds: 2),
+                                              ),
+                                            );
+                                          }
+                                        } catch (e) {
+                                          if (context.mounted) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(
+                                                content: Text('重置失败: $e'),
+                                                duration: const Duration(seconds: 2),
+                                              ),
+                                            );
+                                          }
+                                        }
+                                      },
+                                      icon: const Icon(Icons.refresh),
+                                      label: const Text('重置为默认'),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 16),
                   ],
                 ),
               ),

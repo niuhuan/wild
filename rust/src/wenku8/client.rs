@@ -4,17 +4,24 @@ use base64::Engine;
 use encoding_rs::GBK;
 use rand::Rng;
 use regex::Regex;
-use reqwest::{header::{HeaderMap, HeaderValue, ACCEPT, ACCEPT_LANGUAGE, CONNECTION, REFERER, USER_AGENT, CONTENT_TYPE},Client};
+use reqwest::{
+    header::{
+        HeaderMap, HeaderValue, ACCEPT, ACCEPT_LANGUAGE, CONNECTION, CONTENT_TYPE, REFERER,
+        USER_AGENT,
+    },
+    Client,
+};
 use scraper::Node::Element;
 use scraper::{ElementRef, Html, Selector};
 use tokio::sync::RwLock;
 
-const API_HOST: &str = "https://www.wenku8.net";
+const DEFAULT_API_HOST: &str = "https://www.wenku8.net";
 const APP_HOST: &str = "http://app.wenku8.com";
 
 pub struct Wenku8Client {
     pub client: Client,
     pub user_agent: RwLock<String>,
+    pub api_host: RwLock<String>,
 }
 
 impl Wenku8Client {
@@ -26,6 +33,20 @@ impl Wenku8Client {
     pub async fn set_user_agent(&self, user_agent_value: String) {
         let mut user_agent = self.user_agent.write().await;
         *user_agent = user_agent_value;
+    }
+
+    pub async fn load_api_host(&self) -> String {
+        let api_host = self.api_host.read().await;
+        if api_host.is_empty() {
+            DEFAULT_API_HOST.to_string()
+        } else {
+            api_host.clone()
+        }
+    }
+
+    pub async fn set_api_host(&self, api_host_value: String) {
+        let mut api_host = self.api_host.write().await;
+        *api_host = api_host_value;
     }
 
     // 👇 新增：統一產生常用標頭（帶 User-Agent / Referer / Accept 等）
@@ -44,15 +65,21 @@ impl Wenku8Client {
             ACCEPT,
             HeaderValue::from_static("image/avif,image/webp,image/apng,image/*,*/*;q=0.8"),
         );
-        headers.insert(ACCEPT_LANGUAGE, HeaderValue::from_static("zh-TW,zh;q=0.9,en;q=0.8"));
-        headers.insert(REFERER, HeaderValue::from_static("https://www.wenku8.net/login.php"));
+        headers.insert(
+            ACCEPT_LANGUAGE,
+            HeaderValue::from_static("zh-TW,zh;q=0.9,en;q=0.8"),
+        );
+        headers.insert(
+            REFERER,
+            HeaderValue::from_static("https://www.wenku8.net/login.php"),
+        );
         headers.insert(CONNECTION, HeaderValue::from_static("keep-alive"));
         headers
     }
 
     // 👇 新增：先打 login.php，讓伺服器種初始 Cookie
     pub async fn init_session(&self) -> Result<()> {
-        let url = format!("{API_HOST}/login.php");
+        let url = format!("{}/login.php", self.load_api_host().await);
         let ua = self.load_user_agent().await;
         let headers = Self::default_headers_sync(&ua);
 
@@ -72,7 +99,7 @@ impl Wenku8Client {
         self.init_session().await?;
 
         // 2) 準備 URL + 標頭
-        let url = format!("{API_HOST}/checkcode.php");
+        let url = format!("{}/checkcode.php", self.load_api_host().await);
         let params = [("random", rand::rng().random::<f64>().to_string())];
         let url = reqwest::Url::parse_with_params(url.as_str(), &params)?;
         let ua = self.load_user_agent().await;
@@ -122,7 +149,7 @@ impl Wenku8Client {
 
     // 輕微調整：login 也帶上 Referer/Accept（提高通過率）
     pub async fn login(&self, username: &str, password: &str, checkcode: &str) -> Result<()> {
-        let url = format!("{API_HOST}/login.php");
+        let url = format!("{}/login.php", self.load_api_host().await);
         let params = [
             ("username", username),
             ("password", password),
@@ -136,7 +163,9 @@ impl Wenku8Client {
         // login 是 form，覆蓋 Accept 比較中性
         headers.insert(
             ACCEPT,
-            HeaderValue::from_static("text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"),
+            HeaderValue::from_static(
+                "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            ),
         );
 
         let resp = self
@@ -161,7 +190,7 @@ impl Wenku8Client {
 
     // /userdetail.php?charset=gbk
     pub async fn userdetail(&self) -> Result<UserDetail> {
-        let url = format!("{API_HOST}/userdetail.php?charset=gbk");
+        let url = format!("{}/userdetail.php?charset=gbk", self.load_api_host().await);
         let response = self
             .client
             .get(url)
@@ -249,7 +278,10 @@ impl Wenku8Client {
     }
 
     pub async fn novel_info(&self, aid: &str) -> Result<NovelInfo> {
-        let url = format!("{API_HOST}/modules/article/articleinfo.php?id={aid}&charset=gbk");
+        let url = format!(
+            "{}/modules/article/articleinfo.php?id={aid}&charset=gbk",
+            self.load_api_host().await
+        );
         let response = self
             .client
             .get(url)
@@ -408,7 +440,10 @@ impl Wenku8Client {
     pub async fn index(&self) -> Result<Vec<HomeBlock>> {
         let resp = self
             .client
-            .get(format!("{API_HOST}/index.php?charset=gbk"))
+            .get(format!(
+                "{}/index.php?charset=gbk",
+                self.load_api_host().await
+            ))
             .header("User-Agent", self.load_user_agent().await)
             .send()
             .await?;
@@ -580,7 +615,10 @@ impl Wenku8Client {
     pub async fn tags(&self) -> Result<Vec<TagGroup>> {
         let resp = self
             .client
-            .get(format!("{API_HOST}/modules/article/tags.php?charset=gbk"))
+            .get(format!(
+                "{}/modules/article/tags.php?charset=gbk",
+                self.load_api_host().await
+            ))
             .header("User-Agent", self.load_user_agent().await)
             .send()
             .await?;
@@ -646,7 +684,7 @@ impl Wenku8Client {
     ) -> Result<PageStats<NovelCover>> {
         let url = format!(
             "{}/modules/article/tags.php?t={}&v={}&page={}&charset=gbk",
-            API_HOST,
+            self.load_api_host().await,
             gbk_url_encode(tag),
             v,
             page_number,
@@ -872,7 +910,10 @@ impl Wenku8Client {
     }
 
     pub async fn novel_reader(&self, aid: &str) -> Result<Vec<Volume>> {
-        let url = format!("{API_HOST}/modules/article/reader.php?aid={aid}&charset=gbk");
+        let url = format!(
+            "{}/modules/article/reader.php?aid={aid}&charset=gbk",
+            self.load_api_host().await
+        );
         let response = self
             .client
             .get(url)
@@ -914,8 +955,10 @@ impl Wenku8Client {
     }
 
     pub async fn toplist(&self, sort: &str, page: i32) -> Result<PageStats<NovelCover>> {
-        let url =
-            format!("{API_HOST}/modules/article/toplist.php?sort={sort}&page={page}&charset=gbk");
+        let url = format!(
+            "{}/modules/article/toplist.php?sort={sort}&page={page}&charset=gbk",
+            self.load_api_host().await
+        );
         let response = self
             .client
             .get(url)
@@ -937,7 +980,8 @@ impl Wenku8Client {
 
     pub async fn articlelist(&self, fullflag: i32, page: i32) -> Result<PageStats<NovelCover>> {
         let url = format!(
-            "{API_HOST}/modules/article/articlelist.php?fullflag={fullflag}&page={page}&charset=gbk"
+            "{}/modules/article/articlelist.php?fullflag={fullflag}&page={page}&charset=gbk",
+            self.load_api_host().await
         );
         let response = self
             .client
@@ -959,7 +1003,10 @@ impl Wenku8Client {
     }
 
     pub async fn add_bookshelf(&self, aid: &str) -> Result<()> {
-        let url = format!("{API_HOST}/modules/article/addbookcase.php?bid={aid}&charset=gbk");
+        let url = format!(
+            "{}/modules/article/addbookcase.php?bid={aid}&charset=gbk",
+            self.load_api_host().await
+        );
         let response = self
             .client
             .get(url)
@@ -980,7 +1027,10 @@ impl Wenku8Client {
     }
 
     pub async fn bookcase_list(&self) -> Result<Vec<Bookcase>> {
-        let url = format!("{API_HOST}/modules/article/bookcase.php?charset=gbk");
+        let url = format!(
+            "{}/modules/article/bookcase.php?charset=gbk",
+            self.load_api_host().await
+        );
         let response = self
             .client
             .get(url)
@@ -1018,7 +1068,10 @@ impl Wenku8Client {
     }
 
     pub async fn book_in_case(&self, case_id: &str) -> Result<BookcaseDto> {
-        let url = format!("{API_HOST}/modules/article/bookcase.php?classid={case_id}&charset=gbk");
+        let url = format!(
+            "{}/modules/article/bookcase.php?classid={case_id}&charset=gbk",
+            self.load_api_host().await
+        );
         let response = self
             .client
             .get(url)
@@ -1148,7 +1201,10 @@ impl Wenku8Client {
     }
 
     pub async fn delete_bookcase(&self, delid: &str) -> Result<()> {
-        let url = format!("{API_HOST}/modules/article/bookcase.php?delid={delid}&charset=gbk");
+        let url = format!(
+            "{}/modules/article/bookcase.php?delid={delid}&charset=gbk",
+            self.load_api_host().await
+        );
         let response = self
             .client
             .get(url)
@@ -1175,7 +1231,10 @@ impl Wenku8Client {
         old_classid: String,
         new_classid: String,
     ) -> Result<()> {
-        let url = format!("{API_HOST}/modules/article/bookcase.php");
+        let url = format!(
+            "{}/modules/article/bookcase.php",
+            self.load_api_host().await
+        );
         let mut params = vec![];
         for id in ids {
             params.push(("checkid[]", id));
@@ -1210,7 +1269,7 @@ impl Wenku8Client {
     ) -> Result<PageStats<NovelCover>> {
         let search_key = gbk_url_encode(search_key);
         let url = format!(
-            "{API_HOST}/modules/article/search.php?searchtype={search_type}&searchkey={search_key}&page={page}&charset=gbk",
+            "{}/modules/article/search.php?searchtype={search_type}&searchkey={search_key}&page={page}&charset=gbk",self.load_api_host().await
         );
         let response = self
             .client
@@ -1259,7 +1318,10 @@ impl Wenku8Client {
     }
 
     pub async fn reviews(&self, aid: &str, page_number: i32) -> Result<PageStats<Review>> {
-        let url = format!("{API_HOST}/modules/article/reviews.php?aid={aid}&page={page_number}&charset=gbk");
+        let url = format!(
+            "{}/modules/article/reviews.php?aid={aid}&page={page_number}&charset=gbk",
+            self.load_api_host().await
+        );
         let response = self
             .client
             .get(url)

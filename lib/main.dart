@@ -17,7 +17,6 @@ import 'package:wild/pages/novel/reader_type_cubit.dart';
 import 'package:wild/src/rust/frb_generated.dart';
 import 'package:wild/src/rust/wenku8/models.dart';
 import 'package:wild/pages/home/bookshelf_cubit.dart';
-import 'package:wild/pages/home/history_cubit.dart';
 import 'package:wild/pages/home/category_page.dart';
 import 'package:wild/pages/articlelist/articlelist_page.dart';
 import 'package:wild/pages/recommend/recommend_page.dart';
@@ -30,6 +29,7 @@ import 'package:wild/widgets/update_checker.dart';
 import 'package:wild/pages/novel/top_bar_height_cubit.dart';
 import 'package:wild/pages/novel/bottom_bar_height_cubit.dart';
 import 'package:wild/pages/novel/reviews_page.dart';
+import 'package:wild/cubits/api_host_cubit.dart';
 
 final lightTheme = ThemeData(
   colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
@@ -68,6 +68,7 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (context) => BottomBarHeightCubit()),
         BlocProvider(create: (context) => UpdateCubit()),
         BlocProvider(create: (context) => ReaderTypeCubit()..loadType()),
+        BlocProvider(create: (context) => ApiHostCubit()),
       ],
       child: YourApp(),
     );

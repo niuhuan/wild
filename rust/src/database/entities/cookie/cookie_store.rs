@@ -37,7 +37,10 @@ impl DatabaseCookieStore {
     }
 
     async fn load_cookies(&self, url: &Url) -> anyhow::Result<Vec<::cookie::Cookie>> {
-        let host = url.host_str().unwrap();
+        let mut host = url.host_str().unwrap();
+        if host.contains(".wenku8.") && host != "app.wenku8.com" {
+            host = "www.wenku8.net";
+        }
         let cookies = CookieEntity::find_by_domain(host).await?;
         let cookies = cookies
             .into_iter()

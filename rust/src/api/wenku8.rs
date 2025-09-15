@@ -648,6 +648,14 @@ pub struct NovelDownloadChapter {
     pub chapter_idx: i32,
 }
 
+pub async fn get_api_host() -> anyhow::Result<String> {
+    Ok(CLIENT.load_api_host().await)
+}
+
+pub async fn set_api_host(api_host: String) -> anyhow::Result<()> {
+    crate::set_api_host(api_host).await
+}
+
 pub async fn delete_download(novel_id: String) -> anyhow::Result<()> {
     // 设置小说下载状态为删除中
     novel_download::Entity::update_status(&novel_id, DOWNLOAD_STATUS_DELETING).await?;
