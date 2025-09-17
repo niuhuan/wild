@@ -134,6 +134,10 @@ async fn init_user_agent() -> Result<()> {
         property_user_agent = random_user_agent();
         save_property("user_agent".to_string(), property_user_agent.clone()).await?;
     }
+    if !property_user_agent.starts_with("Dalvik") {
+        property_user_agent = random_user_agent();
+        save_property("user_agent".to_string(), property_user_agent.clone()).await?;
+    }
     CLIENT.set_user_agent(property_user_agent).await;
     Ok(())
 }
@@ -243,13 +247,15 @@ fn random_fire_fox_version() -> String {
 }
 
 fn random_android_ua() -> String {
-    let mut rng = rand::rng();
-    let android_version = ANDROID_VERSIONS.choose(&mut rng).unwrap();
-    let device = DEVICES.choose(&mut rng).unwrap();
-    let build_id = random_build_id();
-    let firefox_version = random_fire_fox_version();
-    format!(
-        "Mozilla/5.0 (Linux; U; Android {}; {} Build/{}) Gecko/20100101 Firefox/{}.0",
-        android_version, device, build_id, firefox_version
-    )
+    // let mut rng = rand::rng();
+    // let android_version = ANDROID_VERSIONS.choose(&mut rng).unwrap();
+    // let device = DEVICES.choose(&mut rng).unwrap();
+    // let build_id = random_build_id();
+    // let firefox_version = random_fire_fox_version();
+    // format!(
+    //     // "Dalvik/2.1.0 (Linux; U; Android {}; {} Build/{}) Gecko/20100101 Firefox/{}.0",
+    //     "Dalvik/2.1.0 (Linux; U; Android 15; {} Build/AQ3A.{}.{})",
+    //     device, build_id, firefox_version
+    // )
+    "Dalvik/2.1.0 (Linux; U; Android 15; 23114RD76B Build/AQ3A.240912.001)".to_string()
 }
