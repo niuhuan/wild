@@ -937,7 +937,7 @@ impl Wenku8Client {
                 base64::prelude::BASE64_STANDARD
                     .encode(format!("action=book&do=text&aid={aid}&cid={cid}&t=0").as_bytes()),
             ),
-            ("appver", "1.18".to_string()),
+            ("appver", "1.21".to_string()),
             ("timetoken", chrono::Utc::now().timestamp().to_string()),
         ];
         let response = self
