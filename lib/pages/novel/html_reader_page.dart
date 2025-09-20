@@ -565,6 +565,7 @@ class _ReaderSettings extends StatelessWidget {
     return BlocBuilder<ThemeCubit, ReaderTheme>(
       builder: (context, theme) {
         return Container(
+          height: MediaQuery.of(context).size.height / 3 * 2,
           padding: EdgeInsets.only(
             left: 16,
             right: 16,
@@ -574,8 +575,7 @@ class _ReaderSettings extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+          child: ListView(
             children: [
               Text(
                 '设置',
