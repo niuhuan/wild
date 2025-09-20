@@ -10,6 +10,7 @@ import 'package:wild/pages/novel/font_size_cubit.dart';
 import 'package:wild/pages/novel/line_height_cubit.dart';
 import 'package:wild/pages/novel/paragraph_spacing_cubit.dart';
 import 'package:wild/pages/novel/theme_cubit.dart';
+import 'package:wild/pages/novel/reader_type_cubit.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:wild/widgets/cached_image.dart';
 import 'package:wild/pages/novel/fullscreen_cubit.dart';
@@ -89,6 +90,7 @@ class _HtmlReaderViewWrapperState extends State<_HtmlReaderViewWrapper> {
     final bottomBarHeightCubit = context.read<BottomBarHeightCubit>();
     final leftPaddingCubit = context.read<LeftPaddingCubit>();
     final rightPaddingCubit = context.read<RightPaddingCubit>();
+    final readerTypeCubit = context.read<ReaderTypeCubit>();
     final autoScrollConfigCubit = context.read<AutoScrollConfigCubit>();
 
     showModalBottomSheet(
@@ -105,6 +107,7 @@ class _HtmlReaderViewWrapperState extends State<_HtmlReaderViewWrapper> {
             BlocProvider.value(value: bottomBarHeightCubit),
             BlocProvider.value(value: leftPaddingCubit),
             BlocProvider.value(value: rightPaddingCubit),
+            BlocProvider.value(value: readerTypeCubit),
             BlocProvider.value(value: autoScrollConfigCubit),
           ],
           child: _ReaderSettings(),
@@ -516,6 +519,7 @@ class _ReaderSettings extends StatelessWidget {
     final bottomBarHeightCubit = context.read<BottomBarHeightCubit>();
     final leftPaddingCubit = context.read<LeftPaddingCubit>();
     final rightPaddingCubit = context.read<RightPaddingCubit>();
+    final readerTypeCubit = context.read<ReaderTypeCubit>();
     final autoScrollConfigCubit = context.read<AutoScrollConfigCubit>();
 
     void _showColorPicker(
@@ -582,6 +586,38 @@ class _ReaderSettings extends StatelessWidget {
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
+              // 阅读器类型设置
+              Row(
+                children: [
+                  Text('阅读器类型'),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: BlocBuilder<ReaderTypeCubit, ReaderType>(
+                      builder: (context, type) {
+                        return SegmentedButton<ReaderType>(
+                          segments: const [
+                            ButtonSegment<ReaderType>(
+                              value: ReaderType.normal,
+                              label: Text('普通阅读器'),
+                              icon: Icon(Icons.book),
+                            ),
+                            ButtonSegment<ReaderType>(
+                              value: ReaderType.html,
+                              label: Text('HTML阅读器'),
+                              icon: Icon(Icons.html),
+                            ),
+                          ],
+                          selected: {type},
+                          onSelectionChanged: (Set<ReaderType> types) async {
+                            await readerTypeCubit.updateType(types.first);
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const Divider(),
               // 字体大小设置
               BlocBuilder<FontSizeCubit, double>(
                 builder: (context, fontSize) {
