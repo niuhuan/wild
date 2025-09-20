@@ -887,9 +887,9 @@ class _ReaderSettingsState extends State<_ReaderSettings> {
                       Expanded(
                         child: Slider(
                           value: spacing,
-                          min: 16,
+                          min: 2,
                           max: 32,
-                          divisions: 8,
+                          divisions: 2,
                           label: spacing.round().toString(),
                           onChanged: (value) async {
                             await paragraphSpacingCubit.updateSpacing(value);
