@@ -4,6 +4,8 @@ import '../../src/rust/wenku8/models.dart';
 import 'html_reader_cubit.dart';
 import 'package:wild/pages/novel/top_bar_height_cubit.dart';
 import 'package:wild/pages/novel/bottom_bar_height_cubit.dart';
+import 'package:wild/pages/novel/left_padding_cubit.dart';
+import 'package:wild/pages/novel/right_padding_cubit.dart';
 import 'package:wild/pages/novel/font_size_cubit.dart';
 import 'package:wild/pages/novel/line_height_cubit.dart';
 import 'package:wild/pages/novel/paragraph_spacing_cubit.dart';
@@ -85,6 +87,8 @@ class _HtmlReaderViewWrapperState extends State<_HtmlReaderViewWrapper> {
     final themeCubit = context.read<ThemeCubit>();
     final topBarHeightCubit = context.read<TopBarHeightCubit>();
     final bottomBarHeightCubit = context.read<BottomBarHeightCubit>();
+    final leftPaddingCubit = context.read<LeftPaddingCubit>();
+    final rightPaddingCubit = context.read<RightPaddingCubit>();
     final autoScrollConfigCubit = context.read<AutoScrollConfigCubit>();
 
     showModalBottomSheet(
@@ -99,6 +103,8 @@ class _HtmlReaderViewWrapperState extends State<_HtmlReaderViewWrapper> {
             BlocProvider.value(value: themeCubit),
             BlocProvider.value(value: topBarHeightCubit),
             BlocProvider.value(value: bottomBarHeightCubit),
+            BlocProvider.value(value: leftPaddingCubit),
+            BlocProvider.value(value: rightPaddingCubit),
             BlocProvider.value(value: autoScrollConfigCubit),
           ],
           child: _ReaderSettings(),
@@ -464,15 +470,23 @@ class _ReaderContent extends StatelessWidget {
                                   ],
                                 ];
 
-                                return ListView(
-                                  controller: scrollController,
-                                  padding: EdgeInsets.only(
-                                    left: 16,
-                                    right: 16,
-                                    top: topBarHeight + topPad,
-                                    bottom: bottomBarHeight + bottomPad,
-                                  ),
-                                  children: col,
+                                return BlocBuilder<LeftPaddingCubit, double>(
+                                  builder: (context, leftPadding) {
+                                    return BlocBuilder<RightPaddingCubit, double>(
+                                      builder: (context, rightPadding) {
+                                        return ListView(
+                                          controller: scrollController,
+                                          padding: EdgeInsets.only(
+                                            left: leftPadding,
+                                            right: rightPadding,
+                                            top: topBarHeight + topPad,
+                                            bottom: bottomBarHeight + bottomPad,
+                                          ),
+                                          children: col,
+                                        );
+                                      },
+                                    );
+                                  },
                                 );
                               },
                             );
@@ -500,6 +514,8 @@ class _ReaderSettings extends StatelessWidget {
     final themeCubit = context.read<ThemeCubit>();
     final topBarHeightCubit = context.read<TopBarHeightCubit>();
     final bottomBarHeightCubit = context.read<BottomBarHeightCubit>();
+    final leftPaddingCubit = context.read<LeftPaddingCubit>();
+    final rightPaddingCubit = context.read<RightPaddingCubit>();
     final autoScrollConfigCubit = context.read<AutoScrollConfigCubit>();
 
     void _showColorPicker(
@@ -640,51 +656,101 @@ class _ReaderSettings extends StatelessWidget {
                 builder: (context, topBarHeight) {
                   return BlocBuilder<BottomBarHeightCubit, double>(
                     builder: (context, bottomBarHeight) {
-                      return Column(
-                        children: [
-                          Row(
-                            children: [
-                              Text('顶部边距'),
-                              Expanded(
-                                child: Slider(
-                                  value: topBarHeight,
-                                  min: 0,
-                                  max: 100,
-                                  divisions: 20,
-                                  label: topBarHeight.round().toString(),
-                                  onChanged: (value) {
-                                    topBarHeightCubit.updateHeight(value);
-                                  },
-                                ),
-                              ),
-                              Text(
-                                '${topBarHeight.round()}',
-                                style: TextStyle(),
-                              ),
-                            ],
-                          ),
-                          Row(
-                            children: [
-                              Text('底部边距'),
-                              Expanded(
-                                child: Slider(
-                                  value: bottomBarHeight,
-                                  min: 0,
-                                  max: 100,
-                                  divisions: 20,
-                                  label: bottomBarHeight.round().toString(),
-                                  onChanged: (value) {
-                                    bottomBarHeightCubit.updateHeight(value);
-                                  },
-                                ),
-                              ),
-                              Text(
-                                '${bottomBarHeight.round()}',
-                                style: TextStyle(),
-                              ),
-                            ],
-                          ),
-                        ],
+                      return BlocBuilder<LeftPaddingCubit, double>(
+                        builder: (context, leftPadding) {
+                          return BlocBuilder<RightPaddingCubit, double>(
+                            builder: (context, rightPadding) {
+                              return Column(
+                                children: [
+                                  Row(
+                                    children: [
+                                      Text('顶部边距'),
+                                      Expanded(
+                                        child: Slider(
+                                          value: topBarHeight,
+                                          min: 0,
+                                          max: 100,
+                                          divisions: 20,
+                                          label: topBarHeight.round().toString(),
+                                          onChanged: (value) {
+                                            topBarHeightCubit.updateHeight(value);
+                                          },
+                                        ),
+                                      ),
+                                      Text(
+                                        '${topBarHeight.round()}',
+                                        style: TextStyle(),
+                                      ),
+                                    ],
+                                  ),
+                                  Row(
+                                    children: [
+                                      Text('底部边距'),
+                                      Expanded(
+                                        child: Slider(
+                                          value: bottomBarHeight,
+                                          min: 0,
+                                          max: 100,
+                                          divisions: 20,
+                                          label: bottomBarHeight.round().toString(),
+                                          onChanged: (value) {
+                                            bottomBarHeightCubit.updateHeight(value);
+                                          },
+                                        ),
+                                      ),
+                                      Text(
+                                        '${bottomBarHeight.round()}',
+                                        style: TextStyle(),
+                                      ),
+                                    ],
+                                  ),
+                                  Row(
+                                    children: [
+                                      Text('左边距'),
+                                      Expanded(
+                                        child: Slider(
+                                          value: leftPadding,
+                                          min: 0,
+                                          max: 50,
+                                          divisions: 25,
+                                          label: leftPadding.round().toString(),
+                                          onChanged: (value) {
+                                            leftPaddingCubit.updatePadding(value);
+                                          },
+                                        ),
+                                      ),
+                                      Text(
+                                        '${leftPadding.round()}',
+                                        style: TextStyle(),
+                                      ),
+                                    ],
+                                  ),
+                                  Row(
+                                    children: [
+                                      Text('右边距'),
+                                      Expanded(
+                                        child: Slider(
+                                          value: rightPadding,
+                                          min: 0,
+                                          max: 50,
+                                          divisions: 25,
+                                          label: rightPadding.round().toString(),
+                                          onChanged: (value) {
+                                            rightPaddingCubit.updatePadding(value);
+                                          },
+                                        ),
+                                      ),
+                                      Text(
+                                        '${rightPadding.round()}',
+                                        style: TextStyle(),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        },
                       );
                     },
                   );
@@ -924,6 +990,8 @@ class _ReaderSettings extends StatelessWidget {
                   await themeCubit.resetToDefault();
                   await topBarHeightCubit.updateHeight(56);
                   await bottomBarHeightCubit.updateHeight(56);
+                  await leftPaddingCubit.updatePadding(16);
+                  await rightPaddingCubit.updatePadding(16);
                 },
                 child: const Text('重置为默认'),
               ),

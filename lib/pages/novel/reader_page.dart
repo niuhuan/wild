@@ -12,6 +12,8 @@ import 'font_size_cubit.dart';
 import 'line_height_cubit.dart';
 import 'top_bar_height_cubit.dart';
 import 'bottom_bar_height_cubit.dart';
+import 'left_padding_cubit.dart';
+import 'right_padding_cubit.dart';
 import 'reader_type_cubit.dart';
 
 class ReaderPage extends StatelessWidget {
@@ -40,6 +42,8 @@ class ReaderPage extends StatelessWidget {
     final lineHeightCubit = context.read<LineHeightCubit>();
     final topBarHeightCubit = context.read<TopBarHeightCubit>();
     final bottomBarHeightCubit = context.read<BottomBarHeightCubit>();
+    final leftPaddingCubit = context.read<LeftPaddingCubit>();
+    final rightPaddingCubit = context.read<RightPaddingCubit>();
     final readerTypeCubit = context.read<ReaderTypeCubit>();
 
     return MultiBlocProvider(
@@ -49,6 +53,8 @@ class ReaderPage extends StatelessWidget {
         BlocProvider.value(value: lineHeightCubit),
         BlocProvider.value(value: topBarHeightCubit),
         BlocProvider.value(value: bottomBarHeightCubit),
+        BlocProvider.value(value: leftPaddingCubit),
+        BlocProvider.value(value: rightPaddingCubit),
         BlocProvider.value(value: readerTypeCubit),
         BlocProvider(
           create: (context) => ReaderCubit(
@@ -61,6 +67,8 @@ class ReaderPage extends StatelessWidget {
             lineHeightCubit: lineHeightCubit,
             topBarHeightCubit: topBarHeightCubit,
             bottomBarHeightCubit: bottomBarHeightCubit,
+            leftPaddingCubit: leftPaddingCubit,
+            rightPaddingCubit: rightPaddingCubit,
           )..loadChapter(initialPage: initialPage),
         ),
       ],
@@ -406,7 +414,9 @@ class _TextPage extends StatelessWidget {
         MediaQueryData.fromView(WidgetsBinding.instance.window).padding.bottom;
     final topBarHeight = context.read<TopBarHeightCubit>().state;
     final bottomBarHeight = context.read<BottomBarHeightCubit>().state;
-    final leftAndRightPadding = 32.0;
+    final leftPadding = context.read<LeftPaddingCubit>().state;
+    final rightPadding = context.read<RightPaddingCubit>().state;
+    final leftAndRightPadding = leftPadding + rightPadding;
     final canvasWidth = screenWidth - leftAndRightPadding;
     final canvasHeight =
         screenHeight -
@@ -491,6 +501,9 @@ class _ImagePage extends StatelessWidget {
     final bottomPadding = mediaQuery.padding.bottom;
     final topBarHeight = context.read<TopBarHeightCubit>().state;
     final bottomBarHeight = context.read<BottomBarHeightCubit>().state;
+    final leftPadding = context.read<LeftPaddingCubit>().state;
+    final rightPadding = context.read<RightPaddingCubit>().state;
+    final leftAndRightPadding = leftPadding + rightPadding;
     final availableHeight =
         screenHeight -
         topPadding -
@@ -502,23 +515,23 @@ class _ImagePage extends StatelessWidget {
       children: [
         Container(height: topPadding + topBarHeight),
         SizedBox(
-          width: screenWidth - 32,
+          width: screenWidth - leftAndRightPadding,
           height: availableHeight,
           child: Center(
             child: ConstrainedBox(
               constraints: BoxConstraints(
                 maxHeight: availableHeight,
-                maxWidth: screenWidth - 32,
+                maxWidth: screenWidth - leftAndRightPadding,
               ),
               child: Image(
                 image: CachedImageProvider(imageUrl),
-                width: screenWidth - 32,
+                width: screenWidth - leftAndRightPadding,
                 height: availableHeight,
                 fit: BoxFit.contain,
                 loadingBuilder: (context, child, loadingProgress) {
                   if (loadingProgress == null) return child;
                   return Container(
-                    width: screenWidth - 32,
+                    width: screenWidth - leftAndRightPadding,
                     color: Colors.grey[200],
                     child: const Center(
                       child: CircularProgressIndicator(),
@@ -527,7 +540,7 @@ class _ImagePage extends StatelessWidget {
                 },
                 errorBuilder: (context, error, stackTrace) {
                   return Container(
-                    width: screenWidth - 32,
+                    width: screenWidth - leftAndRightPadding,
                     color: Colors.grey[200],
                     child: const Center(child: Text('图片加载失败')),
                   );
@@ -754,6 +767,8 @@ class _ReaderSettingsState extends State<_ReaderSettings> {
   late final lineHeightCubit = context.read<LineHeightCubit>();
   late final topBarHeightCubit = context.read<TopBarHeightCubit>();
   late final bottomBarHeightCubit = context.read<BottomBarHeightCubit>();
+  late final leftPaddingCubit = context.read<LeftPaddingCubit>();
+  late final rightPaddingCubit = context.read<RightPaddingCubit>();
   late final readerTypeCubit = context.read<ReaderTypeCubit>();
 
   void _showColorPicker(
@@ -974,6 +989,54 @@ class _ReaderSettingsState extends State<_ReaderSettings> {
                   );
                 },
               ),
+              // 左边距设置
+              BlocBuilder<LeftPaddingCubit, double>(
+                builder: (context, padding) {
+                  return Row(
+                    children: [
+                      Text('左边距'),
+                      Expanded(
+                        child: Slider(
+                          value: padding,
+                          min: 0,
+                          max: 50,
+                          divisions: 25,
+                          label: padding.round().toString(),
+                          onChanged: (value) async {
+                            await leftPaddingCubit.updatePadding(value);
+                            await widget.readerCubit.reloadCurrentPage();
+                          },
+                        ),
+                      ),
+                      Text('${padding.round()}', style: TextStyle()),
+                    ],
+                  );
+                },
+              ),
+              // 右边距设置
+              BlocBuilder<RightPaddingCubit, double>(
+                builder: (context, padding) {
+                  return Row(
+                    children: [
+                      Text('右边距'),
+                      Expanded(
+                        child: Slider(
+                          value: padding,
+                          min: 0,
+                          max: 50,
+                          divisions: 25,
+                          label: padding.round().toString(),
+                          onChanged: (value) async {
+                            await rightPaddingCubit.updatePadding(value);
+                            await widget.readerCubit.reloadCurrentPage();
+                          },
+                        ),
+                      ),
+                      Text('${padding.round()}', style: TextStyle()),
+                    ],
+                  );
+                },
+              ),
               const Divider(),
               // 主题模式选择
               Row(
@@ -1141,6 +1204,8 @@ class _ReaderSettingsState extends State<_ReaderSettings> {
                   await context.read<ThemeCubit>().resetToDefault();
                   await topBarHeightCubit.updateHeight(56);
                   await bottomBarHeightCubit.updateHeight(56);
+                  await leftPaddingCubit.updatePadding(16);
+                  await rightPaddingCubit.updatePadding(16);
                   await widget.readerCubit.reloadCurrentPage();
                 },
                 child: const Text('重置为默认'),
