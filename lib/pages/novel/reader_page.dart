@@ -292,7 +292,7 @@ class _ReaderViewState extends State<_ReaderView> {
                       child: Image.file(
                         File(backgroundImagePath),
                         fit: BoxFit.cover,
-                        opacity: const AlwaysStoppedAnimation(0.1),
+                        opacity: AlwaysStoppedAnimation(backgroundState.opacity),
                       ),
                     ),
               // 阅读内容
@@ -1219,6 +1219,31 @@ class _ReaderSettingsState extends State<_ReaderSettings> {
                     ),
                   ),
                 ],
+              ),
+              const SizedBox(height: 16),
+              // 背景透明度设置
+              BlocBuilder<ReaderBackgroundCubit, ReaderBackgroundState>(
+                builder: (context, backgroundState) {
+                  return Row(
+                    children: [
+                      Text('背景透明度'),
+                      Expanded(
+                        child: Slider(
+                          value: backgroundState.opacity,
+                          min: 0.0,
+                          max: 1.0,
+                          divisions: 25,
+                          label: '${(backgroundState.opacity * 100).round()}%',
+                          onChanged: (value) async {
+                            await readerBackgroundCubit.updateOpacity(value);
+                            await widget.readerCubit.reloadCurrentPage();
+                          },
+                        ),
+                      ),
+                      Text('${(backgroundState.opacity * 100).round()}%', style: TextStyle()),
+                    ],
+                  );
+                },
               ),
               const SizedBox(height: 16),
               // 背景图片设置

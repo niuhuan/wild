@@ -275,7 +275,7 @@ class _HtmlReaderViewWrapperState extends State<_HtmlReaderViewWrapper> {
                                 child: Image.file(
                                   File(backgroundImagePath),
                                   fit: BoxFit.cover,
-                                  opacity: const AlwaysStoppedAnimation(0.1),
+                                  opacity: AlwaysStoppedAnimation(backgroundState.opacity),
                                 ),
                               ),
                             // 底层内容
@@ -1040,6 +1040,30 @@ class _ReaderSettings extends StatelessWidget {
                         '${config.scrollInterval}ms',
                         style: TextStyle(),
                       ),
+                    ],
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+              // 背景透明度设置
+              BlocBuilder<ReaderBackgroundCubit, ReaderBackgroundState>(
+                builder: (context, backgroundState) {
+                  return Row(
+                    children: [
+                      Text('背景透明度'),
+                      Expanded(
+                        child: Slider(
+                          value: backgroundState.opacity,
+                          min: 0.0,
+                          max: 1.0,
+                          divisions: 25,
+                          label: '${(backgroundState.opacity * 100).round()}%',
+                          onChanged: (value) async {
+                            await readerBackgroundCubit.updateOpacity(value);
+                          },
+                        ),
+                      ),
+                      Text('${(backgroundState.opacity * 100).round()}%', style: TextStyle()),
                     ],
                   );
                 },

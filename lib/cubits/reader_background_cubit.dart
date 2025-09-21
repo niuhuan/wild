@@ -114,24 +114,32 @@ class ReaderBackgroundCubit extends Cubit<ReaderBackgroundState> {
     if (_rootPath == null || !state.darkBackgroundExists) return null;
     return '$_rootPath/dark_reader_background.png';
   }
+
+  Future<void> updateOpacity(double opacity) async {
+    emit(state.copyWith(opacity: opacity));
+  }
 }
 
 class ReaderBackgroundState {
   final bool lightBackgroundExists;
   final bool darkBackgroundExists;
+  final double opacity;
 
   const ReaderBackgroundState({
     this.lightBackgroundExists = false,
     this.darkBackgroundExists = false,
+    this.opacity = 0.1,
   });
 
   ReaderBackgroundState copyWith({
     bool? lightBackgroundExists,
     bool? darkBackgroundExists,
+    double? opacity,
   }) {
     return ReaderBackgroundState(
       lightBackgroundExists: lightBackgroundExists ?? this.lightBackgroundExists,
       darkBackgroundExists: darkBackgroundExists ?? this.darkBackgroundExists,
+      opacity: opacity ?? this.opacity,
     );
   }
 
@@ -141,9 +149,12 @@ class ReaderBackgroundState {
       other is ReaderBackgroundState &&
           runtimeType == other.runtimeType &&
           lightBackgroundExists == other.lightBackgroundExists &&
-          darkBackgroundExists == other.darkBackgroundExists;
+          darkBackgroundExists == other.darkBackgroundExists &&
+          opacity == other.opacity;
 
   @override
   int get hashCode =>
-      lightBackgroundExists.hashCode ^ darkBackgroundExists.hashCode;
+      lightBackgroundExists.hashCode ^ 
+      darkBackgroundExists.hashCode ^ 
+      opacity.hashCode;
 }
