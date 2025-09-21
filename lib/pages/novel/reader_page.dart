@@ -6,6 +6,7 @@ import 'package:wild/pages/novel/theme_cubit.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:wild/widgets/cached_image.dart';
 import 'package:wild/cubits/screen_keep_on.dart';
+import 'dart:io';
 
 import '../../src/rust/wenku8/models.dart';
 import 'font_size_cubit.dart';
@@ -15,6 +16,7 @@ import 'bottom_bar_height_cubit.dart';
 import 'left_padding_cubit.dart';
 import 'right_padding_cubit.dart';
 import 'reader_type_cubit.dart';
+import 'package:wild/cubits/reader_background_cubit.dart';
 
 class ReaderPage extends StatelessWidget {
   final String aid;
@@ -271,10 +273,28 @@ class _ReaderViewState extends State<_ReaderView> {
 
     var viewer = BlocBuilder<ReaderCubit, ReaderState>(
       builder: (BuildContext context, state) {
-        return Scaffold(
-          backgroundColor: backgroundColor,
-          body: Stack(
-            children: [
+        return BlocBuilder<ReaderBackgroundCubit, ReaderBackgroundState>(
+          builder: (context, backgroundState) {
+            String? backgroundImagePath;
+            if (isDarkMode && backgroundState.darkBackgroundExists) {
+              backgroundImagePath = context.read<ReaderBackgroundCubit>().getDarkBackgroundPath();
+            } else if (!isDarkMode && backgroundState.lightBackgroundExists) {
+              backgroundImagePath = context.read<ReaderBackgroundCubit>().getLightBackgroundPath();
+            }
+            
+            return Scaffold(
+              backgroundColor: backgroundColor,
+              body: Stack(
+                children: [
+                  // 背景图片
+                  if (backgroundImagePath != null)
+                    Positioned.fill(
+                      child: Image.file(
+                        File(backgroundImagePath),
+                        fit: BoxFit.cover,
+                        opacity: const AlwaysStoppedAnimation(0.1),
+                      ),
+                    ),
               // 阅读内容
               Positioned.fill(
                 child: GestureDetector(
@@ -356,6 +376,8 @@ class _ReaderViewState extends State<_ReaderView> {
               ],
             ],
           ),
+        );
+          },
         );
       },
     );
@@ -770,6 +792,7 @@ class _ReaderSettingsState extends State<_ReaderSettings> {
   late final leftPaddingCubit = context.read<LeftPaddingCubit>();
   late final rightPaddingCubit = context.read<RightPaddingCubit>();
   late final readerTypeCubit = context.read<ReaderTypeCubit>();
+  late final readerBackgroundCubit = context.read<ReaderBackgroundCubit>();
 
   void _showColorPicker(
     BuildContext context,
@@ -1196,6 +1219,79 @@ class _ReaderSettingsState extends State<_ReaderSettings> {
                     ),
                   ),
                 ],
+              ),
+              const SizedBox(height: 16),
+              // 背景图片设置
+              Row(
+                children: [
+                  Text('背景图片设置', style: TextStyle(fontWeight: FontWeight.bold)),
+                ],
+              ),
+              const SizedBox(height: 8),
+              BlocBuilder<ReaderBackgroundCubit, ReaderBackgroundState>(
+                builder: (context, backgroundState) {
+                  return Column(
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              icon: Icon(backgroundState.lightBackgroundExists 
+                                  ? Icons.image 
+                                  : Icons.add_photo_alternate),
+                              label: Text(backgroundState.lightBackgroundExists 
+                                  ? '更新浅色背景' 
+                                  : '设置浅色背景'),
+                              onPressed: () async {
+                                await readerBackgroundCubit.updateLightBackground();
+                                await widget.readerCubit.reloadCurrentPage();
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          if (backgroundState.lightBackgroundExists)
+                            OutlinedButton.icon(
+                              icon: const Icon(Icons.delete),
+                              label: const Text('删除'),
+                              onPressed: () async {
+                                await readerBackgroundCubit.deleteLightBackground();
+                                await widget.readerCubit.reloadCurrentPage();
+                              },
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              icon: Icon(backgroundState.darkBackgroundExists 
+                                  ? Icons.image 
+                                  : Icons.add_photo_alternate),
+                              label: Text(backgroundState.darkBackgroundExists 
+                                  ? '更新深色背景' 
+                                  : '设置深色背景'),
+                              onPressed: () async {
+                                await readerBackgroundCubit.updateDarkBackground();
+                                await widget.readerCubit.reloadCurrentPage();
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          if (backgroundState.darkBackgroundExists)
+                            OutlinedButton.icon(
+                              icon: const Icon(Icons.delete),
+                              label: const Text('删除'),
+                              onPressed: () async {
+                                await readerBackgroundCubit.deleteDarkBackground();
+                                await widget.readerCubit.reloadCurrentPage();
+                              },
+                            ),
+                        ],
+                      ),
+                    ],
+                  );
+                },
               ),
               const SizedBox(height: 16),
               // 重置按钮

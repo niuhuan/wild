@@ -12,6 +12,7 @@ import 'package:wild/pages/novel/reader_type_cubit.dart';
 import 'package:wild/src/rust/api/system.dart';
 import 'package:wild/pages/novel/top_bar_height_cubit.dart';
 import 'package:wild/pages/novel/bottom_bar_height_cubit.dart';
+import 'package:wild/cubits/reader_background_cubit.dart';
 
 import '../methods.dart';
 
@@ -44,6 +45,7 @@ class _InitPageState extends State<InitPage> {
     final topBarHeightCubit = context.read<TopBarHeightCubit>();
     final bottomBarHeightCubit = context.read<BottomBarHeightCubit>();
     final readerTypeCubit = context.read<ReaderTypeCubit>();
+    final readerBackgroundCubit = context.read<ReaderBackgroundCubit>();
 
     // 等待所有 Cubit 初始化完成
     await Future.wait([
@@ -55,6 +57,7 @@ class _InitPageState extends State<InitPage> {
       topBarHeightCubit.loadHeight(),
       bottomBarHeightCubit.loadHeight(),
       readerTypeCubit.loadType(),
+      readerBackgroundCubit.init(root),
     ]);
 
     if (authCubit.state.status == AuthStatus.authenticated) {

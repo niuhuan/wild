@@ -11,6 +11,7 @@ import 'package:wild/pages/novel/line_height_cubit.dart';
 import 'package:wild/pages/novel/paragraph_spacing_cubit.dart';
 import 'package:wild/pages/novel/theme_cubit.dart';
 import 'package:wild/pages/novel/reader_type_cubit.dart';
+import 'package:wild/cubits/reader_background_cubit.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:wild/widgets/cached_image.dart';
 import 'package:wild/pages/novel/fullscreen_cubit.dart';
@@ -18,6 +19,7 @@ import 'package:wild/cubits/screen_keep_on.dart';
 import 'package:wild/pages/novel/auto_scroll_cubit.dart';
 import 'package:wild/pages/novel/auto_scroll_config_cubit.dart';
 import 'dart:async';
+import 'dart:io';
 
 class HtmlReaderPage extends StatelessWidget {
   final NovelInfo novelInfo;
@@ -91,6 +93,7 @@ class _HtmlReaderViewWrapperState extends State<_HtmlReaderViewWrapper> {
     final leftPaddingCubit = context.read<LeftPaddingCubit>();
     final rightPaddingCubit = context.read<RightPaddingCubit>();
     final readerTypeCubit = context.read<ReaderTypeCubit>();
+    final readerBackgroundCubit = context.read<ReaderBackgroundCubit>();
     final autoScrollConfigCubit = context.read<AutoScrollConfigCubit>();
 
     showModalBottomSheet(
@@ -108,6 +111,7 @@ class _HtmlReaderViewWrapperState extends State<_HtmlReaderViewWrapper> {
             BlocProvider.value(value: leftPaddingCubit),
             BlocProvider.value(value: rightPaddingCubit),
             BlocProvider.value(value: readerTypeCubit),
+            BlocProvider.value(value: readerBackgroundCubit),
             BlocProvider.value(value: autoScrollConfigCubit),
           ],
           child: _ReaderSettings(),
@@ -200,113 +204,133 @@ class _HtmlReaderViewWrapperState extends State<_HtmlReaderViewWrapper> {
                       _stopAutoScroll();
                     }
                   },
-                  child: Scaffold(
-                    backgroundColor: backgroundColor,
-                    extendBodyBehindAppBar: true,
-                    appBar: isFullscreen
-                        ? null
-                        : AppBar(
-                            backgroundColor: backgroundColor.withOpacity(0.8),
-                            elevation: 0,
-                            title: state is HtmlReaderLoaded
-                                ? Text(state.title)
-                                : const Text('加载中...'),
-                            actions: [
-                              BlocBuilder<AutoScrollCubit, bool>(
-                                builder: (context, isAutoScrolling) {
-                                  return IconButton(
-                                    icon: Icon(
-                                      isAutoScrolling
-                                          ? Icons.pause
-                                          : Icons.play_arrow,
-                                    ),
-                                    onPressed: () => _toggleAutoScroll(context),
-                                  );
-                                },
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.settings),
-                                onPressed: () => _showSettings(context),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.menu),
-                                onPressed: () {
-                                  showModalBottomSheet(
-                                    context: context,
-                                    builder:
-                                        (context) => BlocProvider.value(
-                                          value: cubit,
-                                          child: _ChapterList(
-                                            volumes: cubit.initialVolumes,
-                                            currentAid: cubit.initialAid,
-                                            currentCid: cubit.initialCid,
-                                            onChapterSelected: (aid, cid) {
-                                              cubit.loadChapter(
-                                                aid: aid,
-                                                cid: cid,
-                                              );
-                                              Navigator.pop(context);
-                                            },
-                                          ),
+                  child: BlocBuilder<ReaderBackgroundCubit, ReaderBackgroundState>(
+                    builder: (context, backgroundState) {
+                      String? backgroundImagePath;
+                      if (isDarkMode && backgroundState.darkBackgroundExists) {
+                        backgroundImagePath = context.read<ReaderBackgroundCubit>().getDarkBackgroundPath();
+                      } else if (!isDarkMode && backgroundState.lightBackgroundExists) {
+                        backgroundImagePath = context.read<ReaderBackgroundCubit>().getLightBackgroundPath();
+                      }
+                      
+                      return Scaffold(
+                        backgroundColor: backgroundColor,
+                        extendBodyBehindAppBar: true,
+                        appBar: isFullscreen
+                            ? null
+                            : AppBar(
+                                backgroundColor: backgroundColor.withOpacity(0.8),
+                                elevation: 0,
+                                title: state is HtmlReaderLoaded
+                                    ? Text(state.title)
+                                    : const Text('加载中...'),
+                                actions: [
+                                  BlocBuilder<AutoScrollCubit, bool>(
+                                    builder: (context, isAutoScrolling) {
+                                      return IconButton(
+                                        icon: Icon(
+                                          isAutoScrolling
+                                              ? Icons.pause
+                                              : Icons.play_arrow,
                                         ),
-                                  );
-                                },
+                                        onPressed: () => _toggleAutoScroll(context),
+                                      );
+                                    },
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.settings),
+                                    onPressed: () => _showSettings(context),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.menu),
+                                    onPressed: () {
+                                      showModalBottomSheet(
+                                        context: context,
+                                        builder:
+                                            (context) => BlocProvider.value(
+                                              value: cubit,
+                                              child: _ChapterList(
+                                                volumes: cubit.initialVolumes,
+                                                currentAid: cubit.initialAid,
+                                                currentCid: cubit.initialCid,
+                                                onChapterSelected: (aid, cid) {
+                                                  cubit.loadChapter(
+                                                    aid: aid,
+                                                    cid: cid,
+                                                  );
+                                                  Navigator.pop(context);
+                                                },
+                                              ),
+                                            ),
+                                      );
+                                    },
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                    body: Stack(
-                      children: [
-                        // 底层内容
-                        GestureDetector(
-                          onTap: () {
-                            context.read<FullscreenCubit>().toggle();
-                          },
-                          child:
-                              state is HtmlReaderLoading
-                                  ? const Center(
-                                      child: CircularProgressIndicator(),
-                                    )
-                                  : state is HtmlReaderError
-                                  ? Center(
-                                      child: Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            state.error,
-                                            style: TextStyle(color: textColor),
+                        body: Stack(
+                          children: [
+                            // 背景图片
+                            if (backgroundImagePath != null)
+                              Positioned.fill(
+                                child: Image.file(
+                                  File(backgroundImagePath),
+                                  fit: BoxFit.cover,
+                                  opacity: const AlwaysStoppedAnimation(0.1),
+                                ),
+                              ),
+                            // 底层内容
+                            GestureDetector(
+                              onTap: () {
+                                context.read<FullscreenCubit>().toggle();
+                              },
+                              child:
+                                  state is HtmlReaderLoading
+                                      ? const Center(
+                                          child: CircularProgressIndicator(),
+                                        )
+                                      : state is HtmlReaderError
+                                      ? Center(
+                                          child: Column(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              Text(
+                                                state.error,
+                                                style: TextStyle(color: textColor),
+                                              ),
+                                              const SizedBox(height: 16),
+                                              ElevatedButton(
+                                                onPressed: () {
+                                                  context
+                                                      .read<HtmlReaderCubit>()
+                                                      .loadChapter();
+                                                },
+                                                child: const Text('重试'),
+                                              ),
+                                            ],
                                           ),
-                                          const SizedBox(height: 16),
-                                          ElevatedButton(
-                                            onPressed: () {
-                                              context
-                                                  .read<HtmlReaderCubit>()
-                                                  .loadChapter();
-                                            },
-                                            child: const Text('重试'),
-                                          ),
-                                        ],
-                                      ),
-                                    )
-                                  : state is HtmlReaderLoaded
-                                  ? _ReaderContent(
-                                      parsedContent: state.parsedContent,
-                                      onPreviousChapter: () {
-                                        context
-                                            .read<HtmlReaderCubit>()
-                                            .goToPreviousChapter();
-                                      },
-                                      onNextChapter: () {
-                                        context
-                                            .read<HtmlReaderCubit>()
-                                            .goToNextChapter();
-                                      },
-                                      scrollController: _scrollController,
-                                    )
-                                  : const SizedBox.shrink(),
+                                        )
+                                      : state is HtmlReaderLoaded
+                                      ? _ReaderContent(
+                                          parsedContent: state.parsedContent,
+                                          onPreviousChapter: () {
+                                            context
+                                                .read<HtmlReaderCubit>()
+                                                .goToPreviousChapter();
+                                          },
+                                          onNextChapter: () {
+                                            context
+                                                .read<HtmlReaderCubit>()
+                                                .goToNextChapter();
+                                          },
+                                          scrollController: _scrollController,
+                                        )
+                                      : const SizedBox.shrink(),
+                            ),
+                            // 顶部和底部导航按钮（仅在隐藏 AppBar 时显示）
+                          ],
                         ),
-                        // 顶部和底部导航按钮（仅在隐藏 AppBar 时显示）
-                      ],
-                    ),
+                      );
+                    },
                   ),
                 );
               },
@@ -520,6 +544,7 @@ class _ReaderSettings extends StatelessWidget {
     final leftPaddingCubit = context.read<LeftPaddingCubit>();
     final rightPaddingCubit = context.read<RightPaddingCubit>();
     final readerTypeCubit = context.read<ReaderTypeCubit>();
+    final readerBackgroundCubit = context.read<ReaderBackgroundCubit>();
     final autoScrollConfigCubit = context.read<AutoScrollConfigCubit>();
 
     void _showColorPicker(
@@ -1014,6 +1039,75 @@ class _ReaderSettings extends StatelessWidget {
                       Text(
                         '${config.scrollInterval}ms',
                         style: TextStyle(),
+                      ),
+                    ],
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+              // 背景图片设置
+              Row(
+                children: [
+                  Text('背景图片设置', style: TextStyle(fontWeight: FontWeight.bold)),
+                ],
+              ),
+              const SizedBox(height: 8),
+              BlocBuilder<ReaderBackgroundCubit, ReaderBackgroundState>(
+                builder: (context, backgroundState) {
+                  return Column(
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              icon: Icon(backgroundState.lightBackgroundExists 
+                                  ? Icons.image 
+                                  : Icons.add_photo_alternate),
+                              label: Text(backgroundState.lightBackgroundExists 
+                                  ? '更新浅色背景' 
+                                  : '设置浅色背景'),
+                              onPressed: () async {
+                                await readerBackgroundCubit.updateLightBackground();
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          if (backgroundState.lightBackgroundExists)
+                            OutlinedButton.icon(
+                              icon: const Icon(Icons.delete),
+                              label: const Text('删除'),
+                              onPressed: () async {
+                                await readerBackgroundCubit.deleteLightBackground();
+                              },
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              icon: Icon(backgroundState.darkBackgroundExists 
+                                  ? Icons.image 
+                                  : Icons.add_photo_alternate),
+                              label: Text(backgroundState.darkBackgroundExists 
+                                  ? '更新深色背景' 
+                                  : '设置深色背景'),
+                              onPressed: () async {
+                                await readerBackgroundCubit.updateDarkBackground();
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          if (backgroundState.darkBackgroundExists)
+                            OutlinedButton.icon(
+                              icon: const Icon(Icons.delete),
+                              label: const Text('删除'),
+                              onPressed: () async {
+                                await readerBackgroundCubit.deleteDarkBackground();
+                              },
+                            ),
+                        ],
                       ),
                     ],
                   );
