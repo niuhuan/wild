@@ -97,6 +97,9 @@ class ReaderCubit extends Cubit<ReaderState> {
         }
       }
 
+      // 计算从第一页到当前页的累计字数
+      final characterCount = _calculateCharacterCountUpToPage(pages, pageIndex);
+      
       // 更新阅读历史
       await updateHistory(
         novelId: targetAid,
@@ -105,7 +108,7 @@ class ReaderCubit extends Cubit<ReaderState> {
         volumeName: volume.title,
         chapterId: targetCid,
         chapterTitle: chapterTitle,
-        progress: 0,
+        progress: characterCount,
         progressPage: pageIndex,
         cover: novelInfo.imgUrl,
         author: novelInfo.author,
@@ -180,6 +183,9 @@ class ReaderCubit extends Cubit<ReaderState> {
       final currentState = state as ReaderLoaded;
       emit(currentState.copyWith(currentPageIndex: index));
       
+      // 计算从第一页到当前页的累计字数
+      final characterCount = _calculateCharacterCountUpToPage(currentState.pages, index);
+      
       // 更新阅读历史中的页码
       updateHistory(
         novelId: currentState.aid,
@@ -188,7 +194,7 @@ class ReaderCubit extends Cubit<ReaderState> {
         volumeName: _findVolume(currentState.aid, currentState.cid).title,
         chapterId: currentState.cid,
         chapterTitle: currentState.title,
-        progress: 0,
+        progress: characterCount,
         progressPage: index,
         cover: novelInfo.imgUrl,
         author: novelInfo.author,
@@ -283,6 +289,19 @@ class ReaderCubit extends Cubit<ReaderState> {
       }
     }
     return -1;
+  }
+
+  /// 计算从第一页到指定页码的累计字数
+  int _calculateCharacterCountUpToPage(List<ReaderPage> pages, int pageIndex) {
+    int totalCharacters = 0;
+    for (int i = 0; i <= pageIndex && i < pages.length; i++) {
+      final page = pages[i];
+      if (!page.isImage) {
+        // 只计算文本页面的字数，排除图片页面
+        totalCharacters += page.content.length;
+      }
+    }
+    return totalCharacters;
   }
 
   List<ReaderPage> _paginateContent(
