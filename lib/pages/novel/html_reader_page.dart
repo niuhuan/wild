@@ -18,6 +18,8 @@ import 'package:wild/pages/novel/fullscreen_cubit.dart';
 import 'package:wild/cubits/screen_keep_on.dart';
 import 'package:wild/pages/novel/auto_scroll_cubit.dart';
 import 'package:wild/pages/novel/auto_scroll_config_cubit.dart';
+import 'package:wild/cubits/volume_control_cubit.dart';
+import 'package:wild/utils/controller_event.dart';
 import 'dart:async';
 import 'dart:io';
 
@@ -72,6 +74,15 @@ class _HtmlReaderViewWrapperState extends State<_HtmlReaderViewWrapper> {
     super.initState();
     setKeepScreenUpOnReading(true);
     _scrollController = ScrollController();
+    
+    // 监听音量键事件
+    if (Platform.isAndroid) {
+      final volumeControlCubit = context.read<VolumeControlCubit>();
+      if (volumeControlCubit.isEnabled) {
+        addVolumeListen();
+        readerControllerEvent.subscribe(_onController);
+      }
+    }
   }
 
   @override
@@ -80,6 +91,13 @@ class _HtmlReaderViewWrapperState extends State<_HtmlReaderViewWrapper> {
     setKeepScreenUpOnScroll(false);
     _scrollController.dispose();
     _autoScrollTimer?.cancel();
+    
+    // 取消音量键事件监听
+    if (Platform.isAndroid) {
+      delVolumeListen();
+      readerControllerEvent.unsubscribe(_onController);
+    }
+    
     super.dispose();
   }
 
@@ -170,6 +188,42 @@ class _HtmlReaderViewWrapperState extends State<_HtmlReaderViewWrapper> {
     setKeepScreenUpOnScroll(false);
     _autoScrollTimer?.cancel();
     _autoScrollTimer = null;
+  }
+
+  void _onController(ReaderControllerEventArgs args) {
+    if (!_scrollController.hasClients) return;
+    
+    if (args.key == "UP") {
+      // 音量上键 - 向上滚动
+      final currentOffset = _scrollController.offset;
+      if (currentOffset <= 0) {
+        // 已到达顶部，切换到上一章
+        context.read<HtmlReaderCubit>().goToPreviousChapter();
+      } else {
+        // 向上滚动一屏
+        final screenHeight = MediaQuery.of(context).size.height;
+        final targetOffset = (currentOffset - screenHeight * 0.8).clamp(0.0, _scrollController.position.maxScrollExtent);
+        _scrollController.jumpTo(
+          targetOffset,
+        );
+      }
+    } else if (args.key == "DOWN") {
+      // 音量下键 - 向下滚动
+      final currentOffset = _scrollController.offset;
+      final maxScrollExtent = _scrollController.position.maxScrollExtent;
+      
+      if (currentOffset >= maxScrollExtent - 10) {
+        // 已到达底部，切换到下一章
+        context.read<HtmlReaderCubit>().goToNextChapter();
+      } else {
+        // 向下滚动一屏
+        final screenHeight = MediaQuery.of(context).size.height;
+        final targetOffset = (currentOffset + screenHeight * 0.8).clamp(0.0, maxScrollExtent);
+        _scrollController.jumpTo(
+          targetOffset,
+        );
+      }
+    }
   }
 
   @override

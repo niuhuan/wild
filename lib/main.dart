@@ -33,6 +33,7 @@ import 'package:wild/pages/novel/right_padding_cubit.dart';
 import 'package:wild/pages/novel/reviews_page.dart';
 import 'package:wild/cubits/api_host_cubit.dart';
 import 'package:wild/cubits/reader_background_cubit.dart';
+import 'package:wild/cubits/volume_control_cubit.dart';
 
 final lightTheme = ThemeData(
   colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
@@ -75,6 +76,7 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (context) => ReaderTypeCubit()..loadType()),
         BlocProvider(create: (context) => ApiHostCubit()),
         BlocProvider(create: (context) => ReaderBackgroundCubit()),
+        BlocProvider(create: (context) => VolumeControlCubit()),
       ],
       child: YourApp(),
     );

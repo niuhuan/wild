@@ -6,6 +6,8 @@ import 'package:wild/pages/novel/theme_cubit.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:wild/widgets/cached_image.dart';
 import 'package:wild/cubits/screen_keep_on.dart';
+import 'package:wild/cubits/volume_control_cubit.dart';
+import 'package:wild/utils/controller_event.dart';
 import 'dart:io';
 
 import '../../src/rust/wenku8/models.dart';
@@ -130,6 +132,15 @@ class _ReaderViewState extends State<_ReaderView> {
       initialPage: widget.state.currentPageIndex,
     );
     setKeepScreenUpOnReading(true);
+    
+    // 监听音量键事件
+    if (Platform.isAndroid) {
+      final volumeControlCubit = context.read<VolumeControlCubit>();
+      if (volumeControlCubit.isEnabled) {
+        addVolumeListen();
+        readerControllerEvent.subscribe(_onController);
+      }
+    }
   }
 
   @override
@@ -137,6 +148,13 @@ class _ReaderViewState extends State<_ReaderView> {
     _pageController.dispose();
     setKeepScreenUpOnReading(false);
     setKeepScreenUpOnScroll(false);
+    
+    // 取消音量键事件监听
+    if (Platform.isAndroid) {
+      delVolumeListen();
+      readerControllerEvent.unsubscribe(_onController);
+    }
+    
     super.dispose();
   }
 
@@ -245,6 +263,36 @@ class _ReaderViewState extends State<_ReaderView> {
         return _ReaderSettings(readerCubit);
       },
     );
+  }
+
+  void _onController(ReaderControllerEventArgs args) {
+    if (args.key == "UP") {
+      // 音量上键 - 上一页
+      if (widget.state.currentPageIndex > 0) {
+        _pageController.jumpToPage(widget.state.currentPageIndex - 1);
+      } else {
+        // 如果是第一页，尝试加载上一章
+        final currentVolumeIndex = _findCurrentVolumeIndex();
+        final currentChapterIndex = _findCurrentChapterIndex();
+        if (currentChapterIndex > 0 || currentVolumeIndex > 0) {
+          context.read<ReaderCubit>().goToPreviousChapter();
+        }
+      }
+    } else if (args.key == "DOWN") {
+      // 音量下键 - 下一页
+      if (widget.state.currentPageIndex < widget.state.pages.length - 1) {
+        _pageController.jumpToPage(widget.state.currentPageIndex + 1);
+      } else {
+        // 如果是最后一页，尝试加载下一章
+        final currentVolumeIndex = _findCurrentVolumeIndex();
+        final currentChapterIndex = _findCurrentChapterIndex();
+        final volume = widget.state.volumes[currentVolumeIndex];
+        if (currentChapterIndex < volume.chapters.length - 1 ||
+            currentVolumeIndex < widget.state.volumes.length - 1) {
+          context.read<ReaderCubit>().goToNextChapter();
+        }
+      }
+    }
   }
 
   @override

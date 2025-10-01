@@ -9,6 +9,7 @@ import 'package:wild/pages/novel/theme_cubit.dart';
 import 'package:wild/pages/novel/reader_type_cubit.dart';
 import 'package:wild/src/rust/api/wenku8.dart';
 import 'package:wild/cubits/api_host_cubit.dart';
+import 'package:wild/cubits/volume_control_cubit.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -76,6 +77,21 @@ class SettingsPage extends StatelessWidget {
                     if (Platform.isAndroid || Platform.isIOS) ...[
                       screenUpOnReadingSetting(),
                       screenUpOnScrollSetting(),
+                      const SizedBox(height: 16),
+                    ],
+                    // 音量键控制设置（仅安卓）
+                    if (Platform.isAndroid) ...[
+                      BlocBuilder<VolumeControlCubit, bool>(
+                        builder: (context, isEnabled) {
+                          return SwitchListTile(
+                            title: const Text('音量键翻页'),
+                            value: isEnabled,
+                            onChanged: (value) {
+                              context.read<VolumeControlCubit>().updateVolumeControl(value);
+                            },
+                          );
+                        },
+                      ),
                       const SizedBox(height: 16),
                     ],
                   ],
