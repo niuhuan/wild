@@ -1,39 +1,27 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:wild/pages/auth_cubit.dart';
-import 'package:wild/pages/init_page.dart';
-import 'package:wild/pages/login_page.dart';
-import 'package:wild/pages/home_page.dart';
-import 'package:wild/pages/novel/line_height_cubit.dart';
-import 'package:wild/pages/novel/novel_info_page.dart';
-import 'package:wild/pages/novel/novel_downloading_page.dart';
-import 'package:wild/pages/novel/reader_page.dart';
-import 'package:wild/pages/novel/html_reader_page.dart';
-import 'package:wild/pages/novel/font_size_cubit.dart';
-import 'package:wild/pages/novel/paragraph_spacing_cubit.dart';
-import 'package:wild/pages/novel/theme_cubit.dart';
-import 'package:wild/pages/novel/reader_type_cubit.dart';
+import 'package:signals_flutter/signals_flutter.dart';
+import 'package:wild/features/app/pages/init_page.dart';
+import 'package:wild/features/auth/pages/login_page.dart';
+import 'package:wild/features/home/pages/home_page.dart';
+import 'package:wild/features/novel/pages/html_reader_page.dart';
+import 'package:wild/features/novel/pages/novel_downloading_page.dart';
+import 'package:wild/features/novel/pages/novel_info_page.dart';
+import 'package:wild/features/novel/pages/reader_page.dart';
+import 'package:wild/features/novel/pages/reviews_page.dart';
+import 'package:wild/features/novel/stores/reader_type_store.dart';
+import 'package:wild/features/novel/stores/theme_store.dart';
 import 'package:wild/src/rust/frb_generated.dart';
 import 'package:wild/src/rust/wenku8/models.dart';
-import 'package:wild/pages/home/bookshelf_cubit.dart';
-import 'package:wild/pages/home/category_page.dart';
-import 'package:wild/pages/articlelist/articlelist_page.dart';
-import 'package:wild/pages/recommend/recommend_page.dart';
-import 'package:wild/pages/home/more_page.dart';
-import 'package:wild/pages/search_page.dart';
-import 'package:wild/pages/home/about_page.dart';
+import 'package:wild/features/category/pages/category_page.dart';
+import 'package:wild/features/articlelist/pages/articlelist_page.dart';
+import 'package:wild/features/recommend/pages/recommend_page.dart';
+import 'package:wild/features/home/pages/more_page.dart';
+import 'package:wild/features/search/pages/search_page.dart';
+import 'package:wild/features/home/pages/about_page.dart';
 import 'package:wild/utils/app_info.dart';
-import 'package:wild/pages/update_cubit.dart';
 import 'package:wild/widgets/update_checker.dart';
-import 'package:wild/pages/novel/top_bar_height_cubit.dart';
-import 'package:wild/pages/novel/bottom_bar_height_cubit.dart';
-import 'package:wild/pages/novel/left_padding_cubit.dart';
-import 'package:wild/pages/novel/right_padding_cubit.dart';
-import 'package:wild/pages/novel/reviews_page.dart';
-import 'package:wild/cubits/api_host_cubit.dart';
-import 'package:wild/cubits/reader_background_cubit.dart';
-import 'package:wild/cubits/volume_control_cubit.dart';
+import 'package:wild/state/app_state.dart' as app;
 
 final lightTheme = ThemeData(
   colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
@@ -60,26 +48,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(create: (context) => AuthCubit()),
-        BlocProvider(create: (context) => BookshelfCubit()..loadBookcases()),
-        BlocProvider(create: (context) => ThemeCubit()),
-        BlocProvider(create: (context) => FontSizeCubit()),
-        BlocProvider(create: (context) => LineHeightCubit()),
-        BlocProvider(create: (context) => ParagraphSpacingCubit()),
-        BlocProvider(create: (context) => TopBarHeightCubit()),
-        BlocProvider(create: (context) => BottomBarHeightCubit()),
-        BlocProvider(create: (context) => LeftPaddingCubit()),
-        BlocProvider(create: (context) => RightPaddingCubit()),
-        BlocProvider(create: (context) => UpdateCubit()),
-        BlocProvider(create: (context) => ReaderTypeCubit()..loadType()),
-        BlocProvider(create: (context) => ApiHostCubit()),
-        BlocProvider(create: (context) => ReaderBackgroundCubit()),
-        BlocProvider(create: (context) => VolumeControlCubit()),
-      ],
-      child: YourApp(),
-    );
+    return const YourApp();
   }
 }
 
@@ -88,112 +57,92 @@ class YourApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ThemeCubit, ReaderTheme>(
-      builder: (context, theme) {
-        return MaterialApp(
-          title: '轻小说文库',
-          theme:
-              theme.themeMode == ReaderThemeMode.dark ? darkTheme : lightTheme,
-          darkTheme:
-              theme.themeMode == ReaderThemeMode.light ? lightTheme : darkTheme,
-          initialRoute: '/init',
-          routes: {
-            '/init': (context) => const InitPage(),
-            '/login': (context) => const UpdateChecker(child: LoginPage()),
-            '/home': (context) => const UpdateChecker(child: HomePage()),
-            '/novel/info': (context) {
-              final args = ModalRoute.of(context)!.settings.arguments;
-              if (args is Map<String, dynamic>) {
-                return NovelInfoPage(novelId: args['novelId'] as String);
-              }
-              return NovelInfoPage(novelId: args as String);
-            },
-            '/novel/reviews': (context) {
-              final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
-              return ReviewsPage(
-                aid: args['aid'] as String,
-                title: args['title'] as String,
-              );
-            },
-            '/novel/downloading': (context) {
-              final args =
-                  ModalRoute.of(context)!.settings.arguments
-                      as Map<String, dynamic>;
-              return NovelDownloadingPage(
-                novelId: args['novelId'] as String,
-                existsDownload: args['existsDownload'],
+    return Watch((context) {
+      final theme = app.theme.signal.watch(context);
+      return MaterialApp(
+        title: '轻小说文库',
+        theme: theme.themeMode == ReaderThemeMode.dark ? darkTheme : lightTheme,
+        darkTheme:
+            theme.themeMode == ReaderThemeMode.light ? lightTheme : darkTheme,
+        initialRoute: '/init',
+        routes: {
+          '/init': (context) => const InitPage(),
+          '/login': (context) => const UpdateChecker(child: LoginPage()),
+          '/home': (context) => const UpdateChecker(child: HomePage()),
+          '/novel/info': (context) {
+            final args = ModalRoute.of(context)!.settings.arguments;
+            if (args is Map<String, dynamic>) {
+              return NovelInfoPage(novelId: args['novelId'] as String);
+            }
+            return NovelInfoPage(novelId: args as String);
+          },
+          '/novel/reviews': (context) {
+            final args =
+                ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+            return ReviewsPage(
+              aid: args['aid'] as String,
+              title: args['title'] as String,
+            );
+          },
+          '/novel/downloading': (context) {
+            final args =
+                ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+            return NovelDownloadingPage(
+              novelId: args['novelId'] as String,
+              existsDownload: args['existsDownload'],
+              novelInfo: args['novelInfo'] as NovelInfo,
+              volumes: (args['volumes'] as List).cast<Volume>(),
+            );
+          },
+          '/novel/reader': (context) {
+            final args =
+                ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+            final readerType = app.readerType.state;
+
+            if (readerType == ReaderType.html) {
+              return HtmlReaderPage(
                 novelInfo: args['novelInfo'] as NovelInfo,
+                initialAid: args['novelId'] as String,
+                initialCid: args['chapterId'] as String,
                 volumes: (args['volumes'] as List).cast<Volume>(),
               );
-            },
-            '/novel/reader': (context) {
-              final args =
-                  ModalRoute.of(context)!.settings.arguments
-                      as Map<String, dynamic>;
-              final readerType = context.read<ReaderTypeCubit>().state;
-
-              if (readerType == ReaderType.html) {
-                return HtmlReaderPage(
-                  novelInfo: args['novelInfo'] as NovelInfo,
-                  initialAid: args['novelId'] as String,
-                  initialCid: args['chapterId'] as String,
-                  volumes: (args['volumes'] as List).cast<Volume>(),
-                );
-              } else {
-                return MultiBlocProvider(
-                  providers: [
-                    BlocProvider.value(value: context.read<FontSizeCubit>()),
-                    BlocProvider.value(
-                      value: context.read<ParagraphSpacingCubit>(),
-                    ),
-                    BlocProvider.value(value: context.read<LineHeightCubit>()),
-                    BlocProvider.value(value: context.read<ThemeCubit>()),
-                    BlocProvider.value(
-                      value: context.read<TopBarHeightCubit>(),
-                    ),
-                    BlocProvider.value(
-                      value: context.read<BottomBarHeightCubit>(),
-                    ),
-                  ],
-                  child: ReaderPage(
-                    aid: args['novelId'] as String,
-                    cid: args['chapterId'] as String,
-                    initialTitle: args['title'] as String,
-                    volumes: (args['volumes'] as List).cast<Volume>(),
-                    novelInfo: args['novelInfo'] as NovelInfo,
-                    initialPage: args['initialPage'] as int?,
-                  ),
-                );
-              }
-            },
-            '/category': (context) {
-              final args = ModalRoute.of(context)!.settings.arguments;
-              if (args is Map<String, dynamic> && args.containsKey('tag')) {
-                return Scaffold(
-                  appBar: AppBar(title: Text("分类")),
-                  body: CategoryPage(initialTag: args['tag'] as String),
-                );
-              }
-              return const CategoryPage();
-            },
-            '/articlelist': (context) => const ArticlelistPage(),
-            '/recommend': (context) => const RecommendPage(),
-            '/more': (context) => const MorePage(),
-            '/search': (context) {
-              final args = ModalRoute.of(context)!.settings.arguments;
-              if (args is Map<String, dynamic>) {
-                return SearchPage(
-                  initialSearchType: args['searchType'] as String?,
-                  initialSearchKey: args['searchKey'] as String?,
-                );
-              }
-              return const SearchPage();
-            },
-            '/about': (context) => const AboutPage(),
+            }
+            return ReaderPage(
+              aid: args['novelId'] as String,
+              cid: args['chapterId'] as String,
+              initialTitle: args['title'] as String,
+              volumes: (args['volumes'] as List).cast<Volume>(),
+              novelInfo: args['novelInfo'] as NovelInfo,
+              initialPage: args['initialPage'] as int?,
+            );
           },
-        );
-      },
-    );
+          '/category': (context) {
+            final args = ModalRoute.of(context)!.settings.arguments;
+            if (args is Map<String, dynamic> && args.containsKey('tag')) {
+              return Scaffold(
+                appBar: AppBar(title: Text("分类")),
+                body: CategoryPage(initialTag: args['tag'] as String),
+              );
+            }
+            return const CategoryPage();
+          },
+          '/articlelist': (context) => const ArticlelistPage(),
+          '/recommend': (context) => const RecommendPage(),
+          '/more': (context) => const MorePage(),
+          '/search': (context) {
+            final args = ModalRoute.of(context)!.settings.arguments;
+            if (args is Map<String, dynamic>) {
+              return SearchPage(
+                initialSearchType: args['searchType'] as String?,
+                initialSearchKey: args['searchKey'] as String?,
+              );
+            }
+            return const SearchPage();
+          },
+          '/about': (context) => const AboutPage(),
+        },
+      );
+    });
   }
 }
 
@@ -243,4 +192,3 @@ class _LoggingHttpClientRequest implements HttpClientRequest {
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
-

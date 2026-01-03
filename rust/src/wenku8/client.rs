@@ -16,7 +16,9 @@ use scraper::{ElementRef, Html, Selector};
 use tokio::sync::RwLock;
 
 const DEFAULT_API_HOST: &str = "https://www.wenku8.net";
-const APP_HOST: &str = "http://app.wenku8.com";
+// Wenku8 app API is no longer reliably reachable; use the relay used by wenku8reader.
+const APP_HOST: &str = "https://wenku8-relay.mewx.org";
+const APP_VER: &str = "1.23-nano-mewx";
 
 pub struct Wenku8Client {
     pub client: Client,
@@ -937,8 +939,8 @@ impl Wenku8Client {
                 base64::prelude::BASE64_STANDARD
                     .encode(format!("action=book&do=text&aid={aid}&cid={cid}&t=0").as_bytes()),
             ),
-            ("appver", "1.21".to_string()),
-            ("timetoken", chrono::Utc::now().timestamp().to_string()),
+            ("appver", APP_VER.to_string()),
+            ("timetoken", chrono::Utc::now().timestamp_millis().to_string()),
         ];
         let response = self
             .client
@@ -1300,8 +1302,8 @@ impl Wenku8Client {
                 "request",
                 base64::prelude::BASE64_STANDARD.encode(format!("action=block&do=sign").as_bytes()),
             ),
-            ("appver", "1.18".to_string()),
-            ("timetoken", chrono::Utc::now().timestamp().to_string()),
+            ("appver", APP_VER.to_string()),
+            ("timetoken", chrono::Utc::now().timestamp_millis().to_string()),
         ];
         let response = self
             .client

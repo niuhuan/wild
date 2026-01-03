@@ -17,14 +17,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.12.0"
-  bloc:
-    dependency: transitive
-    description:
-      name: bloc
-      sha256: "106842ad6569f0b60297619e9e0b1885c2fb9bf84812935490e6c5275777804e"
-      url: "https://pub.dev"
-    source: hosted
-    version: "8.1.4"
   boolean_selector:
     dependency: transitive
     description:
@@ -166,14 +158,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  flutter_bloc:
-    dependency: "direct main"
-    description:
-      name: flutter_bloc
-      sha256: b594505eac31a0518bdcb4b5b79573b8d9117b193cc80cc12e17d639b10aa27a
-      url: "https://pub.dev"
-    source: hosted
-    version: "8.1.6"
   flutter_colorpicker:
     dependency: "direct main"
     description:
@@ -407,14 +391,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.0"
-  nested:
-    dependency: transitive
-    description:
-      name: nested
-      sha256: "03bac4c528c64c95c722ec99280375a6f2fc708eec17c7b3f07253b626cd2a20"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.0.0"
   package_info_plus:
     dependency: "direct main"
     description:
@@ -463,14 +439,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "5.0.3"
-  provider:
-    dependency: transitive
-    description:
-      name: provider
-      sha256: "4abbd070a04e9ddc287673bf5a030c7ca8b685ff70218720abab8b092f53dd84"
-      url: "https://pub.dev"
-    source: hosted
-    version: "6.1.5"
   rust_lib_wild:
     dependency: "direct main"
     description:
@@ -478,6 +446,30 @@ packages:
       relative: true
     source: path
     version: "0.0.1"
+  signals:
+    dependency: "direct main"
+    description:
+      name: signals
+      sha256: "4ea50be15466de9460af2e1ac2b189e2f772bd7f0ccb84d72e1f6f9fea828138"
+      url: "https://pub.dev"
+    source: hosted
+    version: "5.5.0"
+  signals_core:
+    dependency: transitive
+    description:
+      name: signals_core
+      sha256: f4af1dd285e89bf0bb268676c9d175ea6fb6a894d81260f6b564decad46ad240
+      url: "https://pub.dev"
+    source: hosted
+    version: "5.5.0"
+  signals_flutter:
+    dependency: "direct main"
+    description:
+      name: signals_flutter
+      sha256: cd8064f0f013a85e68441ca7bc659b858b7742b23973fa84e588c206069e16aa
+      url: "https://pub.dev"
+    source: hosted
+    version: "5.5.1"
   sky_engine:
     dependency: transitive
     description: flutter

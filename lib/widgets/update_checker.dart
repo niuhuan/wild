@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:wild/pages/update_cubit.dart';
+import 'package:wild/features/app/stores/update_store.dart';
+import 'package:wild/state/app_state.dart' as app;
 
 class UpdateChecker extends StatefulWidget {
   final Widget child;
@@ -85,7 +85,7 @@ class _UpdateCheckerState extends State<UpdateChecker> {
   }
 
   Future<void> _checkUpdate() async {
-    final updateInfo = await context.read<UpdateCubit>().checkUpdate(force: widget.forceCheck);
+    final updateInfo = await app.update.checkUpdate(force: widget.forceCheck);
     if (updateInfo != null && mounted) {
       _showUpdateDialog(updateInfo);
     }
