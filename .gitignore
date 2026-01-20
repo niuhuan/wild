@@ -34,8 +34,6 @@ migrate_working_dir/
 /build/
 
 # FVM
-.fvm/flutter_sdk
-.fvm/versions
 
 # Symbolication related
 app.*.symbols
@@ -49,3 +47,6 @@ app.*.map.json
 /android/app/release
 
 .vscode/
+
+# FVM Version Cache
+.fvm/

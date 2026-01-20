@@ -1,4 +1,5 @@
 import 'package:wild/features/settings/stores/api_host_store.dart';
+import 'package:wild/features/settings/stores/chinese_conversion_store.dart';
 import 'package:wild/features/settings/stores/reader_background_store.dart';
 import 'package:wild/features/settings/stores/volume_control_store.dart';
 import 'package:wild/features/auth/stores/auth_store.dart';
@@ -29,3 +30,4 @@ final readerType = ReaderTypeStore();
 final apiHost = ApiHostStore();
 final readerBackground = ReaderBackgroundStore();
 final volumeControl = VolumeControlStore();
+final chineseConversion = ChineseConversionStore();

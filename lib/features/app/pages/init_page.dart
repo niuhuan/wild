@@ -40,6 +40,7 @@ class _InitPageState extends State<InitPage> {
       app.readerType.loadType(),
       app.readerBackground.init(root),
       app.volumeControl.init(),
+      app.chineseConversion.init(),
     ]);
 
     if (app.auth.state.status == AuthStatus.authenticated) {

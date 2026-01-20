@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:wild/features/settings/screen/screen_up_on_reading_property.dart';
 import 'package:wild/features/settings/screen/screen_up_on_scroll_property.dart';
+import 'package:wild/features/settings/stores/chinese_conversion_store.dart';
 import 'package:wild/features/novel/stores/theme_store.dart';
 import 'package:wild/features/novel/stores/reader_type_store.dart';
 import 'package:wild/src/rust/api/wenku8.dart';
@@ -21,6 +22,8 @@ class SettingsPage extends StatelessWidget {
         final readerType = app.readerType.signal.watch(context);
         final apiHost = app.apiHost.signal.watch(context);
         final isVolumeControlEnabled = app.volumeControl.signal.watch(context);
+        final chineseConversionMode =
+            app.chineseConversion.signal.watch(context);
         return ListView(
             children: [
               const SizedBox(height: 8),
@@ -62,6 +65,40 @@ class SettingsPage extends StatelessWidget {
                             onSelectionChanged: (Set<ReaderType> types) async {
                               await app.readerType.updateType(types.first);
                             },
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('繁简体转换'),
+                          const SizedBox(height: 8),
+                          SegmentedButton<ChineseConversionMode>(
+                            segments: const [
+                              ButtonSegment<ChineseConversionMode>(
+                                value: ChineseConversionMode.none,
+                                label: Text('不转换'),
+                              ),
+                              ButtonSegment<ChineseConversionMode>(
+                                value: ChineseConversionMode.toSimplified,
+                                label: Text('转换为简体'),
+                              ),
+                              ButtonSegment<ChineseConversionMode>(
+                                value: ChineseConversionMode.toTraditional,
+                                label: Text('转换为繁体'),
+                              ),
+                            ],
+                            selected: {chineseConversionMode},
+                            onSelectionChanged:
+                                (Set<ChineseConversionMode> modes) async {
+                                  await app.chineseConversion.updateMode(
+                                    modes.first,
+                                  );
+                                },
                           ),
                         ],
                       ),

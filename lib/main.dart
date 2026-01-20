@@ -164,31 +164,23 @@ class _LoggingHttpClient implements HttpClient {
     print('[HTTP][$method] $url');
     try {
       final req = await _inner.openUrl(method, url);
-      return _LoggingHttpClientRequest(req, url, method, startedAt);
+      req.done.then((resp) {
+        final ms = DateTime.now().difference(startedAt).inMilliseconds;
+        print('[HTTP][RESP ${resp.statusCode}] $method $url (${ms}ms)');
+      }, onError: (e) {
+        final ms = DateTime.now().difference(startedAt).inMilliseconds;
+        print('[HTTP][ERR][$method] $url (${ms}ms) -> $e');
+      });
+      return req;
     } catch (e) {
       print('[HTTP][ERR][$method] $url -> $e');
       rethrow;
     }
   }
 
-  // 其他方法交給原本的 client
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-class _LoggingHttpClientRequest implements HttpClientRequest {
-  final HttpClientRequest _inner;
-  final Uri url;
-  final String method;
-  final DateTime startedAt;
-  _LoggingHttpClientRequest(this._inner, this.url, this.method, this.startedAt);
-
   @override
-  Future<HttpClientResponse> close() async {
-    final resp = await _inner.close();
-    final ms = DateTime.now().difference(startedAt).inMilliseconds;
-    print('[HTTP][RESP ${resp.statusCode}] $method $url (${ms}ms)');
-    return resp;
-  }
+  void close({bool force = false}) => _inner.close(force: force);
 
+  // 其他方法交給原本的 client
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

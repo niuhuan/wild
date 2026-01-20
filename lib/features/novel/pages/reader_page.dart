@@ -9,6 +9,7 @@ import 'package:wild/utils/controller_event.dart';
 import 'dart:io';
 import 'package:signals_flutter/signals_flutter.dart';
 import 'package:wild/state/app_state.dart' as app;
+import 'package:wild/features/novel/pages/image_preview_page.dart';
 
 import 'package:wild/src/rust/wenku8/models.dart';
 
@@ -281,6 +282,7 @@ class _ReaderViewState extends State<_ReaderView> {
 
       final theme = app.theme.signal.watch(context);
       final backgroundState = app.readerBackground.signal.watch(context);
+      app.chineseConversion.signal.watch(context);
 
       final bool isDarkMode;
       if (theme.themeMode == ReaderThemeMode.dark) {
@@ -294,6 +296,7 @@ class _ReaderViewState extends State<_ReaderView> {
       final backgroundColor =
           isDarkMode ? theme.darkBackgroundColor : theme.lightBackgroundColor;
       final textColor = isDarkMode ? theme.darkTextColor : theme.lightTextColor;
+      final displayTitle = app.chineseConversion.convert(widget.title);
 
       String? backgroundImagePath;
       if (isDarkMode && backgroundState.darkBackgroundExists) {
@@ -359,7 +362,7 @@ class _ReaderViewState extends State<_ReaderView> {
                       ),
                       Expanded(
                         child: Text(
-                          widget.title,
+                          displayTitle,
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 18,
@@ -536,7 +539,20 @@ class _ImagePage extends StatelessWidget {
                   height: availableHeight,
                   fit: BoxFit.contain,
                   loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
+                    if (loadingProgress == null) {
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder:
+                                  (context) =>
+                                      ImagePreviewPage(imageUrl: imageUrl),
+                            ),
+                          );
+                        },
+                        child: child,
+                      );
+                    }
                     return Container(
                       width: screenWidth - leftAndRightPadding,
                       color: Colors.grey[200],
@@ -670,91 +686,99 @@ class _ChapterListState extends State<_ChapterList> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(color: Theme.of(context).dividerColor),
+    return Watch((context) {
+      app.chineseConversion.signal.watch(context);
+      return Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(color: Theme.of(context).dividerColor),
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.menu_book),
+                  const SizedBox(width: 8),
+                  const Text(
+                    '目录',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const Spacer(),
+                  TextButton.icon(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close),
+                    label: const Text('关闭'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Theme.of(context).colorScheme.secondary,
+                    ),
+                  ),
+                ],
               ),
             ),
-            child: Row(
-              children: [
-                const Icon(Icons.menu_book),
-                const SizedBox(width: 8),
-                const Text(
-                  '目录',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const Spacer(),
-                TextButton.icon(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close),
-                  label: const Text('关闭'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: Theme.of(context).colorScheme.secondary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              itemCount: widget.volumes.length,
-              itemBuilder: (context, volumeIndex) {
-                final volume = widget.volumes[volumeIndex];
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Text(
-                        volume.title,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    ...volume.chapters.map((chapter) {
-                      final isSelected =
-                          chapter.aid == widget.currentAid &&
-                          chapter.cid == widget.currentCid;
-                      return Container(
-                        color:
-                            isSelected
-                                ? Colors.grey.withAlpha(80)
-                                : Colors.transparent,
-                        child: ListTile(
-                          onTap:
-                              () => widget.onChapterSelected(
-                                chapter.aid,
-                                chapter.cid,
-                              ),
-                          title: Text(
-                            chapter.title,
-                            style: TextStyle(
-                              fontWeight: isSelected ? FontWeight.bold : null,
-                            ),
+            Expanded(
+              child: ListView.builder(
+                controller: _scrollController,
+                itemCount: widget.volumes.length,
+                itemBuilder: (context, volumeIndex) {
+                  final volume = widget.volumes[volumeIndex];
+                  final volumeTitle = app.chineseConversion.convert(volume.title);
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Text(
+                          volumeTitle,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                      );
-                    }),
-                  ],
-                );
-              },
+                      ),
+                      ...volume.chapters.map((chapter) {
+                        final isSelected =
+                            chapter.aid == widget.currentAid &&
+                            chapter.cid == widget.currentCid;
+                        final chapterTitle = app.chineseConversion.convert(
+                          chapter.title,
+                        );
+                        return Container(
+                          color:
+                              isSelected
+                                  ? Colors.grey.withAlpha(80)
+                                  : Colors.transparent,
+                          child: ListTile(
+                            onTap:
+                                () => widget.onChapterSelected(
+                                  chapter.aid,
+                                  chapter.cid,
+                                ),
+                            title: Text(
+                              chapterTitle,
+                              style: TextStyle(
+                                fontWeight:
+                                    isSelected ? FontWeight.bold : null,
+                              ),
+                            ),
+                          ),
+                        );
+                      }),
+                    ],
+                  );
+                },
+              ),
             ),
-          ),
-        ],
-      ),
-    );
+          ],
+        ),
+      );
+    });
   }
 }
 

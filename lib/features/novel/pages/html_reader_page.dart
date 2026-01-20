@@ -4,6 +4,7 @@ import 'package:wild/features/novel/stores/html_reader_store.dart';
 import 'package:wild/features/novel/stores/theme_store.dart';
 import 'package:wild/state/app_state.dart' as app;
 import 'package:wild/widgets/cached_image.dart';
+import 'package:wild/features/novel/pages/image_preview_page.dart';
 
 import 'package:wild/src/rust/wenku8/models.dart';
 
@@ -120,9 +121,36 @@ class _HtmlReaderPageState extends State<HtmlReaderPage> {
             final item = state.parsedContent[index];
             if (item is ParsedImage) {
               return Center(
-                child: CachedImage(
-                  url: item.imageUrl,
+                child: Image(
+                  image: CachedImageProvider(item.imageUrl),
                   fit: BoxFit.contain,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) {
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder:
+                                  (context) => ImagePreviewPage(
+                                    imageUrl: item.imageUrl,
+                                  ),
+                            ),
+                          );
+                        },
+                        child: child,
+                      );
+                    }
+                    return Container(
+                      color: Colors.grey.withAlpha(80),
+                      child: const Center(child: CircularProgressIndicator()),
+                    );
+                  },
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      color: Colors.grey.withAlpha(80),
+                      child: const Icon(Icons.broken_image),
+                    );
+                  },
                 ),
               );
             }
