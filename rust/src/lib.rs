@@ -247,15 +247,13 @@ fn random_fire_fox_version() -> String {
 }
 
 fn random_android_ua() -> String {
-    // let mut rng = rand::rng();
-    // let android_version = ANDROID_VERSIONS.choose(&mut rng).unwrap();
-    // let device = DEVICES.choose(&mut rng).unwrap();
-    // let build_id = random_build_id();
-    // let firefox_version = random_fire_fox_version();
-    // format!(
-    //     // "Dalvik/2.1.0 (Linux; U; Android {}; {} Build/{}) Gecko/20100101 Firefox/{}.0",
-    //     "Dalvik/2.1.0 (Linux; U; Android 15; {} Build/AQ3A.{}.{})",
-    //     device, build_id, firefox_version
-    // )
-    "Dalvik/2.1.0 (Linux; U; Android 15; 23114RD76B Build/AQ3A.240912.001)".to_string()
+    let mut rng = rand::rng();
+    let android_version = ANDROID_VERSIONS.choose(&mut rng).unwrap();
+    let device = DEVICES.choose(&mut rng).unwrap();
+    let build_id = random_build_id();
+    let firefox_version = random_fire_fox_version();
+    format!(
+        "Dalvik/2.1.0 (Linux; U; Android 15; {} Build/AQ3A.{}.{})",
+        device, build_id, firefox_version
+    )
 }
