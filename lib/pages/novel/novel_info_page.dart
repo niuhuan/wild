@@ -492,11 +492,18 @@ class _NovelTags extends StatelessWidget {
   }
 }
 
-class _VolumeItem extends StatelessWidget {
+class _VolumeItem extends StatefulWidget {
   final Volume volume;
   final Function(Chapter) onChapterTap;
 
   const _VolumeItem({required this.volume, required this.onChapterTap});
+
+  @override
+  State<_VolumeItem> createState() => _VolumeItemState();
+}
+
+class _VolumeItemState extends State<_VolumeItem> {
+  bool _isExpanded = false;
 
   @override
   Widget build(BuildContext context) {
@@ -505,42 +512,64 @@ class _VolumeItem extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Text(
-              volume.title,
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+          InkWell(
+            onTap: () {
+              setState(() {
+                _isExpanded = !_isExpanded;
+              });
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Icon(
+                    _isExpanded
+                        ? Icons.keyboard_arrow_down
+                        : Icons.keyboard_arrow_right,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      widget.volume.title,
+                      style: Theme.of(
+                        context,
+                      ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-          const Divider(height: 1),
-          ...volume.chapters.map((chapter) {
-            return InkWell(
-              onTap: () => onChapterTap(chapter),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        chapter.title,
-                        style: Theme.of(context).textTheme.bodyMedium,
+          if (_isExpanded) ...[
+            const Divider(height: 1),
+            ...widget.volume.chapters.map((chapter) {
+              return InkWell(
+                onTap: () => widget.onChapterTap(chapter),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          chapter.title,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
                       ),
-                    ),
-                    Icon(
-                      Icons.chevron_right,
-                      size: 20,
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ],
+                      Icon(
+                        Icons.chevron_right,
+                        size: 20,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            );
-          }).toList(),
+              );
+            }).toList(),
+          ],
         ],
       ),
     );
