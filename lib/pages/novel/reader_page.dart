@@ -661,6 +661,7 @@ class _ChapterList extends StatefulWidget {
 class _ChapterListState extends State<_ChapterList> {
   late ScrollController _scrollController;
   int _currentChapterGlobalIndex = 0;
+  final Set<int> _expandedVolumes = {};
 
   @override
   void initState() {
@@ -668,6 +669,10 @@ class _ChapterListState extends State<_ChapterList> {
     _scrollController = ScrollController();
     // 计算当前章节的全局索引
     _currentChapterGlobalIndex = _calculateCurrentChapterIndex();
+    // 默认展开当前卷及其之前的卷，便于用户看到当前位置
+    for (int i = 0; i <= _findCurrentVolumeIndex(); i++) {
+      _expandedVolumes.add(i);
+    }
     // 在下一帧滚动到当前章节
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
@@ -777,43 +782,69 @@ class _ChapterListState extends State<_ChapterList> {
               itemCount: widget.volumes.length,
               itemBuilder: (context, volumeIndex) {
                 final volume = widget.volumes[volumeIndex];
+                final isExpanded = _expandedVolumes.contains(volumeIndex);
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Text(
-                        volume.title,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                    InkWell(
+                      onTap: () {
+                        setState(() {
+                          if (isExpanded) {
+                            _expandedVolumes.remove(volumeIndex);
+                          } else {
+                            _expandedVolumes.add(volumeIndex);
+                          }
+                        });
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          children: [
+                            Icon(
+                              isExpanded
+                                  ? Icons.keyboard_arrow_down
+                                  : Icons.keyboard_arrow_right,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                volume.title,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
-                    ...volume.chapters.map((chapter) {
-                      final isSelected =
-                          chapter.aid == widget.currentAid &&
-                          chapter.cid == widget.currentCid;
-                      return Container(
-                        color:
-                            isSelected
-                                ? Colors.grey.withAlpha(80)
-                                : Colors.transparent,
-                        child: ListTile(
-                          onTap:
-                              () => widget.onChapterSelected(
-                                chapter.aid,
-                                chapter.cid,
+                    if (isExpanded)
+                      ...volume.chapters.map((chapter) {
+                        final isSelected =
+                            chapter.aid == widget.currentAid &&
+                            chapter.cid == widget.currentCid;
+                        return Container(
+                          color:
+                              isSelected
+                                  ? Colors.grey.withAlpha(80)
+                                  : Colors.transparent,
+                          child: ListTile(
+                            onTap:
+                                () => widget.onChapterSelected(
+                                  chapter.aid,
+                                  chapter.cid,
+                                ),
+                            title: Text(
+                              chapter.title,
+                              style: TextStyle(
+                                fontWeight: isSelected ? FontWeight.bold : null,
                               ),
-                          title: Text(
-                            chapter.title,
-                            style: TextStyle(
-                              fontWeight: isSelected ? FontWeight.bold : null,
                             ),
                           ),
-                        ),
-                      );
-                    }),
+                        );
+                      }),
                   ],
                 );
               },

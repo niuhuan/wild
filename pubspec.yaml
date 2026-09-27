@@ -39,7 +39,7 @@ dependencies:
   flutter_rust_bridge: 2.11.1
   flutter_bloc: ^8.1.4
   equatable: ^2.0.5
-  flutter_html: ^3.0.0
+  flutter_html: 3.0.0-beta.2
   flutter_colorpicker: ^1.1.0
   intl: ^0.20.2
   package_info_plus: ^8.3.0
