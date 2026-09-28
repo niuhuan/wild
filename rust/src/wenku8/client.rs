@@ -1407,6 +1407,8 @@ impl Wenku8Client {
         search_key: &str,
         page: i32,
     ) -> Result<PageStats<NovelCover>> {
+        // 先訪問首頁，確保 session cookie 已建立（避免 CF 403）
+        let _ = self.init_session().await;
         let search_key = gbk_url_encode(search_key);
         let url = format!(
             "{}/modules/article/search.php?searchtype={search_type}&searchkey={search_key}&page={page}&charset=gbk",self.load_api_host().await
